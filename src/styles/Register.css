@@ -1,0 +1,744 @@
+/* ================================
+   GLOBAL
+================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f4f6fb;
+}
+
+
+/* ================================
+   REGISTER PAGE
+================================ */
+
+.register-page {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 35px 25px;
+}
+
+
+/* ================================
+   MAIN CARD
+================================ */
+
+.register-card {
+  width: 1100px;
+  min-height: 650px;
+
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ================================
+   LEFT SIDE
+================================ */
+
+.register-form {
+  padding: 35px 45px;
+  overflow-y: auto;
+  max-height: 720px;
+}
+
+
+/* ================================
+   HEADING
+================================ */
+
+.heading {
+  margin-bottom: 25px;
+}
+
+.heading h1 {
+  color: #111827;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.heading-line {
+  width: 55px;
+  height: 4px;
+  background: #312e81;
+  border-radius: 5px;
+  margin-top: 8px;
+}
+
+
+/* ================================
+   FORM GRID
+================================ */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+
+/* ================================
+   INPUT BOX
+================================ */
+
+.input-box {
+  display: flex;
+  align-items: center;
+
+  min-height: 46px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  padding: 9px 12px;
+
+  background: #ffffff;
+
+  transition: 0.2s ease;
+}
+
+.input-box:focus-within {
+  border-color: #312e81;
+  box-shadow: 0 0 0 2px rgba(49, 46, 129, 0.08);
+}
+
+.input-box svg {
+  color: #6b7280;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.input-box input,
+.input-box textarea {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  margin-left: 10px;
+
+  font-size: 14px;
+  color: #111827;
+
+  background: transparent;
+}
+
+.input-box input::placeholder,
+.input-box textarea::placeholder {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.input-box textarea {
+  resize: none;
+  padding-top: 3px;
+}
+
+
+/* ================================
+   FULL WIDTH
+================================ */
+
+.full {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+
+/* ================================
+   ADDRESS
+================================ */
+
+.textarea-box {
+  align-items: flex-start;
+  min-height: 75px;
+}
+
+.textarea-box svg {
+  margin-top: 5px;
+}
+
+
+/* ================================
+   OTP SECTION
+================================ */
+
+.otp-section {
+  margin-top: 20px;
+  padding-top: 5px;
+}
+
+
+/* OTP title */
+
+.otp-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #111827;
+  font-size: 17px;
+  font-weight: 600;
+
+  margin-bottom: 5px;
+}
+
+.otp-title::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+
+  background: #312e81;
+  border-radius: 5px;
+}
+
+
+/* OTP description */
+
+.otp-description {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+
+/* ================================
+   SEND OTP BUTTON
+================================ */
+
+.send-otp-btn {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  padding: 11px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.send-otp-btn:hover {
+  background: #1f2937;
+}
+
+.send-otp-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+/* ================================
+   OTP BOX
+================================ */
+
+.otp-box {
+  margin-top: 14px;
+  padding: 14px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+
+/* OTP input + verify */
+
+.otp-input-row {
+  display: grid;
+  grid-template-columns: 1fr 130px;
+  gap: 10px;
+}
+
+.otp-input {
+  background: #ffffff;
+  margin: 0;
+}
+
+
+/* ================================
+   VERIFY BUTTON
+================================ */
+
+.verify-otp-btn {
+  border: none;
+  border-radius: 8px;
+
+  background: #312e81;
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.verify-otp-btn:hover {
+  background: #3730a3;
+}
+
+.verify-otp-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+/* ================================
+   RESEND OTP
+================================ */
+
+.resend-text {
+  margin-top: 10px;
+
+  text-align: center;
+
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.resend-text button {
+  margin-left: 5px;
+
+  border: none;
+  background: transparent;
+
+  color: #312e81;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.resend-text button:hover {
+  text-decoration: underline;
+}
+
+
+/* ================================
+   OTP SUCCESS
+================================ */
+
+.otp-success {
+  margin-top: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 11px;
+
+  background: #ecfdf5;
+
+  border: 1px solid #86efac;
+  border-radius: 8px;
+
+  color: #15803d;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.otp-success svg {
+  font-size: 17px;
+}
+
+
+/* ================================
+   TERMS CHECKBOX
+================================ */
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 18px 0;
+
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.checkbox input {
+  width: 15px;
+  height: 15px;
+
+  cursor: pointer;
+}
+
+.checkbox a {
+  color: #312e81;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.checkbox a:hover {
+  text-decoration: underline;
+}
+
+
+/* ================================
+   LOGIN LINK
+================================ */
+
+.register-link {
+  text-align: center;
+
+  margin: 12px 0 18px;
+
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+.register-link a {
+  margin-left: 5px;
+
+  color: #312e81;
+
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+
+/* ================================
+   REGISTER BUTTON
+================================ */
+
+.buttons {
+  width: 100%;
+}
+
+.register-btn {
+  width: 100%;
+
+  padding: 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.register-btn:hover {
+  background: #1f2937;
+}
+
+.register-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+/* ================================
+   RIGHT SIDE
+================================ */
+
+.register-info {
+  background: linear-gradient(
+    135deg,
+    #0f172a,
+    #312e81
+  );
+
+  color: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+
+  padding: 35px;
+}
+
+
+/* ================================
+   SHIELD
+================================ */
+
+.shield-wrapper {
+  width: 90px;
+  height: 90px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  margin-bottom: 18px;
+}
+
+.shield {
+  font-size: 50px;
+  color: #22c55e;
+}
+
+
+/* ================================
+   RIGHT TITLE
+================================ */
+
+.register-info h2 {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.info-description {
+  max-width: 280px;
+
+  color: #dbeafe;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+
+  margin-bottom: 22px;
+}
+
+
+/* ================================
+   PROCESS CARD
+================================ */
+
+.process-card {
+  width: 100%;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  border-radius: 12px;
+
+  padding: 20px;
+
+  backdrop-filter: blur(5px);
+
+  text-align: left;
+}
+
+.process-card h3 {
+  color: #ffffff;
+
+  font-size: 17px;
+
+  margin-bottom: 16px;
+}
+
+
+/* ================================
+   PROCESS ITEM
+================================ */
+
+.process-item {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 13px;
+
+  color: #f9fafb;
+
+  font-size: 13px;
+}
+
+.process-item:last-child {
+  margin-bottom: 0;
+}
+
+.process-icon {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(34, 197, 94, 0.15);
+
+  color: #4ade80;
+
+  flex-shrink: 0;
+}
+
+.process-icon svg {
+  font-size: 13px;
+}
+
+
+/* ================================
+   SECURITY CARD
+================================ */
+
+.security-card {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-top: 18px;
+
+  padding: 14px;
+
+  background: rgba(255, 255, 255, 0.06);
+
+  border-radius: 10px;
+
+  text-align: left;
+}
+
+.security-card > svg {
+  color: #4ade80;
+
+  font-size: 25px;
+
+  flex-shrink: 0;
+}
+
+.security-card h4 {
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.security-card p {
+  color: #cbd5e1;
+
+  font-size: 11px;
+
+  line-height: 1.4;
+}
+
+
+/* ================================
+   SCROLLBAR
+================================ */
+
+.register-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.register-form::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.register-form::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 992px) {
+
+  .register-page {
+    padding: 25px 15px;
+  }
+
+  .register-card {
+    width: 100%;
+    min-height: auto;
+
+    grid-template-columns: 1fr;
+  }
+
+  .register-info {
+    display: none;
+  }
+
+  .register-form {
+    max-height: none;
+    padding: 30px;
+  }
+}
+
+
+@media (max-width: 600px) {
+
+  .register-page {
+    padding: 15px;
+  }
+
+  .register-card {
+    border-radius: 12px;
+  }
+
+  .register-form {
+    padding: 22px 18px;
+  }
+
+  .heading h1 {
+    font-size: 25px;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .otp-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .verify-otp-btn {
+    min-height: 44px;
+  }
+
+  .register-btn {
+    padding: 13px;
+  }
+}

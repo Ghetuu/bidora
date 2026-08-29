@@ -1,0 +1,57 @@
+:root {
+  --primary: #6c63ff;
+  --secondary: #00c6ff;
+  --dark: #111827;
+  --light: #f9fafb;
+  --text: #374151;
+  --border: #e5e7eb;
+
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: var(--text);
+  background: var(--light);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+body {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+
+input,
+textarea,
+select {
+  font-family: inherit;
+}

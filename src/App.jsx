@@ -1,0 +1,167 @@
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
+
+
+// =====================================================
+// PUBLIC PAGES
+// =====================================================
+
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+
+// =====================================================
+// ADMIN PAGES
+// =====================================================
+
+import AdminLogin from "./admin/adminlogin";
+import AdminDashboard from "./admin/admindashboard";
+import AdminHome from "./admin/adminhome";
+import AdminUsers from "./admin/adminusers";
+
+
+// =====================================================
+// USER DASHBOARD
+// =====================================================
+
+import Dashboard from "./pages/Dashboard";
+import DashboardHome from "./pages/dashboard_home";
+import CreateAuction from "./pages/createauction";
+
+function App() {
+
+  return (
+
+    <BrowserRouter>
+
+      <Routes>
+
+
+        {/* =================================================
+            PUBLIC PAGES
+        ================================================= */}
+
+        <Route
+          path="/"
+          element={<Home />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+
+        {/* =================================================
+            USER DASHBOARD
+        ================================================= */}
+
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        >
+
+          {/* Default User Dashboard */}
+
+          <Route
+            index
+            element={<DashboardHome />}
+          />
+
+          {/* User Dashboard Home */}
+
+          <Route
+            path="home"
+            element={<DashboardHome />}
+          />
+
+          <Route 
+            path="create-auction" 
+            element={<CreateAuction />} 
+          />
+
+        </Route>
+
+
+        {/* =================================================
+            ADMIN LOGIN
+        ================================================= */}
+
+        <Route
+          path="/admin/login"
+          element={<AdminLogin />}
+        />
+
+
+        {/* =================================================
+            ADMIN DASHBOARD
+            Sidebar + Navbar + Page Content
+        ================================================= */}
+
+        <Route
+          path="/admin/dashboard"
+          element={<AdminDashboard />}
+        >
+
+          {/* =============================================
+              DEFAULT ADMIN HOME
+
+              URL:
+              /admin/dashboard
+          ============================================= */}
+
+          <Route
+            index
+            element={<AdminHome />}
+          />
+
+
+          {/* =============================================
+              ALL USERS
+
+              URL:
+              /admin/dashboard/users
+          ============================================= */}
+
+          <Route
+            path="users"
+            element={<AdminUsers />}
+          />
+
+        </Route>
+
+
+        {/* =================================================
+            UNKNOWN URL
+        ================================================= */}
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
+          }
+        />
+
+      </Routes>
+
+    </BrowserRouter>
+
+  );
+
+}
+
+
+export default App;

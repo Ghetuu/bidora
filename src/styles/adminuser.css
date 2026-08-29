@@ -1,0 +1,1287 @@
+/* =====================================================
+   ADMIN USERS PAGE
+===================================================== */
+
+.admin-users-page {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 4px 8px 30px;
+  animation: pageFadeIn 0.45s ease-out;
+}
+
+
+/* =====================================================
+   PAGE ANIMATION
+===================================================== */
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes iconFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.users-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-left: 2px;
+}
+
+.users-page-header h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.5px;
+}
+
+.users-page-header p {
+  margin-top: 7px;
+  color: #5146d8;
+  font-size: 14px;
+}
+
+.users-page-header p::first-line {
+  transition: color 0.2s ease;
+}
+
+
+/* =====================================================
+   STAT CARDS
+===================================================== */
+
+.users-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 25px;
+}
+
+.user-stat-card {
+  background: #ffffff;
+  border: 1px solid #e7e9f0;
+  border-radius: 10px;
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  animation: cardAppear 0.5s ease-out both;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+/* Stagger cards */
+
+.user-stat-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.user-stat-card:nth-child(2) {
+  animation-delay: 0.10s;
+}
+
+.user-stat-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.user-stat-card:nth-child(4) {
+  animation-delay: 0.20s;
+}
+
+
+/* Card hover */
+
+.user-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(30, 41, 59, 0.10);
+  border-color: #d8d9ef;
+}
+
+
+/* =====================================================
+   STAT ICONS
+===================================================== */
+
+.user-stat-icon {
+  width: 62px;
+  height: 62px;
+  min-width: 62px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 27px;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.user-stat-card:hover .user-stat-icon {
+  animation: iconFloat 0.7s ease-in-out;
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.08);
+}
+
+.blue-icon {
+  color: #2563eb;
+  background: #dbeafe;
+}
+
+.green-icon {
+  color: #16a34a;
+  background: #dcfce7;
+}
+
+.red-icon {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+.purple-icon {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
+
+/* =====================================================
+   STAT TEXT
+===================================================== */
+
+.user-stat-card span {
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.user-stat-card h2 {
+  margin: 5px 0;
+  font-size: 27px;
+  color: #111827;
+
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.user-stat-card:hover h2 {
+  color: #5146d8;
+  transform: translateX(2px);
+}
+
+.user-stat-card p {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+
+/* =====================================================
+   TABLE CARD
+===================================================== */
+
+.users-table-card {
+  background: #ffffff;
+  border: 1px solid #e7e9f0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  animation: cardAppear 0.55s ease-out 0.2s both;
+
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.users-table-card:hover {
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.07);
+}
+
+
+/* =====================================================
+   TOOLBAR
+===================================================== */
+
+.users-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.user-search {
+  height: 42px;
+  min-width: 330px;
+
+  border: 1px solid #d8dbe4;
+  border-radius: 6px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 13px;
+  color: #64748b;
+  background: #ffffff;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.user-search:hover {
+  border-color: #b9b5f0;
+}
+
+.user-search:focus-within {
+  border-color: #5146d8;
+  box-shadow: 0 0 0 3px rgba(81, 70, 216, 0.10);
+  transform: translateY(-1px);
+}
+
+.user-search svg {
+  transition: transform 0.25s ease;
+}
+
+.user-search:focus-within svg {
+  transform: scale(1.1);
+}
+
+.user-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+  background: transparent;
+}
+
+.user-search input::placeholder {
+  color: #9ca3af;
+}
+
+
+/* =====================================================
+   STATUS SELECT
+===================================================== */
+
+.users-toolbar select {
+  height: 42px;
+  min-width: 160px;
+
+  border: 1px solid #d8dbe4;
+  border-radius: 6px;
+
+  padding: 0 12px;
+  outline: none;
+
+  color: #374151;
+  background: white;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.users-toolbar select:hover {
+  border-color: #aaa5e8;
+}
+
+.users-toolbar select:focus {
+  border-color: #5146d8;
+  box-shadow: 0 0 0 3px rgba(81, 70, 216, 0.10);
+}
+
+
+/* =====================================================
+   TOOLBAR BUTTONS
+===================================================== */
+
+.search-btn,
+.add-user-btn,
+.export-btn {
+  height: 42px;
+
+  border: none;
+  border-radius: 6px;
+
+  padding: 0 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  cursor: pointer;
+  color: white;
+
+  font-weight: 600;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.search-btn {
+  background: #5146d8;
+}
+
+.add-user-btn {
+  background: #2563eb;
+}
+
+.export-btn {
+  background: #16a34a;
+}
+
+
+/* Button hover */
+
+.search-btn:hover,
+.add-user-btn:hover,
+.export-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15);
+}
+
+
+/* Button click */
+
+.search-btn:active,
+.add-user-btn:active,
+.export-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+
+/* Icon movement */
+
+.search-btn svg,
+.add-user-btn svg,
+.export-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.search-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.add-user-btn:hover {
+  letter-spacing: 0.1px;
+}
+
+.export-btn:hover {
+  transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   TABLE WRAPPER
+===================================================== */
+
+.users-table-wrapper {
+  overflow-x: auto;
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1100px;
+}
+
+.users-table th {
+  background: #fafbfc;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+
+  text-align: left;
+
+  padding: 17px 14px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  white-space: nowrap;
+}
+
+.users-table td {
+  padding: 14px;
+
+  font-size: 13px;
+  color: #374151;
+
+  border-bottom: 1px solid #edf0f3;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* Row hover */
+
+.users-table tbody tr {
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.users-table tbody tr:hover {
+  background: #fafbff;
+}
+
+.users-table tbody tr:hover td {
+  color: #111827;
+}
+
+
+/* =====================================================
+   USER AVATAR
+===================================================== */
+
+.username-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+
+  background: #eef2ff;
+  color: #5146d8;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-weight: 700;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.users-table tbody tr:hover .user-avatar {
+  transform: scale(1.08);
+  background: #e4e1ff;
+  box-shadow: 0 4px 10px rgba(81, 70, 216, 0.16);
+}
+
+
+/* =====================================================
+   ROLE
+===================================================== */
+
+.role-badge {
+  display: inline-block;
+
+  padding: 5px 10px;
+
+  background: #e7efff;
+  color: #2563eb;
+
+  border-radius: 5px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.users-table tbody tr:hover .role-badge {
+  transform: translateY(-1px);
+  background: #dce8ff;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 10px;
+
+  border-radius: 5px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.status-badge.active {
+  color: #16a34a;
+  background: #dcfce7;
+}
+
+.status-badge.inactive {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: currentColor;
+}
+
+.users-table tbody tr:hover .status-badge {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+}
+
+
+/* =====================================================
+   ACTION BUTTONS
+===================================================== */
+
+.action-buttons {
+  display: flex;
+  gap: 7px;
+}
+
+.action-buttons button {
+  width: 36px;
+  height: 34px;
+
+  border: none;
+  border-radius: 6px;
+
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+
+/* View */
+
+.view-btn {
+  background: #2563eb;
+}
+
+
+/* Update */
+
+.update-btn {
+  background: #f59e0b;
+}
+
+
+/* Delete */
+
+.delete-btn {
+  background: #ef4444;
+}
+
+
+/* Action hover */
+
+.view-btn:hover,
+.update-btn:hover,
+.delete-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  filter: brightness(1.05);
+  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.18);
+}
+
+
+/* Action click */
+
+.view-btn:active,
+.update-btn:active,
+.delete-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+
+/* Disabled delete */
+
+.delete-btn.disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.delete-btn.disabled:hover {
+  background: #d1d5db;
+  transform: none;
+  box-shadow: none;
+}
+
+
+/* =====================================================
+   PAGINATION
+===================================================== */
+
+.users-pagination {
+  padding: 17px 20px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  color: #374151;
+  font-size: 13px;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.pagination-buttons button {
+  min-width: 34px;
+  height: 34px;
+
+  border: 1px solid #d9dce4;
+  background: white;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pagination-buttons button:hover:not(:disabled) {
+  background: #f1f0ff;
+  color: #5146d8;
+  border-color: #bcb8f1;
+  transform: translateY(-2px);
+}
+
+.pagination-buttons button.current-page {
+  background: #5146d8;
+  color: white;
+  border-color: #5146d8;
+}
+
+.pagination-buttons button.current-page:hover {
+  background: #4338ca;
+  color: white;
+}
+
+.pagination-buttons button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pagination-buttons button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+/* =====================================================
+   POPUP OVERLAY
+===================================================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(15, 23, 42, 0.55);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+  padding: 20px;
+
+  animation: overlayFadeIn 0.25s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* =====================================================
+   GENERAL MODAL
+===================================================== */
+
+.user-modal {
+  width: 500px;
+  max-width: 100%;
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  background: white;
+  border-radius: 12px;
+
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+
+  animation: modalOpen 0.3s ease-out;
+}
+
+@keyframes modalOpen {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =====================================================
+   MODAL HEADER
+===================================================== */
+
+.modal-header {
+  padding: 18px 22px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #111827;
+}
+
+.modal-header button {
+  width: 32px;
+  height: 32px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  color: #6b7280;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.modal-header button:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+
+/* =====================================================
+   VIEW MODAL
+===================================================== */
+
+.modal-body {
+  padding: 22px;
+}
+
+.modal-user-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  padding-bottom: 20px;
+  margin-bottom: 12px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.large-avatar {
+  width: 58px;
+  height: 58px;
+
+  border-radius: 50%;
+
+  background: #ede9fe;
+  color: #5146d8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.modal-user-header:hover .large-avatar {
+  transform: scale(1.08);
+  box-shadow: 0 7px 18px rgba(81, 70, 216, 0.18);
+}
+
+.modal-user-header h3 {
+  margin: 0 0 4px;
+}
+
+.modal-user-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 12px 0;
+
+  border-bottom: 1px solid #f0f1f4;
+
+  transition:
+    padding-left 0.2s ease,
+    background 0.2s ease;
+}
+
+.detail-row:hover {
+  padding-left: 5px;
+}
+
+.detail-row span {
+  color: #6b7280;
+}
+
+.detail-row strong {
+  color: #111827;
+  text-align: right;
+  max-width: 60%;
+}
+
+
+/* =====================================================
+   UPDATE FORM
+===================================================== */
+
+.update-form {
+  padding: 22px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid #d7dae2;
+  border-radius: 6px;
+
+  padding: 11px 12px;
+
+  font-size: 14px;
+  outline: none;
+
+  font-family: inherit;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
+  border-color: #aaa5e8;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #5146d8;
+  box-shadow: 0 0 0 3px rgba(81, 70, 216, 0.10);
+  transform: translateY(-1px);
+}
+
+
+/* =====================================================
+   MODAL FOOTER
+===================================================== */
+
+.modal-footer {
+  padding: 16px 22px;
+
+  border-top: 1px solid #e5e7eb;
+
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 10px;
+}
+
+.modal-close-btn,
+.save-user-btn {
+  border: none;
+  border-radius: 6px;
+
+  padding: 10px 18px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.modal-close-btn {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.save-user-btn {
+  background: #5146d8;
+  color: white;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.modal-close-btn:hover,
+.save-user-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.12);
+}
+
+.modal-close-btn:active,
+.save-user-btn:active {
+  transform: translateY(0);
+}
+
+
+/* =====================================================
+   DELETE MODAL
+===================================================== */
+
+.delete-modal {
+  width: 400px;
+  max-width: 100%;
+
+  background: white;
+
+  border-radius: 12px;
+
+  padding: 30px;
+
+  text-align: center;
+
+  box-sizing: border-box;
+
+  animation: modalOpen 0.3s ease-out;
+}
+
+.delete-icon {
+  width: 60px;
+  height: 60px;
+
+  margin: 0 auto 15px;
+
+  border-radius: 50%;
+
+  background: #fee2e2;
+  color: #ef4444;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 24px;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.delete-modal:hover .delete-icon {
+  transform: scale(1.08);
+  box-shadow: 0 7px 18px rgba(239, 68, 68, 0.15);
+}
+
+.delete-modal h2 {
+  margin: 0 0 10px;
+}
+
+.delete-modal p {
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.warning-text {
+  font-size: 13px;
+  color: #ef4444 !important;
+}
+
+.delete-modal-buttons {
+  display: flex;
+  justify-content: center;
+
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+.cancel-delete,
+.confirm-delete {
+  border: none;
+  border-radius: 6px;
+
+  padding: 11px 18px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cancel-delete {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.confirm-delete {
+  background: #ef4444;
+  color: white;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.cancel-delete:hover,
+.confirm-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.14);
+}
+
+.cancel-delete:active,
+.confirm-delete:active {
+  transform: translateY(0);
+}
+
+
+/* =====================================================
+   CUSTOM SCROLLBAR
+===================================================== */
+
+.user-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-modal::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.user-modal::-webkit-scrollbar-thumb {
+  background: #c4c1ed;
+  border-radius: 10px;
+}
+
+.user-modal::-webkit-scrollbar-thumb:hover {
+  background: #5146d8;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1200px) {
+
+  .users-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .users-toolbar {
+    flex-wrap: wrap;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .admin-users-page {
+    padding: 0 2px 25px;
+  }
+
+  .users-page-header h1 {
+    font-size: 24px;
+  }
+
+  .users-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .users-toolbar {
+    gap: 12px;
+  }
+
+  .user-search {
+    min-width: 100%;
+  }
+
+  .users-toolbar select,
+  .search-btn,
+  .add-user-btn,
+  .export-btn {
+    flex: 1;
+  }
+
+  .users-pagination {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+}
+
+
+/* =====================================================
+   REDUCE MOTION
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+}

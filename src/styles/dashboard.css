@@ -1,0 +1,650 @@
+/* =========================================================
+   BIDORA DASHBOARD — DARK NAVY SIDEBAR + SOFT PURPLE-BLUE THEME
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Dark Sidebar Theme (From Reference) */
+  --sidebar-bg: #1e2442;            /* Deep Slate Navy */
+  --sidebar-border: #2a3158;
+  --sidebar-text: #8e9bb8;           /* Soft muted blue-gray */
+  --sidebar-text-hover: #ffffff;
+  --sidebar-active-bg: #2d386b;     /* Slightly lighter active pill */
+  --sidebar-active-text: #ffffff;
+  --sidebar-user-bg: #161a33;       /* Darker inset profile card */
+
+  /* Light Main Surface & Navbar */
+  --dashboard-bg: #f5f7fb;          /* Soft cool background */
+  --dashboard-surface: #ffffff;
+  --dashboard-border: #e8ecef;
+  --dashboard-border-subtle: #f0f3f7;
+
+  /* Accent Colors (From Graphs & Badges) */
+  --dashboard-primary: #6366f1;     /* Indigo/Purple Accent */
+  --dashboard-primary-hover: #4f46e5;
+  --dashboard-primary-light: #eef2ff;
+  --dashboard-success: #10b981;      /* Bright Teal/Green */
+
+  /* Typography */
+  --dashboard-text-heading: #1e293b;
+  --dashboard-text-body: #475569;
+  --dashboard-muted: #94a3b8;
+
+  /* Card & Floating Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.bidora-dashboard {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--dashboard-bg);
+  display: flex;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--dashboard-text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================================
+   SIDEBAR (DARK NAVY ACCENT)
+========================================================= */
+
+.bidora-dashboard .dashboard-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 260px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.bidora-dashboard.sidebar-collapsed .dashboard-sidebar {
+  width: 80px;
+}
+
+/* LOGO SECTION */
+.bidora-dashboard .dashboard-logo {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Space out brand info and close button */
+  padding: 0 16px 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.bidora-dashboard .dashboard-logo {
+  justify-content: space-between;
+  padding: 0 16px 0 20px;
+}
+
+
+.bidora-dashboard .dashboard-logo {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Collapsed sidebar */
+.bidora-dashboard.sidebar-collapsed .dashboard-logo {
+  justify-content: center;
+  padding: 0;
+}
+
+.bidora-dashboard.sidebar-collapsed .dashboard-logo > div:first-child {
+  display: none !important;
+}
+
+.bidora-dashboard .dashboard-logo-icon {
+  min-width: 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+
+.bidora-dashboard .dashboard-logo-text h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.bidora-dashboard .dashboard-logo-text span {
+  display: block;
+  margin-top: 1px;
+  color: var(--sidebar-text);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* SIDEBAR USER PROFILE CARD */
+.bidora-dashboard .sidebar-user-profile {
+  padding: 12px 16px;
+  margin: 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--sidebar-user-bg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.bidora-dashboard .sidebar-user-avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #2d386b;
+  color: #818cf8;
+  font-size: 18px;
+}
+
+.bidora-dashboard .sidebar-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bidora-dashboard .sidebar-user-info strong {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bidora-dashboard .sidebar-user-info span {
+  margin-top: 1px;
+  color: var(--sidebar-text);
+  font-size: 11px;
+}
+
+/* NAVIGATION LINKS (ROUNDED CAPSULE STYLE) */
+.bidora-dashboard .sidebar-navigation {
+  flex: 1;
+  padding: 8px 14px;
+  overflow-y: auto;
+}
+
+.bidora-dashboard .sidebar-heading {
+  margin: 16px 12px 8px;
+  color: #5d6b89;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.bidora-dashboard .dashboard-nav-link {
+  position: relative;
+  width: 100%;
+  min-height: 42px;
+  margin-bottom: 6px;
+  padding: 0 16px;
+  border-radius: 12px; /* Smooth rounded pills */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.bidora-dashboard .dashboard-nav-link svg {
+  min-width: 18px;
+  width: 18px;
+  color: var(--sidebar-text);
+  font-size: 16px;
+  transition: color 0.2s ease;
+}
+
+/* Hover & Active States */
+.bidora-dashboard .dashboard-nav-link:hover {
+  color: var(--sidebar-text-hover);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bidora-dashboard .dashboard-nav-link:hover svg {
+  color: var(--sidebar-text-hover);
+}
+
+.bidora-dashboard .dashboard-nav-link.active {
+  color: var(--sidebar-active-text);
+  background: var(--sidebar-active-bg);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bidora-dashboard .dashboard-nav-link.active svg {
+  color: #818cf8;
+}
+
+.bidora-dashboard .dashboard-nav-link.active::before {
+  display: none; /* Pill design doesn't use vertical left border indicator */
+}
+
+/* LIVE PULSE DOT */
+.bidora-dashboard .live-dot {
+  width: 8px !important;
+  height: 8px !important;
+  min-width: 8px !important;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--dashboard-success);
+  box-shadow: 0 0 8px var(--dashboard-success);
+}
+
+/* HISTORY DROPDOWN */
+.bidora-dashboard .history-toggle {
+  width: 100%;
+  min-height: 42px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.bidora-dashboard .history-toggle:hover,
+.bidora-dashboard .history-toggle.history-active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bidora-dashboard .history-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bidora-dashboard .history-submenu {
+  padding: 4px 0 4px 20px;
+  border-left: 1px solid var(--sidebar-border);
+  margin-left: 20px;
+  margin-top: 4px;
+}
+
+.bidora-dashboard .history-submenu .dashboard-nav-link {
+  min-height: 36px;
+  font-size: 13px;
+}
+
+/* SIDEBAR FOOTER & LOGOUT */
+.bidora-dashboard .sidebar-bottom {
+  padding: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.bidora-dashboard .logout-button {
+  width: 100%;
+  height: 42px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bidora-dashboard .logout-button:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ffffff;
+}
+
+/* =========================================================
+   MAIN AREA & NAVBAR (SOFT PILL STYLE)
+========================================================= */
+
+.bidora-dashboard .dashboard-main {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+  min-height: 100vh;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bidora-dashboard.sidebar-collapsed .dashboard-main {
+  width: calc(100% - 80px);
+  margin-left: 80px;
+}
+
+.bidora-dashboard .dashboard-navbar {
+  height: 76px;
+  background: var(--dashboard-surface);
+  border-bottom: 1px solid var(--dashboard-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  box-sizing: border-box; /* Ensures padding does not stretch header height */
+}
+
+.bidora-dashboard .navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bidora-dashboard .sidebar-toggle {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 50%; /* Capsule circle */
+  background: var(--dashboard-surface);
+  color: var(--dashboard-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bidora-dashboard .sidebar-toggle:hover {
+  color: var(--dashboard-primary);
+  border-color: var(--dashboard-primary-light);
+  background: var(--dashboard-primary-light);
+}
+
+/* CAPSULE SEARCH BAR FROM DESIGN */
+.bidora-dashboard .navbar-search {
+  width: 360px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 99px;
+  background: var(--dashboard-bg);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.bidora-dashboard .navbar-search:focus-within {
+  border-color: var(--dashboard-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.bidora-dashboard .navbar-search svg {
+  color: var(--dashboard-muted);
+  font-size: 14px;
+  flex-shrink: 0; /* Prevents search icon squeezing */
+}
+
+.bidora-dashboard .navbar-search input {
+  flex: 1;
+  min-width: 0;
+  border: none !important; /* Removes outer white browser border */
+  outline: none !important;
+  background: transparent !important;
+  color: var(--dashboard-text-heading);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0;
+  margin: 0;
+  box-shadow: none !important; /* Prevents focus ring duplicate */
+}
+
+.bidora-dashboard .navbar-search input::placeholder {
+  color: var(--dashboard-muted);
+}
+
+/* Fix Right Area Vertical Alignment */
+.bidora-dashboard .navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.bidora-dashboard .notification-button {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-bg);
+  color: var(--dashboard-muted);
+  border-radius: 50%; /* Capsule circle */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.bidora-dashboard .notification-button:hover {
+  background: var(--dashboard-primary-light);
+  border-color: var(--dashboard-primary);
+  color: var(--dashboard-primary);
+}
+
+.bidora-dashboard .notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 50%;
+  background: var(--dashboard-primary);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bidora-dashboard .navbar-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 4px 12px 4px 4px;
+  border-radius: 99px;
+  background: var(--dashboard-bg);
+  border: 1px solid var(--dashboard-border);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  height: 40px; /* Match height with buttons and search bar */
+}
+
+.bidora-dashboard .navbar-profile:hover {
+  border-color: var(--dashboard-primary);
+  background: #ffffff;
+}
+
+.bidora-dashboard .profile-avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: var(--dashboard-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.bidora-dashboard .profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.bidora-dashboard .profile-info strong {
+  color: var(--dashboard-text-heading);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.bidora-dashboard .profile-info small {
+  color: var(--dashboard-muted);
+  font-size: 10px;
+}
+
+.bidora-dashboard .profile-arrow {
+  color: var(--dashboard-muted);
+  font-size: 11px;
+}
+
+/* =========================================================
+   PAGE CONTENT CONTAINER & CARDS
+========================================================= */
+
+.bidora-dashboard .dashboard-content {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.bidora-dashboard .dashboard-card,
+.bidora-dashboard .chart-card,
+.bidora-dashboard .activity-card,
+.bidora-dashboard .stat-card {
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 20px; /* Smooth rounded corners matching reference image */
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.bidora-dashboard .dashboard-card:hover {
+  box-shadow: var(--shadow-card);
+}
+
+/* Form Inputs matching the Soft Capsule Style */
+.bidora-dashboard input[type="text"],
+.bidora-dashboard select,
+.bidora-dashboard textarea {
+  width: 100%;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: #ffffff;
+  color: var(--dashboard-text-heading);
+  font-family: inherit;
+  font-size: 13.5px;
+  transition: all 0.2s ease;
+}
+
+.bidora-dashboard input[type="text"]:focus,
+.bidora-dashboard select:focus,
+.bidora-dashboard textarea:focus {
+  outline: none;
+  border-color: var(--dashboard-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.bidora-dashboard label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dashboard-text-heading);
+  margin-bottom: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1000px) {
+  .bidora-dashboard .dashboard-sidebar {
+    width: 80px;
+  }
+  .bidora-dashboard .dashboard-main {
+    width: calc(100% - 80px);
+    margin-left: 80px;
+  }
+  .bidora-dashboard .dashboard-logo-text,
+  .bidora-dashboard .sidebar-heading,
+  .bidora-dashboard .sidebar-user-profile,
+  .bidora-dashboard .dashboard-nav-link span:not(.live-dot),
+  .bidora-dashboard .history-toggle span,
+  .bidora-dashboard .history-toggle svg:last-child,
+  .bidora-dashboard .logout-button span {
+    display: none;
+  }
+  .bidora-dashboard .dashboard-logo {
+    justify-content: center;
+    padding: 0;
+  }
+  .bidora-dashboard .dashboard-nav-link {
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .bidora-dashboard .dashboard-sidebar {
+    width: 0;
+    transform: translateX(-100%);
+  }
+  .bidora-dashboard.sidebar-expanded .dashboard-sidebar {
+    width: 260px;
+    transform: translateX(0);
+  }
+  .bidora-dashboard .dashboard-main {
+    width: 100%;
+    margin-left: 0;
+  }
+  .bidora-dashboard .navbar-search,
+  .bidora-dashboard .profile-info {
+    display: none;
+  }
+  .bidora-dashboard .dashboard-content {
+    padding: 20px 16px;
+  }
+}

@@ -1,0 +1,947 @@
+/* =========================================================
+   BIDORA ADMIN DASHBOARD
+   Sidebar + Navbar + Layout Only
+========================================================= */
+
+@import url(
+  'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap'
+);
+
+
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
+
+.admin-dashboard {
+
+  width: 100%;
+  height: 100vh;
+
+  display: flex;
+
+  overflow: hidden;
+
+  background: #f7f8fc;
+
+  font-family: "Poppins", sans-serif;
+
+  color: #1f2937;
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.admin-dashboard .sidebar {
+
+  width: 235px;
+  height: 100vh;
+
+  flex-shrink: 0;
+
+  background: #111a31;
+
+  color: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  transition:
+    width 0.25s ease,
+    transform 0.25s ease;
+
+  z-index: 100;
+
+}
+
+
+.admin-dashboard .sidebar.closed {
+
+  width: 0;
+
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.admin-dashboard .logo {
+
+  height: 95px;
+
+  padding: 0 22px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+
+}
+
+
+.admin-dashboard .logo-icon {
+
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7448ef,
+      #a15cff
+    );
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  color: #ffffff;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 20px;
+  font-weight: 600;
+
+}
+
+
+.admin-dashboard .logo-text {
+
+  display: flex;
+
+  flex-direction: column;
+
+}
+
+
+.admin-dashboard .logo-text h2 {
+
+  margin: 0;
+
+  color: #a96cff;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 20px;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  line-height: 1.2;
+
+}
+
+
+.admin-dashboard .logo-text span {
+
+  display: block;
+
+  margin-top: 4px;
+
+  color: #aeb7ca;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 9px;
+
+  font-weight: 400;
+
+  letter-spacing: 0.5px;
+
+}
+
+
+/* =========================================================
+   SIDEBAR MENU
+========================================================= */
+
+.admin-dashboard .sidebar-menu {
+
+  list-style: none;
+
+  padding: 0 10px;
+
+  margin: 8px 0 0;
+
+  flex: 1;
+
+}
+
+
+/* =========================================================
+   SIDEBAR MENU
+========================================================= */
+
+.admin-dashboard .sidebar-menu > li {
+  width: 100%;
+  min-height: 48px;
+
+  padding: 0 14px;
+  margin-bottom: 5px;
+
+  box-sizing: border-box;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  color: #bfc7d8;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+
+  letter-spacing: 0.1px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* Main sidebar text */
+
+.admin-dashboard .sidebar-menu > li > span {
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+
+/* Icons */
+
+.admin-dashboard .sidebar-menu > li > svg {
+  width: 18px;
+  min-width: 18px;
+
+  height: 18px;
+
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   HOVER
+========================================================= */
+
+.admin-dashboard .sidebar-menu > li:hover {
+
+  background: rgba(
+    111,
+    73,
+    236,
+    0.16
+  );
+
+  color: #ffffff;
+
+}
+
+
+/* =========================================================
+   ACTIVE
+========================================================= */
+
+.admin-dashboard .sidebar-menu > li.active {
+
+  background:
+    linear-gradient(
+      90deg,
+      #7045e8,
+      #5d35d5
+    );
+
+  color: #ffffff;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  box-shadow:
+    0 5px 14px
+    rgba(
+      99,
+      64,
+      220,
+      0.25
+    );
+
+}
+
+
+.admin-dashboard .sidebar-menu > li.active > span {
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+}
+
+
+/* =========================================================
+   DROPDOWN
+========================================================= */
+
+.admin-dashboard .sidebar-menu > li.dropdown {
+  display: block;
+  padding: 0;
+}
+
+
+.admin-dashboard .dropdown-title {
+  width: 100%;
+  height: 48px;
+
+  padding: 0 14px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+
+  line-height: 1;
+}
+
+
+/* Dropdown icon + text */
+
+.admin-dashboard .menu-label {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+
+  color: inherit;
+}
+
+
+/* Dropdown icon */
+
+.admin-dashboard .menu-label svg {
+  width: 18px;
+  min-width: 18px;
+
+  height: 18px;
+
+  font-size: 16px;
+}
+
+
+/* Dropdown arrow */
+
+.admin-dashboard .arrow {
+  font-family: Arial, sans-serif;
+
+  font-size: 9px;
+
+  color: #8f98ac;
+}
+
+/* =========================================================
+   OPEN DROPDOWN
+========================================================= */
+
+.admin-dashboard
+.sidebar-menu
+> li.dropdown-open {
+
+  background:
+    rgba(
+      111,
+      73,
+      236,
+      0.10
+    );
+
+}
+
+
+/* =========================================================
+   SUBMENU
+========================================================= */
+
+.admin-dashboard .submenu {
+  list-style: none;
+
+  padding: 3px 8px 8px 48px;
+  margin: 0;
+}
+
+
+.admin-dashboard .submenu li {
+  padding: 9px 6px;
+
+  color: #9da6ba;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 13px;
+  font-weight: 400;
+
+  line-height: 1.4;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    padding-left 0.2s ease;
+}
+
+
+.admin-dashboard .submenu li:hover {
+  color: #ffffff;
+
+  padding-left: 10px;
+}
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.admin-dashboard .logout {
+
+  min-height: 46px;
+
+  margin: 10px;
+
+  padding: 0 14px;
+
+  border-radius: 8px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+
+  color: #ff6371;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.1px;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+
+}
+
+
+.admin-dashboard .logout span {
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 500;
+
+}
+
+
+.admin-dashboard .logout svg {
+
+  width: 16px;
+  min-width: 16px;
+
+  font-size: 15px;
+
+}
+
+
+.admin-dashboard .logout:hover {
+
+  background:
+    rgba(
+      255,
+      80,
+      96,
+      0.10
+    );
+
+  color: #ff7a86;
+
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.admin-dashboard .main-content {
+
+  flex: 1;
+
+  min-width: 0;
+
+  height: 100vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  overflow: hidden;
+
+  transition: width 0.25s ease;
+
+}
+
+
+.admin-dashboard .main-content.expanded {
+
+  width: 100%;
+
+}
+
+
+/* =========================================================
+   TOP NAVBAR
+========================================================= */
+
+.admin-dashboard .topbar {
+
+  height: 68px;
+
+  flex-shrink: 0;
+
+  background: #ffffff;
+
+  border-bottom:
+    1px solid #eceef4;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 0 27px;
+
+  box-sizing: border-box;
+
+  z-index: 50;
+
+}
+
+
+/* Navbar left/right */
+
+.admin-dashboard .topbar-left,
+.admin-dashboard .topbar-right {
+
+  display: flex;
+
+  align-items: center;
+
+}
+
+
+.admin-dashboard .topbar-left {
+
+  gap: 20px;
+
+}
+
+
+.admin-dashboard .topbar-right {
+
+  gap: 24px;
+
+}
+
+
+/* =========================================================
+   MENU ICON
+========================================================= */
+
+.admin-dashboard .menu-icon {
+
+  color: #667085;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  transition: color 0.2s ease;
+
+}
+
+
+.admin-dashboard .menu-icon:hover {
+
+  color: #6d4aff;
+
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.admin-dashboard .search-box {
+
+  width: 310px;
+
+  height: 37px;
+
+  border:
+    1px solid #e2e5eb;
+
+  border-radius: 7px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 0 12px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+}
+
+
+.admin-dashboard .search-box svg {
+
+  color: #a0a7b5;
+
+  font-size: 12px;
+
+}
+
+
+.admin-dashboard .search-box input {
+
+  width: 100%;
+
+  height: 100%;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  color: #353c4d;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 400;
+
+}
+
+
+.admin-dashboard
+.search-box
+input::placeholder {
+
+  color: #a0a7b5;
+
+}
+
+
+/* =========================================================
+   NOTIFICATION
+========================================================= */
+
+.admin-dashboard .notification {
+
+  width: 28px;
+
+  height: 35px;
+
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  color: #657084;
+
+  cursor: pointer;
+
+}
+
+
+.admin-dashboard .notification > svg {
+
+  font-size: 16px;
+
+}
+
+
+.admin-dashboard .notification-count {
+
+  position: absolute;
+
+  top: 0;
+
+  right: -3px;
+
+  width: 15px;
+
+  height: 15px;
+
+  border-radius: 50%;
+
+  background: #ed4358;
+
+  color: #ffffff;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 8px;
+
+  font-weight: 700;
+
+}
+
+
+/* =========================================================
+   ADMIN PROFILE
+========================================================= */
+
+.admin-dashboard .profile {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  cursor: pointer;
+
+}
+
+
+.admin-dashboard .profile img {
+
+  width: 37px;
+
+  height: 37px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border:
+    2px solid #f0f1f5;
+
+}
+
+
+.admin-dashboard .profile-info h4 {
+
+  margin: 0;
+
+  color: #272e3e;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+}
+
+
+.admin-dashboard .profile-info p {
+
+  margin: 3px 0 0;
+
+  color: #9299a8;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 9px;
+
+  font-weight: 400;
+
+}
+
+
+.admin-dashboard .profile-arrow {
+
+  color: #8991a2;
+
+  font-size: 8px;
+
+}
+
+
+/* =========================================================
+   PAGE CONTENT
+========================================================= */
+
+.admin-dashboard .page-content {
+
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+
+  background: #f7f8fc;
+
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.admin-dashboard .sidebar::-webkit-scrollbar,
+.admin-dashboard .page-content::-webkit-scrollbar {
+
+  width: 5px;
+
+}
+
+
+.admin-dashboard .sidebar::-webkit-scrollbar-thumb,
+.admin-dashboard .page-content::-webkit-scrollbar-thumb {
+
+  background: #343e5a;
+
+  border-radius: 10px;
+
+}
+
+
+.admin-dashboard .page-content::-webkit-scrollbar-track {
+
+  background: #f7f8fc;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE - 900px
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .admin-dashboard .sidebar {
+
+    width: 210px;
+
+  }
+
+
+  .admin-dashboard .search-box {
+
+    width: 220px;
+
+  }
+
+
+  .admin-dashboard .profile-info {
+
+    display: none;
+
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE - 650px
+========================================================= */
+
+@media (max-width: 650px) {
+
+  .admin-dashboard .sidebar {
+
+    position: fixed;
+
+    left: 0;
+
+    top: 0;
+
+    bottom: 0;
+
+  }
+
+
+  .admin-dashboard .sidebar.closed {
+
+    transform: translateX(-100%);
+
+    width: 210px;
+
+  }
+
+
+  .admin-dashboard .topbar {
+
+    padding: 0 15px;
+
+  }
+
+
+  .admin-dashboard .search-box {
+
+    width: 170px;
+
+  }
+
+
+  .admin-dashboard .topbar-right {
+
+    gap: 10px;
+
+  }
+
+}
