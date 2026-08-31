@@ -3,32 +3,44 @@ import "../styles/createauction.css";
 
 const CreateAuction = () => {
   const [images, setImages] = useState([]);
+  const [purchaseProof, setPurchaseProof] = useState(null);
+  const [sellerProof, setSellerProof] = useState(null);
+  const [sellerImage, setSellerImage] = useState(null);
 
   const [formData, setFormData] = useState({
     productTitle: "",
     category: "",
-    condition: "",
     description: "",
-    warranty: "",
+    condition: "",
 
-    basePrice: "",
-    reservePrice: "",
+    purchaseDate: "",
+    purchasedBy: "",
+    purchasePrice: "",
+
+    startingPrice: "",
     auctionStart: "",
     auctionEnd: "",
+
+    productLocation: "",
+    deliveryType: "Pickup Only",
+
+    shippingType: "Free",
+    shippingCharges: "",
 
     sellerName: "",
     sellerEmail: "",
     contactNumber: "",
+
+    area: "",
     city: "",
     state: "",
+    country: "India",
     pinCode: "",
 
-    deliveryType: "Local pickup",
-    estimatedDelivery: "",
-    shippingTerms: "Free shipping",
-    shippingCharges: "",
-    chargesPaidBy: "",
-    serviceProvider: "",
+    warrantyStatus: "",
+    warrantyDetails: "",
+
+    paymentMethod: "",
   });
 
   // =====================================================
@@ -52,7 +64,9 @@ const CreateAuction = () => {
     const files = Array.from(e.target.files || []);
 
     const validImages = files.filter((file) =>
-      ["image/jpeg", "image/png", "image/jpg"].includes(file.type)
+      ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
+        file.type
+      )
     );
 
     const availableSlots = 12 - images.length;
@@ -87,14 +101,66 @@ const CreateAuction = () => {
   };
 
   // =====================================================
-  // SUBMIT AUCTION
+  // PURCHASE PROOF
+  // =====================================================
+
+  const handlePurchaseProof = (e) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      setPurchaseProof(file);
+    }
+  };
+
+  // =====================================================
+  // SELLER PROOF
+  // =====================================================
+
+  const handleSellerProof = (e) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      setSellerProof(file);
+    }
+  };
+
+  // =====================================================
+  // SELLER IMAGE
+  // =====================================================
+
+  const handleSellerImage = (e) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      setSellerImage({
+        file,
+        preview: URL.createObjectURL(file),
+      });
+    }
+  };
+
+  // =====================================================
+  // SUBMIT
   // =====================================================
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (images.length < 3) {
+      alert("Please upload at least 3 product images.");
+      return;
+    }
+
+    if (!purchaseProof) {
+      alert("Please upload a bill or proof of purchase.");
+      return;
+    }
+
     console.log("Auction Data:", formData);
-    console.log("Images:", images);
+    console.log("Product Images:", images);
+    console.log("Purchase Proof:", purchaseProof);
+    console.log("Seller Proof:", sellerProof);
+    console.log("Seller Image:", sellerImage);
 
     alert("Auction published successfully!");
   };
@@ -105,7 +171,6 @@ const CreateAuction = () => {
 
   const saveDraft = () => {
     console.log("Draft saved:", formData);
-
     alert("Auction saved as draft.");
   };
 
@@ -124,13 +189,11 @@ const CreateAuction = () => {
             NEW LISTING
           </span>
 
-          <h1>
-            Create auction
-          </h1>
+          <h1>Create New Auction</h1>
 
           <p>
-            Create a trusted listing with accurate product details,
-            clear pricing, images and delivery information.
+            Add product details, proof of purchase, auction timing,
+            seller information and delivery preferences.
           </p>
 
         </div>
@@ -142,7 +205,7 @@ const CreateAuction = () => {
             className="auction-save-btn"
             onClick={saveDraft}
           >
-            Save draft
+            Save as Draft
           </button>
 
           <button
@@ -150,7 +213,7 @@ const CreateAuction = () => {
             form="create-auction-form"
             className="auction-publish-btn"
           >
-            Publish auction
+            Publish Auction
           </button>
 
         </div>
@@ -158,7 +221,7 @@ const CreateAuction = () => {
       </div>
 
       {/* =====================================================
-          AUCTION FORM
+          FORM
       ===================================================== */}
 
       <form
@@ -167,14 +230,14 @@ const CreateAuction = () => {
         onSubmit={handleSubmit}
       >
 
-        {/* =================================================
+        {/* =====================================================
             LEFT COLUMN
-        ================================================= */}
+        ===================================================== */}
 
         <div className="auction-left-column">
 
           {/* =================================================
-              ITEM DETAILS
+              1. PRODUCT INFORMATION
           ================================================= */}
 
           <section className="auction-card">
@@ -187,9 +250,7 @@ const CreateAuction = () => {
                   ▣
                 </span>
 
-                <span>
-                  Item details
-                </span>
+                <span>Product Information</span>
 
               </div>
 
@@ -204,7 +265,7 @@ const CreateAuction = () => {
             <div className="auction-field">
 
               <label htmlFor="productTitle">
-                Product title
+                Product Title
                 <span className="auction-required">*</span>
               </label>
 
@@ -214,7 +275,7 @@ const CreateAuction = () => {
                 name="productTitle"
                 value={formData.productTitle}
                 onChange={handleChange}
-                placeholder="e.g. Canon EOS R5 Mirrorless Body"
+                placeholder="e.g. Canon EOS R5 Mirrorless Camera"
                 required
               />
 
@@ -239,12 +300,18 @@ const CreateAuction = () => {
                   required
                 >
 
-                  <option value="">
-                    Select category
-                  </option>
+                  <option value="">Select category</option>
 
                   <option value="electronics">
                     Electronics
+                  </option>
+
+                  <option value="mobile">
+                    Mobile & Accessories
+                  </option>
+
+                  <option value="laptop">
+                    Laptop & Computer
                   </option>
 
                   <option value="vehicles">
@@ -299,7 +366,11 @@ const CreateAuction = () => {
                   </option>
 
                   <option value="like-new">
-                    Like new
+                    Like New
+                  </option>
+
+                  <option value="excellent">
+                    Excellent
                   </option>
 
                   <option value="good">
@@ -327,11 +398,12 @@ const CreateAuction = () => {
               <div className="auction-label-row">
 
                 <label htmlFor="description">
-                  Description
+                  Product Description
+                  <span className="auction-required">*</span>
                 </label>
 
                 <span className="auction-character-count">
-                  {formData.description.length}/750
+                  {formData.description.length}/1000
                 </span>
 
               </div>
@@ -341,28 +413,10 @@ const CreateAuction = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe usage, defects, accessories included, and anything a bidder should know."
-                rows="5"
-                maxLength="750"
-              />
-
-            </div>
-
-            {/* WARRANTY */}
-
-            <div className="auction-field">
-
-              <label htmlFor="warranty">
-                Warranty
-              </label>
-
-              <input
-                id="warranty"
-                type="text"
-                name="warranty"
-                value={formData.warranty}
-                onChange={handleChange}
-                placeholder="e.g. 5 months brand warranty remaining"
+                placeholder="Describe the product, usage, defects, accessories included and anything bidders should know."
+                rows="6"
+                maxLength="1000"
+                required
               />
 
             </div>
@@ -370,7 +424,7 @@ const CreateAuction = () => {
           </section>
 
           {/* =================================================
-              LOGISTICS & SCHEDULE
+              2. PURCHASE & PROOF
           ================================================= */}
 
           <section className="auction-card">
@@ -380,12 +434,141 @@ const CreateAuction = () => {
               <div className="auction-card-heading">
 
                 <span className="auction-section-icon">
-                  ◫
+                  ▤
                 </span>
 
+                <span>Purchase & Proof Details</span>
+
+              </div>
+
+              <span className="auction-section-number">
+                02
+              </span>
+
+            </div>
+
+            <p className="auction-card-description">
+              Provide original purchase information to verify product
+              ownership and authenticity.
+            </p>
+
+            {/* BILL / PROOF */}
+
+            <div className="auction-field">
+
+              <label>
+                Bill / Proof of Purchase
+                <span className="auction-required">*</span>
+              </label>
+
+              <label className="auction-upload-box auction-proof-upload">
+
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={handlePurchaseProof}
+                />
+
+                <div className="auction-upload-icon">
+                  ↑
+                </div>
+
+                <strong>
+                  {purchaseProof
+                    ? purchaseProof.name
+                    : "Upload Bill or Proof"}
+                </strong>
+
                 <span>
-                  Logistics & schedule
+                  JPG, PNG or PDF · Maximum 5MB
                 </span>
+
+              </label>
+
+            </div>
+
+            {/* PURCHASE DATE + WHO */}
+
+            <div className="auction-two-column">
+
+              <div className="auction-field">
+
+                <label htmlFor="purchaseDate">
+                  Date of Product Buy
+                  <span className="auction-required">*</span>
+                </label>
+
+                <input
+                  id="purchaseDate"
+                  type="date"
+                  name="purchaseDate"
+                  value={formData.purchaseDate}
+                  onChange={handleChange}
+                  required
+                />
+
+              </div>
+
+              <div className="auction-field">
+
+                <label htmlFor="purchasedBy">
+                  Who Purchased
+                  <span className="auction-required">*</span>
+                </label>
+
+                <input
+                  id="purchasedBy"
+                  type="text"
+                  name="purchasedBy"
+                  value={formData.purchasedBy}
+                  onChange={handleChange}
+                  placeholder="Name of original buyer"
+                  required
+                />
+
+              </div>
+
+            </div>
+
+            {/* PURCHASE PRICE */}
+
+            <div className="auction-field">
+
+              <label htmlFor="purchasePrice">
+                Original Purchase Price (₹)
+                <span className="auction-required">*</span>
+              </label>
+
+              <input
+                id="purchasePrice"
+                type="number"
+                min="0"
+                name="purchasePrice"
+                value={formData.purchasePrice}
+                onChange={handleChange}
+                placeholder="Enter original purchase price"
+                required
+              />
+
+            </div>
+
+          </section>
+
+          {/* =================================================
+              3. SELLER DETAILS
+          ================================================= */}
+
+          <section className="auction-card">
+
+            <div className="auction-card-title">
+
+              <div className="auction-card-heading">
+
+                <span className="auction-section-icon">
+                  ◉
+                </span>
+
+                <span>Seller Details</span>
 
               </div>
 
@@ -395,144 +578,59 @@ const CreateAuction = () => {
 
             </div>
 
-            {/* PRICE */}
+            {/* SELLER TOP */}
 
-            <div className="auction-two-column">
+            <div className="seller-profile-row">
 
-              <div className="auction-field">
+              <div className="seller-image-wrapper">
 
-                <label htmlFor="basePrice">
-                  Base price (₹)
-                  <span className="auction-required">*</span>
+                {sellerImage ? (
+                  <img
+                    src={sellerImage.preview}
+                    alt="Seller"
+                    className="seller-image"
+                  />
+                ) : (
+                  <div className="seller-image-placeholder">
+                    👤
+                  </div>
+                )}
+
+                <label className="seller-camera-button">
+                  +
+                  <input
+                    type="file"
+                    hidden
+                    accept=".jpg,.jpeg,.png"
+                    onChange={handleSellerImage}
+                  />
                 </label>
-
-                <input
-                  id="basePrice"
-                  type="number"
-                  min="0"
-                  name="basePrice"
-                  value={formData.basePrice}
-                  onChange={handleChange}
-                  placeholder="0"
-                  required
-                />
 
               </div>
 
-              <div className="auction-field">
+              <div className="seller-profile-info">
 
-                <label htmlFor="reservePrice">
-                  Reserve price (₹)
-                </label>
-
-                <input
-                  id="reservePrice"
-                  type="number"
-                  min="0"
-                  name="reservePrice"
-                  value={formData.reservePrice}
-                  onChange={handleChange}
-                  placeholder="Optional"
-                />
-
-              </div>
-
-            </div>
-
-            {/* AUCTION DATE */}
-
-            <div className="auction-two-column">
-
-              <div className="auction-field">
-
-                <label htmlFor="auctionStart">
-                  Auction starts
-                </label>
-
-                <input
-                  id="auctionStart"
-                  type="datetime-local"
-                  name="auctionStart"
-                  value={formData.auctionStart}
-                  onChange={handleChange}
-                />
-
-              </div>
-
-              <div className="auction-field">
-
-                <label htmlFor="auctionEnd">
-                  Auction ends
-                </label>
-
-                <input
-                  id="auctionEnd"
-                  type="datetime-local"
-                  name="auctionEnd"
-                  value={formData.auctionEnd}
-                  onChange={handleChange}
-                />
-
-              </div>
-
-            </div>
-
-            {/* INFORMATION */}
-
-            <div className="auction-info-message">
-
-              <span className="auction-info-icon">
-                ⓘ
-              </span>
-
-              <span>
-                The auction will not close below the reserve price.
-                If it isn't met, bids are released and the item
-                stays unsold.
-              </span>
-
-            </div>
-
-          </section>
-
-          {/* =================================================
-              SELLER INFORMATION
-          ================================================= */}
-
-          <section className="auction-card">
-
-            <div className="auction-card-title">
-
-              <div className="auction-card-heading">
-
-                <span className="auction-section-icon">
-                  ▣
-                </span>
+                <strong>
+                  Seller Profile
+                </strong>
 
                 <span>
-                  Logistics & seller
+                  Upload a clear profile image for verification.
                 </span>
 
               </div>
 
-              <span className="auction-section-number">
-                05
-              </span>
-
             </div>
 
-            <h3 className="auction-subtitle">
-              Seller information
-            </h3>
-
-            {/* NAME + CITY */}
+            {/* NAME + EMAIL */}
 
             <div className="auction-two-column">
 
               <div className="auction-field">
 
                 <label htmlFor="sellerName">
-                  Full name
+                  Seller Name
+                  <span className="auction-required">*</span>
                 </label>
 
                 <input
@@ -541,38 +639,17 @@ const CreateAuction = () => {
                   name="sellerName"
                   value={formData.sellerName}
                   onChange={handleChange}
-                  placeholder="Enter full name"
+                  placeholder="Enter seller name"
+                  required
                 />
 
               </div>
-
-              <div className="auction-field">
-
-                <label htmlFor="city">
-                  City
-                </label>
-
-                <input
-                  id="city"
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  placeholder="Enter city"
-                />
-
-              </div>
-
-            </div>
-
-            {/* EMAIL + STATE */}
-
-            <div className="auction-two-column">
 
               <div className="auction-field">
 
                 <label htmlFor="sellerEmail">
-                  Email address
+                  Email
+                  <span className="auction-required">*</span>
                 </label>
 
                 <input
@@ -581,7 +658,77 @@ const CreateAuction = () => {
                   name="sellerEmail"
                   value={formData.sellerEmail}
                   onChange={handleChange}
-                  placeholder="Enter email"
+                  placeholder="seller@example.com"
+                  required
+                />
+
+              </div>
+
+            </div>
+
+            {/* CONTACT */}
+
+            <div className="auction-field">
+
+              <label htmlFor="contactNumber">
+                Contact Number
+                <span className="auction-required">*</span>
+              </label>
+
+              <input
+                id="contactNumber"
+                type="tel"
+                name="contactNumber"
+                value={formData.contactNumber}
+                onChange={handleChange}
+                placeholder="+91 XXXXX XXXXX"
+                required
+              />
+
+            </div>
+
+            {/* ADDRESS */}
+
+            <h3 className="auction-subtitle">
+              Seller Address
+            </h3>
+
+            <div className="auction-field">
+
+              <label htmlFor="area">
+                Area / Street
+                <span className="auction-required">*</span>
+              </label>
+
+              <input
+                id="area"
+                type="text"
+                name="area"
+                value={formData.area}
+                onChange={handleChange}
+                placeholder="Area, street or locality"
+                required
+              />
+
+            </div>
+
+            <div className="auction-two-column">
+
+              <div className="auction-field">
+
+                <label htmlFor="city">
+                  City
+                  <span className="auction-required">*</span>
+                </label>
+
+                <input
+                  id="city"
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  placeholder="City"
+                  required
                 />
 
               </div>
@@ -590,6 +737,7 @@ const CreateAuction = () => {
 
                 <label htmlFor="state">
                   State
+                  <span className="auction-required">*</span>
                 </label>
 
                 <input
@@ -598,30 +746,30 @@ const CreateAuction = () => {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  placeholder="Enter state"
+                  placeholder="State"
+                  required
                 />
 
               </div>
 
             </div>
 
-            {/* CONTACT + PIN */}
-
             <div className="auction-two-column">
 
               <div className="auction-field">
 
-                <label htmlFor="contactNumber">
-                  Contact number
+                <label htmlFor="country">
+                  Country
+                  <span className="auction-required">*</span>
                 </label>
 
                 <input
-                  id="contactNumber"
-                  type="tel"
-                  name="contactNumber"
-                  value={formData.contactNumber}
+                  id="country"
+                  type="text"
+                  name="country"
+                  value={formData.country}
                   onChange={handleChange}
-                  placeholder="Enter contact number"
+                  required
                 />
 
               </div>
@@ -629,7 +777,8 @@ const CreateAuction = () => {
               <div className="auction-field">
 
                 <label htmlFor="pinCode">
-                  PIN code
+                  Pincode
+                  <span className="auction-required">*</span>
                 </label>
 
                 <input
@@ -638,10 +787,47 @@ const CreateAuction = () => {
                   name="pinCode"
                   value={formData.pinCode}
                   onChange={handleChange}
-                  placeholder="Enter pincode"
+                  placeholder="6-digit pincode"
+                  required
                 />
 
               </div>
+
+            </div>
+
+            {/* SELLER PROOF */}
+
+            <div className="auction-field">
+
+              <label>
+                Seller Verification Proof
+                <span className="auction-required">*</span>
+              </label>
+
+              <label className="auction-proof-button auction-full-proof">
+
+                <span>📎</span>
+
+                <div>
+                  <strong>
+                    {sellerProof
+                      ? sellerProof.name
+                      : "Upload Seller Proof"}
+                  </strong>
+
+                  <small>
+                    ID / Address proof · JPG, PNG or PDF
+                  </small>
+                </div>
+
+                <input
+                  type="file"
+                  hidden
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={handleSellerProof}
+                />
+
+              </label>
 
             </div>
 
@@ -649,14 +835,14 @@ const CreateAuction = () => {
 
         </div>
 
-        {/* =================================================
+        {/* =====================================================
             RIGHT COLUMN
-        ================================================= */}
+        ===================================================== */}
 
         <div className="auction-right-column">
 
           {/* =================================================
-              IMAGES
+              PRODUCT IMAGES
           ================================================= */}
 
           <section className="auction-card">
@@ -669,43 +855,49 @@ const CreateAuction = () => {
                   ▧
                 </span>
 
-                <span>
-                  Images
-                </span>
+                <span>Product Images</span>
 
               </div>
 
               <span className="auction-section-number">
-                02
+                04
               </span>
 
             </div>
 
-            <p className="auction-card-description">
-              Up to 12 · JPG / PNG · 5MB each
-            </p>
+            <div className="auction-image-requirement">
 
-            {/* UPLOAD */}
+              <strong>
+                Minimum 3 images required
+              </strong>
 
-            <label className="auction-upload-box">
+              <span>
+                Upload up to 12 high-quality product images.
+              </span>
+
+            </div>
+
+            {/* IMAGE UPLOAD */}
+
+            <label className="auction-image-add-box">
 
               <input
                 type="file"
                 multiple
-                accept=".jpg,.jpeg,.png"
+                accept=".jpg,.jpeg,.png,.webp"
                 onChange={handleImageUpload}
               />
 
-              <div className="auction-upload-icon">
-                ☁
+              <div className="auction-add-image-icon">
+                ↑
               </div>
 
               <strong>
-                Drop images or browse
+                Add Image
               </strong>
 
               <span>
-                First image becomes the listing cover
+                JPG / PNG · Max 5MB
               </span>
 
             </label>
@@ -725,7 +917,7 @@ const CreateAuction = () => {
 
                     <img
                       src={image.preview}
-                      alt={`Auction item ${index + 1}`}
+                      alt={`Product ${index + 1}`}
                     />
 
                     {index === 0 && (
@@ -738,7 +930,6 @@ const CreateAuction = () => {
                       type="button"
                       className="auction-remove-image"
                       onClick={() => removeImage(index)}
-                      title="Remove image"
                     >
                       ×
                     </button>
@@ -751,105 +942,20 @@ const CreateAuction = () => {
 
             )}
 
-            {/* DEFAULT IMAGE SLOTS */}
+            {images.length < 3 && (
 
-            {images.length === 0 && (
-
-              <div className="auction-cover-grid">
-
-                {[
-                  "Main view",
-                  "Close-up",
-                  "Serial / label",
-                  "Packaging",
-                  "Accessories",
-                  "Defects",
-                ].map((item) => (
-
-                  <div
-                    className="auction-cover-item"
-                    key={item}
-                  >
-
-                    <div className="auction-cover-placeholder">
-                      ◈
-                    </div>
-
-                    <span>
-                      {item}
-                    </span>
-
-                  </div>
-
-                ))}
-
+              <div className="auction-image-warning">
+                <span>!</span>
+                Please upload at least {3 - images.length} more
+                product image{3 - images.length > 1 ? "s" : ""}.
               </div>
 
             )}
 
-            {/* PROOF OF PURCHASE */}
-
-            <div className="auction-proof">
-
-              <h3>
-                Proof of purchase
-              </h3>
-
-              <p>
-                Original bill or ownership document is mandatory
-                for verification.
-              </p>
-
-              <div className="auction-proof-buttons">
-
-                <label className="auction-proof-button">
-
-                  <span>
-                    📎
-                  </span>
-
-                  Upload bill
-
-                  <small>
-                    JPG / PNG
-                  </small>
-
-                  <input
-                    type="file"
-                    hidden
-                    accept=".jpg,.jpeg,.png"
-                  />
-
-                </label>
-
-                <label className="auction-proof-button">
-
-                  <span>
-                    🔒
-                  </span>
-
-                  Upload proof document
-
-                  <small>
-                    PDF
-                  </small>
-
-                  <input
-                    type="file"
-                    hidden
-                    accept=".pdf"
-                  />
-
-                </label>
-
-              </div>
-
-            </div>
-
           </section>
 
           {/* =================================================
-              DELIVERY
+              AUCTION DETAILS
           ================================================= */}
 
           <section className="auction-card">
@@ -859,108 +965,185 @@ const CreateAuction = () => {
               <div className="auction-card-heading">
 
                 <span className="auction-section-icon">
-                  ▣
+                  ◷
                 </span>
 
-                <span>
-                  Delivery
-                </span>
+                <span>Auction Details</span>
 
               </div>
 
               <span className="auction-section-number">
-                04
+                05
               </span>
 
             </div>
 
-            <p className="auction-card-description">
-              Seller & courier
-            </p>
+            {/* STARTING PRICE */}
 
-            {/* DELIVERY TYPE + ESTIMATED TIME */}
+            <div className="auction-field">
 
-            <div className="auction-two-column">
+              <label htmlFor="startingPrice">
+                Starting Price (₹)
+                <span className="auction-required">*</span>
+              </label>
 
-              <div className="auction-field">
+              <input
+                id="startingPrice"
+                type="number"
+                min="0"
+                name="startingPrice"
+                value={formData.startingPrice}
+                onChange={handleChange}
+                placeholder="Enter starting price"
+                required
+              />
 
-                <label>
-                  Delivery type
-                </label>
+            </div>
 
-                <div className="auction-toggle-buttons">
+            {/* START DATE */}
 
-                  <button
-                    type="button"
-                    className={
-                      formData.deliveryType === "Local pickup"
-                        ? "auction-toggle-active"
-                        : ""
-                    }
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        deliveryType: "Local pickup",
-                      }))
-                    }
-                  >
-                    Local pickup
-                  </button>
+            <div className="auction-field">
 
-                  <button
-                    type="button"
-                    className={
-                      formData.deliveryType === "Courier"
-                        ? "auction-toggle-active"
-                        : ""
-                    }
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        deliveryType: "Courier",
-                      }))
-                    }
-                  >
-                    Courier
-                  </button>
+              <label htmlFor="auctionStart">
+                Starting Date & Time
+                <span className="auction-required">*</span>
+              </label>
 
-                </div>
+              <input
+                id="auctionStart"
+                type="datetime-local"
+                name="auctionStart"
+                value={formData.auctionStart}
+                onChange={handleChange}
+                required
+              />
+
+            </div>
+
+            {/* END DATE */}
+
+            <div className="auction-field">
+
+              <label htmlFor="auctionEnd">
+                Ending Date & Time
+                <span className="auction-required">*</span>
+              </label>
+
+              <input
+                id="auctionEnd"
+                type="datetime-local"
+                name="auctionEnd"
+                value={formData.auctionEnd}
+                onChange={handleChange}
+                required
+              />
+
+            </div>
+
+          </section>
+
+          {/* =================================================
+              LOCATION & DELIVERY
+          ================================================= */}
+
+          <section className="auction-card">
+
+            <div className="auction-card-title">
+
+              <div className="auction-card-heading">
+
+                <span className="auction-section-icon">
+                  ⌖
+                </span>
+
+                <span>Location & Delivery</span>
 
               </div>
 
-              <div className="auction-field">
+              <span className="auction-section-number">
+                06
+              </span>
 
-                <label htmlFor="estimatedDelivery">
-                  Estimated delivery time
-                </label>
+            </div>
 
-                <input
-                  id="estimatedDelivery"
-                  type="text"
-                  name="estimatedDelivery"
-                  value={formData.estimatedDelivery}
-                  onChange={handleChange}
-                  placeholder="e.g. 3–5 days after payment"
-                />
+            {/* PRODUCT LOCATION */}
+
+            <div className="auction-field">
+
+              <label htmlFor="productLocation">
+                Product Location
+                <span className="auction-required">*</span>
+              </label>
+
+              <input
+                id="productLocation"
+                type="text"
+                name="productLocation"
+                value={formData.productLocation}
+                onChange={handleChange}
+                placeholder="Where is the product currently located?"
+                required
+              />
+
+            </div>
+
+            {/* DELIVERY */}
+
+            <div className="auction-field">
+
+              <label>
+                Delivery / Pickup
+                <span className="auction-required">*</span>
+              </label>
+
+              <div className="auction-three-toggle">
+
+                {[
+                  "Pickup Only",
+                  "Delivery",
+                  "Both",
+                ].map((option) => (
+
+                  <button
+                    type="button"
+                    key={option}
+                    className={
+                      formData.deliveryType === option
+                        ? "auction-toggle-active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        deliveryType: option,
+                      }))
+                    }
+                  >
+                    {option}
+                  </button>
+
+                ))}
 
               </div>
 
             </div>
 
-            {/* SHIPPING TERMS */}
+            {/* SHIPPING */}
 
             <div className="auction-field">
 
               <label>
-                Shipping terms
+                Shipping Charges
+                <span className="auction-required">*</span>
               </label>
 
               <div className="auction-shipping-options">
 
                 {[
-                  "Free shipping",
-                  "Paid shipping (calculated)",
-                  "Custom terms",
+                  "Free",
+                  "Paid",
+                  "Buyer Pays",
+                  "Seller Pays",
                 ].map((option) => (
 
                   <label
@@ -970,17 +1153,15 @@ const CreateAuction = () => {
 
                     <input
                       type="radio"
-                      name="shippingTerms"
+                      name="shippingType"
                       value={option}
                       checked={
-                        formData.shippingTerms === option
+                        formData.shippingType === option
                       }
                       onChange={handleChange}
                     />
 
-                    <span>
-                      {option}
-                    </span>
+                    <span>{option}</span>
 
                   </label>
 
@@ -990,14 +1171,16 @@ const CreateAuction = () => {
 
             </div>
 
-            {/* SHIPPING CHARGES */}
+            {/* PAID SHIPPING */}
 
-            <div className="auction-two-column">
+            {(formData.shippingType === "Paid" ||
+              formData.shippingType === "Buyer Pays" ||
+              formData.shippingType === "Seller Pays") && (
 
               <div className="auction-field">
 
                 <label htmlFor="shippingCharges">
-                  Shipping charges (₹)
+                  Shipping Charges (₹)
                 </label>
 
                 <input
@@ -1007,58 +1190,243 @@ const CreateAuction = () => {
                   name="shippingCharges"
                   value={formData.shippingCharges}
                   onChange={handleChange}
-                  placeholder="0"
+                  placeholder="Enter shipping charges"
                 />
 
               </div>
 
-              <div className="auction-field">
+            )}
 
-                <label htmlFor="chargesPaidBy">
-                  Charges paid by
-                </label>
+          </section>
 
-                <select
-                  id="chargesPaidBy"
-                  name="chargesPaidBy"
-                  value={formData.chargesPaidBy}
-                  onChange={handleChange}
-                >
+          {/* =================================================
+              WARRANTY
+          ================================================= */}
 
-                  <option value="">
-                    Select
-                  </option>
+          <section className="auction-card">
 
-                  <option value="buyer">
-                    Buyer
-                  </option>
+            <div className="auction-card-title">
 
-                  <option value="seller">
-                    Seller
-                  </option>
+              <div className="auction-card-heading">
 
-                </select>
+                <span className="auction-section-icon">
+                  ✓
+                </span>
+
+                <span>Warranty Status</span>
+
+              </div>
+
+              <span className="auction-section-number">
+                07
+              </span>
+
+            </div>
+
+            <div className="auction-field">
+
+              <label htmlFor="warrantyStatus">
+                Warranty Status
+                <span className="auction-required">*</span>
+              </label>
+
+              <select
+                id="warrantyStatus"
+                name="warrantyStatus"
+                value={formData.warrantyStatus}
+                onChange={handleChange}
+                required
+              >
+
+                <option value="">
+                  Select warranty status
+                </option>
+
+                <option value="active">
+                  Active Warranty
+                </option>
+
+                <option value="expired">
+                  Expired Warranty
+                </option>
+
+                <option value="not-available">
+                  No Warranty
+                </option>
+
+                <option value="unknown">
+                  Unknown
+                </option>
+
+              </select>
+
+            </div>
+
+            <div className="auction-field">
+
+              <label htmlFor="warrantyDetails">
+                Warranty Details
+              </label>
+
+              <textarea
+                id="warrantyDetails"
+                name="warrantyDetails"
+                value={formData.warrantyDetails}
+                onChange={handleChange}
+                placeholder="Enter warranty period, company, expiry date or other details."
+                rows="3"
+              />
+
+            </div>
+
+          </section>
+
+          {/* =================================================
+              PAYMENT
+          ================================================= */}
+
+          <section className="auction-card">
+
+            <div className="auction-card-title">
+
+              <div className="auction-card-heading">
+
+                <span className="auction-section-icon">
+                  ₹
+                </span>
+
+                <span>Payment Method</span>
+
+              </div>
+
+              <span className="auction-section-number">
+                08
+              </span>
+
+            </div>
+
+            <div className="auction-field">
+
+              <label htmlFor="paymentMethod">
+                Payment Method
+                <span className="auction-required">*</span>
+              </label>
+
+              <select
+                id="paymentMethod"
+                name="paymentMethod"
+                value={formData.paymentMethod}
+                onChange={handleChange}
+                required
+              >
+
+                <option value="">
+                  Select payment method
+                </option>
+
+                <option value="upi">
+                  UPI
+                </option>
+
+                <option value="bank-transfer">
+                  Bank Transfer
+                </option>
+
+                <option value="cash-on-pickup">
+                  Cash on Pickup
+                </option>
+
+                <option value="online-payment">
+                  Online Payment
+                </option>
+
+              </select>
+
+            </div>
+
+          </section>
+
+          {/* =================================================
+              AUCTION PREVIEW
+          ================================================= */}
+
+          <section className="auction-preview-card">
+
+            <div className="auction-preview-title">
+
+              <span className="auction-preview-icon">
+                ◉
+              </span>
+
+              <span>Auction Preview</span>
+
+            </div>
+
+            <div className="auction-preview-content">
+
+              <div className="auction-preview-image">
+
+                {images.length > 0 ? (
+
+                  <img
+                    src={images[0].preview}
+                    alt="Auction preview"
+                  />
+
+                ) : (
+
+                  <div className="auction-preview-placeholder">
+                    Product Image
+                  </div>
+
+                )}
+
+              </div>
+
+              <div className="auction-preview-details">
+
+                <h3>
+                  {formData.productTitle ||
+                    "Product Title Will Appear Here"}
+                </h3>
+
+                <div className="auction-preview-price">
+
+                  Starting Price: ₹
+                  {formData.startingPrice || "0"}
+
+                </div>
+
+                <div className="auction-preview-meta">
+
+                  <span>
+                    ◈ {formData.category || "Category"}
+                  </span>
+
+                  <span>
+                    ⌖ {formData.productLocation || "Location"}
+                  </span>
+
+                  <span>
+                    ◷{" "}
+                    {formData.auctionEnd
+                      ? new Date(
+                          formData.auctionEnd
+                        ).toLocaleString()
+                      : "Ending date & time"}
+                  </span>
+
+                </div>
 
               </div>
 
             </div>
 
-            {/* SERVICE PROVIDER */}
+            <div className="auction-preview-status">
 
-            <div className="auction-field">
+              <span className="status-dot"></span>
 
-              <label htmlFor="serviceProvider">
-                Service provider
-              </label>
-
-              <input
-                id="serviceProvider"
-                type="text"
-                name="serviceProvider"
-                value={formData.serviceProvider}
-                onChange={handleChange}
-                placeholder="Optional — e.g. Delhivery, BlueDart"
-              />
+              Fill all required fields to publish your auction.
 
             </div>
 

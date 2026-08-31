@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
@@ -11,6 +11,19 @@ import {
 } from "react-icons/fa";
 
 import "../styles/Login.css";
+
+// ==========================================
+// OTP TIMER
+// ==========================================
+
+const OTP_DURATION_SECONDS = 3 * 60 + 30;
+
+const formatTime = (totalSeconds) => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 
 function Login() {
   const navigate = useNavigate();
@@ -26,10 +39,60 @@ function Login() {
 
   const [showOtp, setShowOtp] = useState(false);
 
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [otpExpired, setOtpExpired] = useState(false);
+
+  const timerIntervalRef = useRef(null);
+
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // ==========================================
+  // START OTP TIMER
+  // ==========================================
+
+  const startOtpTimer = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    setOtpExpired(false);
+    setOtpTimer(OTP_DURATION_SECONDS);
+
+    timerIntervalRef.current = setInterval(() => {
+      setOtpTimer((previous) => {
+        if (previous <= 1) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+
+          setOtpExpired(true);
+
+          // Remove old OTP success message
+          setSuccess("");
+
+          return 0;
+        }
+
+        return previous - 1;
+      });
+    }, 1000);
+  };
+
+  // ==========================================
+  // CLEAN TIMER
+  // ==========================================
+
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
 
   // ==========================================
   // LOGIN
@@ -79,9 +142,7 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(
-          data.detail || "Invalid email or password."
-        );
+        setError(data.detail || "Invalid email or password.");
         return;
       }
 
@@ -92,20 +153,82 @@ function Login() {
 
       setShowOtp(true);
 
-      setSuccess(
-        data.message ||
-          "OTP has been sent to your email."
-      );
+      setOtp("");
+      startOtpTimer();
 
+      setSuccess(
+        data.message || "OTP has been sent to your email."
+      );
     } catch (error) {
       console.error("LOGIN ERROR:", error);
 
       setError(
         "Unable to connect to the server. Please try again."
       );
-
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // RESEND OTP
+  // ==========================================
+
+  const handleResendOtp = async () => {
+    setError("");
+    setSuccess("");
+
+    // Do not resend while timer is active
+    if (!otpExpired && otpTimer > 0) {
+      return;
+    }
+
+    try {
+      setResendLoading(true);
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/users/login",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            password: password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.detail || "Unable to resend OTP."
+        );
+        return;
+      }
+
+      // Clear previous OTP
+      setOtp("");
+
+      // Start new 3:30 timer
+      startOtpTimer();
+
+      setSuccess(
+        data.message ||
+          "A new OTP has been sent to your email."
+      );
+    } catch (error) {
+      console.error("RESEND OTP ERROR:", error);
+
+      setError(
+        "Unable to connect to the server. Please try again."
+      );
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -119,13 +242,32 @@ function Login() {
     setError("");
     setSuccess("");
 
+    // ==========================================
+    // CHECK OTP EXPIRATION
+    // ==========================================
+
+    if (otpExpired || otpTimer <= 0) {
+      setError(
+        "Your OTP has expired. Please click Resend OTP to get a new OTP."
+      );
+      return;
+    }
+
+    // ==========================================
+    // EMPTY OTP
+    // ==========================================
+
     if (!otp.trim()) {
       setError("Please enter the OTP.");
       return;
     }
 
+    // ==========================================
+    // INVALID OTP FORMAT
+    // ==========================================
+
     if (!/^\d{6}$/.test(otp)) {
-      setError("OTP must contain exactly 6 digits.");
+      setError("Please enter a valid 6-digit OTP.");
       return;
     }
 
@@ -151,9 +293,8 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(
-          data.detail || "Invalid OTP."
-        );
+        // Backend invalid OTP message
+        setError(data.detail || "Invalid OTP.");
         return;
       }
 
@@ -164,6 +305,12 @@ function Login() {
       setSuccess(
         "Login successful. Redirecting..."
       );
+
+      // Stop timer after successful verification
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
 
       // Store user information
       if (data.user) {
@@ -195,7 +342,6 @@ function Login() {
       setError(
         "Unable to connect to the server. Please try again."
       );
-
     } finally {
       setLoading(false);
     }
@@ -210,8 +356,15 @@ function Login() {
 
     setOtp("");
 
-    setError("");
+    setOtpTimer(0);
+    setOtpExpired(false);
 
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    setError("");
     setSuccess("");
   };
 
@@ -336,11 +489,9 @@ function Login() {
                       className="login-btn"
                       disabled={loading}
                     >
-
                       {loading
                         ? "Checking..."
                         : "Login"}
-
                     </button>
 
                   </form>
@@ -356,7 +507,6 @@ function Login() {
                     </Link>
 
                   </p>
-
                 </>
               )}
 
@@ -413,9 +563,34 @@ function Login() {
                         maxLength={6}
                         inputMode="numeric"
                         autoComplete="one-time-code"
+                        disabled={otpExpired}
                       />
 
                     </div>
+
+                    {/* ==================================
+                        OTP TIMER
+                    ================================== */}
+
+                    {!otpExpired ? (
+
+                      <p className="otp-timer-text">
+
+                        OTP expires in{" "}
+
+                        <strong>
+                          {formatTime(otpTimer)}
+                        </strong>
+
+                      </p>
+
+                    ) : (
+
+                      <p className="otp-expired-text">
+                        OTP has expired.
+                      </p>
+
+                    )}
 
                     {/* ERROR */}
 
@@ -438,7 +613,9 @@ function Login() {
                     <button
                       type="submit"
                       className="login-btn"
-                      disabled={loading}
+                      disabled={
+                        loading || otpExpired
+                      }
                     >
 
                       {loading
@@ -449,15 +626,40 @@ function Login() {
 
                   </form>
 
+                  {/* ==================================
+                      RESEND OTP
+                  ================================== */}
+
+                  <div className="resend-otp">
+
+                    <span>
+                      Didn't receive the OTP?
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={
+                        resendLoading ||
+                        (!otpExpired && otpTimer > 0)
+                      }
+                    >
+
+                      {resendLoading
+                        ? "Resending..."
+                        : otpExpired
+                        ? "Resend OTP"
+                        : `Resend OTP (${formatTime(
+                            otpTimer
+                          )})`}
+
+                    </button>
+
+                  </div>
+
                   {/* BACK BUTTON */}
 
-                  <button
-                    type="button"
-                    className="back-login-btn"
-                    onClick={handleBackToLogin}
-                  >
-                    ← Back to Login
-                  </button>
+                
 
                 </>
               )}
