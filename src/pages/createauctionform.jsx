@@ -40,7 +40,6 @@ const SHIPPING_PAID_BY_OPTIONS = [
 
 /* =========================================================
    CUSTOM SEARCHABLE DROPDOWN
-   (defined in this same file, no separate component file)
 ========================================================= */
 
 const CustomSelect = ({
@@ -77,7 +76,9 @@ const CustomSelect = ({
         setQuery("");
       }
     };
+
     document.addEventListener("mousedown", handleClick);
+
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
@@ -85,10 +86,12 @@ const CustomSelect = ({
     if (open && searchable && searchRef.current) {
       searchRef.current.focus();
     }
+
     if (open) {
       const idx = filtered.findIndex((o) => o.value === value);
       setActiveIndex(idx >= 0 ? idx : 0);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -100,7 +103,12 @@ const CustomSelect = ({
 
   const handleTriggerKeyDown = (e) => {
     if (disabled) return;
-    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+
+    if (
+      e.key === "Enter" ||
+      e.key === " " ||
+      e.key === "ArrowDown"
+    ) {
       e.preventDefault();
       setOpen(true);
     }
@@ -109,13 +117,18 @@ const CustomSelect = ({
   const handleListKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
+      setActiveIndex((i) =>
+        Math.min(i + 1, filtered.length - 1)
+      );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (filtered[activeIndex]) commit(filtered[activeIndex].value);
+
+      if (filtered[activeIndex]) {
+        commit(filtered[activeIndex].value);
+      }
     } else if (e.key === "Escape") {
       setOpen(false);
       setQuery("");
@@ -131,23 +144,42 @@ const CustomSelect = ({
     >
       <button
         type="button"
-        className={`cs-trigger${icon || currency ? " cs-has-icon" : ""}`}
-        onClick={() => !disabled && setOpen((o) => !o)}
+        className={`cs-trigger${
+          icon || currency ? " cs-has-icon" : ""
+        }`}
+        onClick={() =>
+          !disabled && setOpen((o) => !o)
+        }
         onKeyDown={handleTriggerKeyDown}
         disabled={disabled}
       >
         {icon && (
-          <span className={currency ? "cs-currency-icon" : "cs-left-icon"}>
+          <span
+            className={
+              currency
+                ? "cs-currency-icon"
+                : "cs-left-icon"
+            }
+          >
             {icon}
           </span>
         )}
 
-        <span className={`cs-trigger-text${!selected ? " cs-placeholder" : ""}`}>
+        <span
+          className={`cs-trigger-text${
+            !selected ? " cs-placeholder" : ""
+          }`}
+        >
           {selected ? selected.label : placeholder}
         </span>
 
         <span className="cs-chevron">
-          <svg width="11" height="7" viewBox="0 0 11 7" fill="none">
+          <svg
+            width="11"
+            height="7"
+            viewBox="0 0 11 7"
+            fill="none"
+          >
             <path
               d="M1 1L5.5 5.5L10 1"
               stroke="currentColor"
@@ -171,11 +203,19 @@ const CustomSelect = ({
       )}
 
       {open && (
-        <div className="cs-panel" onKeyDown={handleListKeyDown}>
+        <div
+          className="cs-panel"
+          onKeyDown={handleListKeyDown}
+        >
           {searchable && (
             <div className="cs-search-wrap">
               <span className="cs-search-icon">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                >
                   <circle
                     cx="6"
                     cy="6"
@@ -191,6 +231,7 @@ const CustomSelect = ({
                   />
                 </svg>
               </span>
+
               <input
                 ref={searchRef}
                 type="text"
@@ -205,9 +246,14 @@ const CustomSelect = ({
             </div>
           )}
 
-          <div className="cs-options" role="listbox">
+          <div
+            className="cs-options"
+            role="listbox"
+          >
             {filtered.length === 0 && (
-              <div className="cs-no-results">No options found</div>
+              <div className="cs-no-results">
+                No options found
+              </div>
             )}
 
             {filtered.map((opt, i) => {
@@ -219,17 +265,32 @@ const CustomSelect = ({
                   key={opt.value}
                   role="option"
                   aria-selected={isSelected}
-                  className={`cs-option${isSelected ? " cs-option-selected" : ""}${
-                    isActive && !isSelected ? " cs-option-active" : ""
+                  className={`cs-option${
+                    isSelected
+                      ? " cs-option-selected"
+                      : ""
+                  }${
+                    isActive && !isSelected
+                      ? " cs-option-active"
+                      : ""
                   }`}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  onClick={() => commit(opt.value)}
+                  onMouseEnter={() =>
+                    setActiveIndex(i)
+                  }
+                  onClick={() =>
+                    commit(opt.value)
+                  }
                 >
                   <span>{opt.label}</span>
 
                   {isSelected && (
                     <span className="cs-check">
-                      <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
+                      <svg
+                        width="13"
+                        height="10"
+                        viewBox="0 0 13 10"
+                        fill="none"
+                      >
                         <path
                           d="M1 5L4.5 8.5L12 1"
                           stroke="currentColor"
@@ -252,247 +313,588 @@ const CustomSelect = ({
 
 /* =========================================================
    CUSTOM DATE / DATE-TIME PICKER
-   (Used for Start Date & Time, End Date & Time and
-   Date of Product Buy. Uses the cdf- classes already
-   defined in createauctionform.css)
 ========================================================= */
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
-const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_NAMES = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+];
 
-const pad2 = (n) => String(n).padStart(2, "0");
+const pad2 = (n) =>
+  String(n).padStart(2, "0");
 
 const parseFieldValue = (value, mode) => {
   if (!value) return null;
+
   if (mode === "date") {
-    const [y, m, d] = value.split("-").map(Number);
+    const [y, m, d] =
+      value.split("-").map(Number);
+
     if (!y || !m || !d) return null;
+
     return new Date(y, m - 1, d);
   }
-  const [datePart, timePart] = value.split("T");
+
+  const [datePart, timePart] =
+    value.split("T");
+
   if (!datePart) return null;
-  const [y, m, d] = datePart.split("-").map(Number);
+
+  const [y, m, d] =
+    datePart.split("-").map(Number);
+
   if (!y || !m || !d) return null;
+
   const date = new Date(y, m - 1, d);
+
   if (timePart) {
-    const [hh, mm] = timePart.split(":").map(Number);
-    date.setHours(hh || 0, mm || 0, 0, 0);
+    const [hh, mm] =
+      timePart.split(":").map(Number);
+
+    date.setHours(
+      hh || 0,
+      mm || 0,
+      0,
+      0
+    );
   } else {
     date.setHours(9, 0, 0, 0);
   }
+
   return date;
 };
 
 const formatFieldValue = (date, mode) => {
   if (!date) return "";
+
   const y = date.getFullYear();
   const m = pad2(date.getMonth() + 1);
   const d = pad2(date.getDate());
-  if (mode === "date") return `${y}-${m}-${d}`;
+
+  if (mode === "date") {
+    return `${y}-${m}-${d}`;
+  }
+
   const hh = pad2(date.getHours());
   const mm = pad2(date.getMinutes());
+
   return `${y}-${m}-${d}T${hh}:${mm}`;
 };
 
 const formatDisplay = (date, mode) => {
   if (!date) return "";
-  const datePart = `${MONTH_NAMES[date.getMonth()].slice(0, 3)} ${date.getDate()}, ${date.getFullYear()}`;
-  if (mode === "date") return datePart;
+
+  const datePart = `${
+    MONTH_NAMES[date.getMonth()].slice(0, 3)
+  } ${date.getDate()}, ${date.getFullYear()}`;
+
+  if (mode === "date") {
+    return datePart;
+  }
+
   let h = date.getHours();
-  const mDisp = pad2(date.getMinutes());
-  const ampm = h >= 12 ? "PM" : "AM";
+
+  const mDisp = pad2(
+    date.getMinutes()
+  );
+
+  const ampm =
+    h >= 12 ? "PM" : "AM";
+
   h = h % 12;
+
   if (h === 0) h = 12;
-  return `${datePart}, ${pad2(h)}:${mDisp} ${ampm}`;
+
+  return `${datePart}, ${pad2(
+    h
+  )}:${mDisp} ${ampm}`;
 };
 
 const CustomDateField = ({
   name,
   value,
   onChange,
-  mode = "datetime", // "date" or "datetime"
+  mode = "datetime",
   placeholder = "Select date",
   required = false,
 }) => {
-  const [open, setOpen] = useState(false);
-  const initial = parseFieldValue(value, mode);
+  const [open, setOpen] =
+    useState(false);
 
-  const [viewDate, setViewDate] = useState(initial || new Date());
-  const [selectedDate, setSelectedDate] = useState(initial);
+  const initial =
+    parseFieldValue(value, mode);
 
-  const [hour12, setHour12] = useState(() => {
-    if (!initial) return 9;
-    const h = initial.getHours() % 12;
-    return h === 0 ? 12 : h;
-  });
-  const [minute, setMinute] = useState(() => (initial ? initial.getMinutes() : 0));
-  const [ampm, setAmpm] = useState(() => (initial && initial.getHours() >= 12 ? "PM" : "AM"));
+  const [viewDate, setViewDate] =
+    useState(
+      initial || new Date()
+    );
 
-  const wrapRef = useRef(null);
+  const [selectedDate, setSelectedDate] =
+    useState(initial);
+
+  const [hour12, setHour12] =
+    useState(() => {
+      if (!initial) return 9;
+
+      const h =
+        initial.getHours() % 12;
+
+      return h === 0 ? 12 : h;
+    });
+
+  const [minute, setMinute] =
+    useState(() =>
+      initial
+        ? initial.getMinutes()
+        : 0
+    );
+
+  const [ampm, setAmpm] =
+    useState(() =>
+      initial &&
+      initial.getHours() >= 12
+        ? "PM"
+        : "AM"
+    );
+
+  const wrapRef =
+    useRef(null);
 
   useEffect(() => {
     const handleClick = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+      if (
+        wrapRef.current &&
+        !wrapRef.current.contains(
+          e.target
+        )
+      ) {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+
+    document.addEventListener(
+      "mousedown",
+      handleClick
+    );
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClick
+      );
   }, []);
 
   useEffect(() => {
-    const parsed = parseFieldValue(value, mode);
+    const parsed =
+      parseFieldValue(
+        value,
+        mode
+      );
+
     setSelectedDate(parsed);
+
     if (parsed) {
       setViewDate(parsed);
-      const h = parsed.getHours() % 12;
-      setHour12(h === 0 ? 12 : h);
-      setMinute(parsed.getMinutes());
-      setAmpm(parsed.getHours() >= 12 ? "PM" : "AM");
+
+      const h =
+        parsed.getHours() % 12;
+
+      setHour12(
+        h === 0 ? 12 : h
+      );
+
+      setMinute(
+        parsed.getMinutes()
+      );
+
+      setAmpm(
+        parsed.getHours() >= 12
+          ? "PM"
+          : "AM"
+      );
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+  const daysInMonth = (y, m) =>
+    new Date(
+      y,
+      m + 1,
+      0
+    ).getDate();
 
   const buildCalendarDays = () => {
-    const y = viewDate.getFullYear();
-    const m = viewDate.getMonth();
-    const firstDay = new Date(y, m, 1).getDay();
-    const totalDays = daysInMonth(y, m);
-    const prevMonthDays = daysInMonth(y, m - 1);
+    const y =
+      viewDate.getFullYear();
+
+    const m =
+      viewDate.getMonth();
+
+    const firstDay =
+      new Date(
+        y,
+        m,
+        1
+      ).getDay();
+
+    const totalDays =
+      daysInMonth(y, m);
+
+    const prevMonthDays =
+      daysInMonth(y, m - 1);
+
     const cells = [];
 
-    for (let i = firstDay - 1; i >= 0; i--) {
-      cells.push({ day: prevMonthDays - i, muted: true, month: m - 1 });
-    }
-    for (let d = 1; d <= totalDays; d++) {
-      cells.push({ day: d, muted: false, month: m });
-    }
-    while (cells.length % 7 !== 0) {
+    for (
+      let i = firstDay - 1;
+      i >= 0;
+      i--
+    ) {
       cells.push({
-        day: cells.length - (firstDay + totalDays) + 1,
+        day:
+          prevMonthDays - i,
+        muted: true,
+        month: m - 1,
+      });
+    }
+
+    for (
+      let d = 1;
+      d <= totalDays;
+      d++
+    ) {
+      cells.push({
+        day: d,
+        muted: false,
+        month: m,
+      });
+    }
+
+    while (
+      cells.length % 7 !== 0
+    ) {
+      cells.push({
+        day:
+          cells.length -
+          (firstDay + totalDays) +
+          1,
         muted: true,
         month: m + 1,
       });
     }
+
     return cells;
   };
 
   const isSameDay = (a, b) =>
     a &&
     b &&
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
+    a.getFullYear() ===
+      b.getFullYear() &&
+    a.getMonth() ===
+      b.getMonth() &&
+    a.getDate() ===
+      b.getDate();
 
   const today = new Date();
 
-  const commitDatePick = (day, cellMonth) => {
-    const newDate = new Date(viewDate.getFullYear(), cellMonth, day);
+  const commitDatePick = (
+    day,
+    cellMonth
+  ) => {
+    const newDate = new Date(
+      viewDate.getFullYear(),
+      cellMonth,
+      day
+    );
 
     if (mode === "date") {
       setSelectedDate(newDate);
-      onChange(name, formatFieldValue(newDate, mode));
+
+      onChange(
+        name,
+        formatFieldValue(
+          newDate,
+          mode
+        )
+      );
+
       setOpen(false);
+
       return;
     }
 
     let h = hour12 % 12;
-    if (ampm === "PM") h += 12;
-    newDate.setHours(h, minute, 0, 0);
+
+    if (ampm === "PM") {
+      h += 12;
+    }
+
+    newDate.setHours(
+      h,
+      minute,
+      0,
+      0
+    );
+
     setSelectedDate(newDate);
-    onChange(name, formatFieldValue(newDate, mode));
+
+    onChange(
+      name,
+      formatFieldValue(
+        newDate,
+        mode
+      )
+    );
   };
 
-  const applyTime = (nextHour12, nextMinute, nextAmpm) => {
+  const applyTime = (
+    nextHour12,
+    nextMinute,
+    nextAmpm
+  ) => {
     setHour12(nextHour12);
     setMinute(nextMinute);
     setAmpm(nextAmpm);
 
     if (!selectedDate) return;
 
-    let h = nextHour12 % 12;
-    if (nextAmpm === "PM") h += 12;
-    const newDate = new Date(selectedDate);
-    newDate.setHours(h, nextMinute, 0, 0);
+    let h =
+      nextHour12 % 12;
+
+    if (nextAmpm === "PM") {
+      h += 12;
+    }
+
+    const newDate =
+      new Date(selectedDate);
+
+    newDate.setHours(
+      h,
+      nextMinute,
+      0,
+      0
+    );
+
     setSelectedDate(newDate);
-    onChange(name, formatFieldValue(newDate, mode));
+
+    onChange(
+      name,
+      formatFieldValue(
+        newDate,
+        mode
+      )
+    );
   };
 
   const stepHour = (dir) => {
     let h = hour12 + dir;
+
     if (h > 12) h = 1;
     if (h < 1) h = 12;
-    applyTime(h, minute, ampm);
+
+    applyTime(
+      h,
+      minute,
+      ampm
+    );
   };
 
   const stepMinute = (dir) => {
     let m = minute + dir;
+
     if (m > 59) m = 0;
     if (m < 0) m = 59;
-    applyTime(hour12, m, ampm);
+
+    applyTime(
+      hour12,
+      m,
+      ampm
+    );
   };
 
-  const toggleAmpm = () => applyTime(hour12, minute, ampm === "AM" ? "PM" : "AM");
+  const toggleAmpm = () =>
+    applyTime(
+      hour12,
+      minute,
+      ampm === "AM"
+        ? "PM"
+        : "AM"
+    );
 
   const handleClear = () => {
     setSelectedDate(null);
+
     onChange(name, "");
+
     setOpen(false);
   };
 
   const handleToday = () => {
     const now = new Date();
+
     setViewDate(now);
 
     if (mode === "date") {
       setSelectedDate(now);
-      onChange(name, formatFieldValue(now, mode));
+
+      onChange(
+        name,
+        formatFieldValue(
+          now,
+          mode
+        )
+      );
+
       setOpen(false);
+
       return;
     }
 
-    const h12 = now.getHours() % 12 === 0 ? 12 : now.getHours() % 12;
-    const ap = now.getHours() >= 12 ? "PM" : "AM";
+    const h12 =
+      now.getHours() % 12 === 0
+        ? 12
+        : now.getHours() % 12;
+
+    const ap =
+      now.getHours() >= 12
+        ? "PM"
+        : "AM";
+
     setHour12(h12);
-    setMinute(now.getMinutes());
+
+    setMinute(
+      now.getMinutes()
+    );
+
     setAmpm(ap);
+
     setSelectedDate(now);
-    onChange(name, formatFieldValue(now, mode));
+
+    onChange(
+      name,
+      formatFieldValue(
+        now,
+        mode
+      )
+    );
   };
 
   const changeMonth = (dir) => {
-    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + dir, 1));
+    setViewDate((prev) =>
+      new Date(
+        prev.getFullYear(),
+        prev.getMonth() + dir,
+        1
+      )
+    );
   };
 
-  const cells = buildCalendarDays();
-  const display = formatDisplay(selectedDate, mode);
+  const cells =
+    buildCalendarDays();
+
+  const display =
+    formatDisplay(
+      selectedDate,
+      mode
+    );
 
   return (
-    <div className={`cdf-field${open ? " cdf-open" : ""}`} ref={wrapRef}>
-      <button type="button" className="cdf-trigger" onClick={() => setOpen((o) => !o)}>
+    <div
+      className={`cdf-field${
+        open ? " cdf-open" : ""
+      }`}
+      ref={wrapRef}
+    >
+      <button
+        type="button"
+        className="cdf-trigger"
+        onClick={() =>
+          setOpen((o) => !o)
+        }
+      >
         <span className="cdf-icon">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-            <rect x="1.5" y="2.5" width="13" height="12" rx="2" stroke="currentColor" strokeWidth="1.3" />
-            <path d="M1.5 6H14.5" stroke="currentColor" strokeWidth="1.3" />
-            <path d="M4.5 1V3.3M11.5 1V3.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 16 16"
+            fill="none"
+          >
+            <rect
+              x="1.5"
+              y="2.5"
+              width="13"
+              height="12"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.3"
+            />
+            <path
+              d="M1.5 6H14.5"
+              stroke="currentColor"
+              strokeWidth="1.3"
+            />
+            <path
+              d="M4.5 1V3.3M11.5 1V3.3"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            />
           </svg>
         </span>
 
-        <span className={`cdf-text${!display ? " cdf-placeholder" : ""}`}>
+        <span
+          className={`cdf-text${
+            !display
+              ? " cdf-placeholder"
+              : ""
+          }`}
+        >
           {display || placeholder}
         </span>
 
         {mode === "datetime" && (
           <span className="cdf-clock-icon">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="6.3" stroke="currentColor" strokeWidth="1.3" />
-              <path d="M8 4.7V8L10.3 9.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+            >
+              <circle
+                cx="8"
+                cy="8"
+                r="6.3"
+                stroke="currentColor"
+                strokeWidth="1.3"
+              />
+              <path
+                d="M8 4.7V8L10.3 9.6"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+              />
             </svg>
           </span>
         )}
@@ -511,103 +913,282 @@ const CustomDateField = ({
 
       {open && (
         <div className="cdf-panel">
+
           <div className="cdf-cal-header">
-            <button type="button" className="cdf-nav-btn" onClick={() => changeMonth(-1)}>‹</button>
+            <button
+              type="button"
+              className="cdf-nav-btn"
+              onClick={() =>
+                changeMonth(-1)
+              }
+            >
+              ‹
+            </button>
+
             <span className="cdf-month-label">
-              {MONTH_NAMES[viewDate.getMonth()]}, {viewDate.getFullYear()}
+              {
+                MONTH_NAMES[
+                  viewDate.getMonth()
+                ]
+              }
+              ,{" "}
+              {viewDate.getFullYear()}
             </span>
-            <button type="button" className="cdf-nav-btn" onClick={() => changeMonth(1)}>›</button>
+
+            <button
+              type="button"
+              className="cdf-nav-btn"
+              onClick={() =>
+                changeMonth(1)
+              }
+            >
+              ›
+            </button>
           </div>
 
           <div className="cdf-weekdays">
-            {WEEKDAY_NAMES.map((w) => (
-              <span key={w}>{w}</span>
-            ))}
+            {WEEKDAY_NAMES.map(
+              (w) => (
+                <span key={w}>
+                  {w}
+                </span>
+              )
+            )}
           </div>
 
           <div className="cdf-grid">
-            {cells.map((cell, i) => {
-              const cellDate = new Date(viewDate.getFullYear(), cell.month, cell.day);
-              const isSelected = isSameDay(cellDate, selectedDate);
-              const isToday = isSameDay(cellDate, today);
+            {cells.map(
+              (cell, i) => {
+                const cellDate =
+                  new Date(
+                    viewDate.getFullYear(),
+                    cell.month,
+                    cell.day
+                  );
 
-              return (
-                <button
-                  type="button"
-                  key={i}
-                  className={`cdf-day${cell.muted ? " cdf-day-muted" : ""}${
-                    isToday && !isSelected ? " cdf-day-today" : ""
-                  }${isSelected ? " cdf-day-selected" : ""}`}
-                  onClick={() => {
-                    if (cell.muted) {
-                      setViewDate(new Date(viewDate.getFullYear(), cell.month, 1));
-                    }
-                    commitDatePick(cell.day, cell.month);
-                  }}
-                >
-                  {cell.day}
-                </button>
-              );
-            })}
+                const isSelected =
+                  isSameDay(
+                    cellDate,
+                    selectedDate
+                  );
+
+                const isToday =
+                  isSameDay(
+                    cellDate,
+                    today
+                  );
+
+                return (
+                  <button
+                    type="button"
+                    key={i}
+                    className={`cdf-day${
+                      cell.muted
+                        ? " cdf-day-muted"
+                        : ""
+                    }${
+                      isToday &&
+                      !isSelected
+                        ? " cdf-day-today"
+                        : ""
+                    }${
+                      isSelected
+                        ? " cdf-day-selected"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (
+                        cell.muted
+                      ) {
+                        setViewDate(
+                          new Date(
+                            viewDate.getFullYear(),
+                            cell.month,
+                            1
+                          )
+                        );
+                      }
+
+                      commitDatePick(
+                        cell.day,
+                        cell.month
+                      );
+                    }}
+                  >
+                    {cell.day}
+                  </button>
+                );
+              }
+            )}
           </div>
 
           {mode === "datetime" && (
             <div className="cdf-time-row">
-              <span className="cdf-time-label">Time</span>
+              <span className="cdf-time-label">
+                Time
+              </span>
 
               <div className="cdf-stepper">
                 <input
                   className="cdf-stepper-input"
                   value={pad2(hour12)}
                   onChange={(e) => {
-                    const n = parseInt(e.target.value, 10);
-                    if (!isNaN(n) && n >= 1 && n <= 12) applyTime(n, minute, ampm);
+                    const n =
+                      parseInt(
+                        e.target.value,
+                        10
+                      );
+
+                    if (
+                      !isNaN(n) &&
+                      n >= 1 &&
+                      n <= 12
+                    ) {
+                      applyTime(
+                        n,
+                        minute,
+                        ampm
+                      );
+                    }
                   }}
                 />
+
                 <div className="cdf-stepper-arrows">
-                  <button type="button" onClick={() => stepHour(1)}>▲</button>
-                  <button type="button" onClick={() => stepHour(-1)}>▼</button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      stepHour(1)
+                    }
+                  >
+                    ▲
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      stepHour(-1)
+                    }
+                  >
+                    ▼
+                  </button>
                 </div>
               </div>
 
-              <span className="cdf-time-colon">:</span>
+              <span className="cdf-time-colon">
+                :
+              </span>
 
               <div className="cdf-stepper">
                 <input
                   className="cdf-stepper-input"
                   value={pad2(minute)}
                   onChange={(e) => {
-                    const n = parseInt(e.target.value, 10);
-                    if (!isNaN(n) && n >= 0 && n <= 59) applyTime(hour12, n, ampm);
+                    const n =
+                      parseInt(
+                        e.target.value,
+                        10
+                      );
+
+                    if (
+                      !isNaN(n) &&
+                      n >= 0 &&
+                      n <= 59
+                    ) {
+                      applyTime(
+                        hour12,
+                        n,
+                        ampm
+                      );
+                    }
                   }}
                 />
+
                 <div className="cdf-stepper-arrows">
-                  <button type="button" onClick={() => stepMinute(1)}>▲</button>
-                  <button type="button" onClick={() => stepMinute(-1)}>▼</button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      stepMinute(1)
+                    }
+                  >
+                    ▲
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      stepMinute(-1)
+                    }
+                  >
+                    ▼
+                  </button>
                 </div>
               </div>
 
               <div className="cdf-stepper">
-                <input className="cdf-stepper-input" readOnly value={ampm} onClick={toggleAmpm} />
+                <input
+                  className="cdf-stepper-input"
+                  readOnly
+                  value={ampm}
+                  onClick={
+                    toggleAmpm
+                  }
+                />
+
                 <div className="cdf-stepper-arrows">
-                  <button type="button" onClick={toggleAmpm}>▲</button>
-                  <button type="button" onClick={toggleAmpm}>▼</button>
+                  <button
+                    type="button"
+                    onClick={
+                      toggleAmpm
+                    }
+                  >
+                    ▲
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={
+                      toggleAmpm
+                    }
+                  >
+                    ▼
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
           <div className="cdf-footer">
-            <button type="button" className="cdf-footer-link" onClick={handleClear}>
+            <button
+              type="button"
+              className="cdf-footer-link"
+              onClick={
+                handleClear
+              }
+            >
               Clear
             </button>
-            <button type="button" className="cdf-footer-link" onClick={handleToday}>
+
+            <button
+              type="button"
+              className="cdf-footer-link"
+              onClick={
+                handleToday
+              }
+            >
               Today
             </button>
-            <button type="button" className="cdf-footer-done" onClick={() => setOpen(false)}>
+
+            <button
+              type="button"
+              className="cdf-footer-done"
+              onClick={() =>
+                setOpen(false)
+              }
+            >
               Done
             </button>
           </div>
+
         </div>
       )}
     </div>
@@ -619,51 +1200,73 @@ const CustomDateField = ({
 ========================================================= */
 
 const CreateAuction = () => {
-  const [images, setImages] = useState([]);
-  const [purchaseProof, setPurchaseProof] = useState(null);
-  const [sellerProof, setSellerProof] = useState(null);
+  const [images, setImages] =
+    useState([]);
 
-  const [formData, setFormData] = useState({
-    productTitle: "",
-    category: "",
-    description: "",
-    condition: "",
+  const [purchaseProof, setPurchaseProof] =
+    useState(null);
 
-    purchaseDate: "",
-    purchasedBy: "",
-    purchasePrice: "",
+  const [sellerProof, setSellerProof] =
+    useState(null);
 
-    startingPrice: "",
-    auctionStart: "",
-    auctionEnd: "",
+  /* =========================================================
+     SELLER TERMS POPUP
+  ========================================================= */
 
-    locationArea: "",
-    locationCity: "",
-    locationState: "",
-    locationCountry: "India",
-    locationPincode: "",
+  const [termsModalOpen, setTermsModalOpen] =
+    useState(false);
 
-    deliveryType: "pickup",
+  const [sellerTermsText, setSellerTermsText] =
+    useState("");
 
-    shippingType: "free",
-    shippingCharges: "",
-    shippingPaidBy: "",
+  const [formData, setFormData] =
+    useState({
+      productTitle: "",
+      brandModel: "",
+      category: "",
+      description: "",
+      condition: "",
 
-    warrantyStatus: "",
+      purchaseDate: "",
+      purchasedBy: "",
+      purchasePrice: "",
 
-    paymentMethod: "",
+      startingPrice: "",
+      auctionStart: "",
+      auctionEnd: "",
 
-    sellerName: "",
-    sellerEmail: "",
-    sellerContact: "",
-  });
+      locationArea: "",
+      locationCity: "",
+      locationState: "",
+      locationCountry: "India",
+      locationPincode: "",
+
+      deliveryType: "pickup",
+
+      shippingType: "free",
+      shippingCharges: "",
+      shippingPaidBy: "",
+
+      warrantyStatus: "",
+
+      paymentMethod: "",
+      productTerms: "",
+      termsAccepted: false,
+
+      sellerName: "",
+      sellerEmail: "",
+      sellerContact: "",
+    });
 
   /* =====================================================
      INPUT CHANGE
   ===================================================== */
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
 
     setFormData((prev) => ({
       ...prev,
@@ -675,7 +1278,10 @@ const CreateAuction = () => {
      CUSTOM SELECT CHANGE
   ===================================================== */
 
-  const handleSelectChange = (name, value) => {
+  const handleSelectChange = (
+    name,
+    value
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -687,7 +1293,10 @@ const CreateAuction = () => {
   ===================================================== */
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files || []);
+    const files =
+      Array.from(
+        e.target.files || []
+      );
 
     const allowedTypes = [
       "image/jpeg",
@@ -696,39 +1305,65 @@ const CreateAuction = () => {
       "image/webp",
     ];
 
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize =
+      5 * 1024 * 1024;
 
-    const validFiles = files.filter((file) => {
-      if (!allowedTypes.includes(file.type)) {
-        alert(`${file.name} is not a valid image format.`);
-        return false;
-      }
+    const validFiles =
+      files.filter((file) => {
+        if (
+          !allowedTypes.includes(
+            file.type
+          )
+        ) {
+          alert(
+            `${file.name} is not a valid image format.`
+          );
 
-      if (file.size > maxSize) {
-        alert(`${file.name} exceeds the 5MB limit.`);
-        return false;
-      }
+          return false;
+        }
 
-      return true;
-    });
+        if (
+          file.size > maxSize
+        ) {
+          alert(
+            `${file.name} exceeds the 5MB limit.`
+          );
 
-    const remainingSlots = 12 - images.length;
+          return false;
+        }
+
+        return true;
+      });
+
+    const remainingSlots =
+      12 - images.length;
 
     if (remainingSlots <= 0) {
-      alert("You can upload a maximum of 12 images.");
+      alert(
+        "You can upload a maximum of 12 images."
+      );
+
       e.target.value = "";
+
       return;
     }
 
-    const newImages = validFiles
-      .slice(0, remainingSlots)
-      .map((file) => ({
-        file,
-        preview: URL.createObjectURL(file),
-        name: file.name,
-      }));
+    const newImages =
+      validFiles
+        .slice(0, remainingSlots)
+        .map((file) => ({
+          file,
+          preview:
+            URL.createObjectURL(
+              file
+            ),
+          name: file.name,
+        }));
 
-    setImages((prev) => [...prev, ...newImages]);
+    setImages((prev) => [
+      ...prev,
+      ...newImages,
+    ]);
 
     e.target.value = "";
   };
@@ -742,10 +1377,14 @@ const CreateAuction = () => {
       const image = prev[index];
 
       if (image?.preview) {
-        URL.revokeObjectURL(image.preview);
+        URL.revokeObjectURL(
+          image.preview
+        );
       }
 
-      return prev.filter((_, i) => i !== index);
+      return prev.filter(
+        (_, i) => i !== index
+      );
     });
   };
 
@@ -757,58 +1396,121 @@ const CreateAuction = () => {
     e.preventDefault();
 
     if (images.length < 3) {
-      alert("Please upload at least 3 product images.");
+      alert(
+        "Please upload at least 3 product images."
+      );
+
       return;
     }
 
     if (!purchaseProof) {
-      alert("Please upload the bill or proof of purchase.");
+      alert(
+        "Please upload the bill or proof of purchase."
+      );
+
       return;
     }
 
     if (!sellerProof) {
-      alert("Please upload seller verification proof.");
+      alert(
+        "Please upload seller verification proof."
+      );
+
       return;
     }
 
     if (!formData.category) {
-      alert("Please select a category.");
+      alert(
+        "Please select a category."
+      );
+
       return;
     }
 
     if (!formData.condition) {
-      alert("Please select a product condition.");
+      alert(
+        "Please select a product condition."
+      );
+
       return;
     }
 
     if (
       formData.auctionStart &&
       formData.auctionEnd &&
-      new Date(formData.auctionEnd) <= new Date(formData.auctionStart)
+      new Date(
+        formData.auctionEnd
+      ) <=
+        new Date(
+          formData.auctionStart
+        )
     ) {
-      alert("Auction end date and time must be after the start date and time.");
+      alert(
+        "Auction end date and time must be after the start date and time."
+      );
+
+      return;
+    }
+
+    if (!formData.productTerms) {
+      alert(
+        "Please add your Seller Terms & Conditions."
+      );
+
+      return;
+    }
+
+    if (!formData.termsAccepted) {
+      alert(
+        "Please accept the Terms & Conditions before creating the auction."
+      );
+
       return;
     }
 
     if (!formData.paymentMethod) {
-      alert("Please select a payment method.");
+      alert(
+        "Please select a payment method."
+      );
+
       return;
     }
 
     if (
-      formData.shippingType === "paid" &&
+      formData.shippingType ===
+        "paid" &&
       !formData.shippingCharges
     ) {
-      alert("Please enter the shipping charges.");
+      alert(
+        "Please enter the shipping charges."
+      );
+
       return;
     }
 
-    console.log("Auction Data:", formData);
-    console.log("Product Images:", images);
-    console.log("Purchase Proof:", purchaseProof);
-    console.log("Seller Proof:", sellerProof);
+    console.log(
+      "Auction Data:",
+      formData
+    );
 
-    alert("Auction published successfully!");
+    console.log(
+      "Product Images:",
+      images
+    );
+
+    console.log(
+      "Purchase Proof:",
+      purchaseProof
+    );
+
+    console.log(
+      "Seller Proof:",
+      sellerProof
+    );
+
+    alert(
+      "Auction published successfully!"
+    );
   };
 
   /* =====================================================
@@ -816,8 +1518,68 @@ const CreateAuction = () => {
   ===================================================== */
 
   const saveDraft = () => {
-    console.log("Draft:", formData);
-    alert("Auction saved as draft.");
+    console.log(
+      "Draft:",
+      formData
+    );
+
+    alert(
+      "Auction saved as draft."
+    );
+  };
+
+  /* =========================================================
+     OPEN SELLER TERMS POPUP
+  ========================================================= */
+
+  const openTermsModal = () => {
+    setSellerTermsText(
+      formData.productTerms || ""
+    );
+
+    setTermsModalOpen(true);
+  };
+
+  /* =========================================================
+     CLOSE SELLER TERMS POPUP
+  ========================================================= */
+
+  const closeTermsModal = () => {
+    setTermsModalOpen(false);
+  };
+
+  /* =========================================================
+     SAVE SELLER TERMS
+  ========================================================= */
+
+  const saveSellerTerms = () => {
+    const trimmedTerms =
+      sellerTermsText.trim();
+
+    if (!trimmedTerms) {
+      alert(
+        "Please enter your Terms & Conditions."
+      );
+
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+
+      productTerms:
+        trimmedTerms,
+
+      /*
+        If seller changes the terms,
+        previous acceptance is removed.
+        Seller must accept the updated
+        terms again.
+      */
+      termsAccepted: false,
+    }));
+
+    setTermsModalOpen(false);
   };
 
   return (
@@ -836,14 +1598,19 @@ const CreateAuction = () => {
             <b>•</b>
             <span>Auctions</span>
             <b>•</b>
-            <strong>Create Auction</strong>
+            <strong>
+              Create Auction
+            </strong>
           </div>
 
-          <h1>Create Auction</h1>
+          <h1>
+            Create Auction
+          </h1>
 
           <p>
-            Create a new auction by adding your product details,
-            images, pricing and seller information.
+            Create a new auction by adding
+            your product details, images,
+            pricing and seller information.
           </p>
 
         </div>
@@ -869,7 +1636,6 @@ const CreateAuction = () => {
         </div>
 
       </header>
-
 
       {/* =================================================
           MAIN FORM
@@ -900,12 +1666,17 @@ const CreateAuction = () => {
               </div>
 
               <div>
-                <h2>Upload Images</h2>
-                <p>Add high quality images of your product</p>
+                <h2>
+                  Upload Images
+                </h2>
+
+                <p>
+                  Add high quality images
+                  of your product
+                </p>
               </div>
 
             </div>
-
 
             <label className="ca-upload-box">
 
@@ -913,14 +1684,18 @@ const CreateAuction = () => {
                 type="file"
                 multiple
                 accept=".jpg,.jpeg,.png,.webp"
-                onChange={handleImageUpload}
+                onChange={
+                  handleImageUpload
+                }
               />
 
               <div className="ca-upload-icon">
                 ↑
               </div>
 
-              <h3>Drag & drop images here</h3>
+              <h3>
+                Drag & drop images here
+              </h3>
 
               <span className="ca-upload-or">
                 or
@@ -931,17 +1706,16 @@ const CreateAuction = () => {
               </span>
 
               <p>
-                JPG, PNG or WEBP (Max. 5MB each)
+                JPG, PNG or WEBP
+                (Max. 5MB each)
               </p>
 
             </label>
 
-
-            {/* IMAGE PREVIEW */}
-
             <div className="ca-preview-header">
 
               <div>
+
                 <span className="ca-preview-icon">
                   ▣
                 </span>
@@ -949,6 +1723,7 @@ const CreateAuction = () => {
                 <strong>
                   Image Preview
                 </strong>
+
               </div>
 
               <span>
@@ -957,65 +1732,74 @@ const CreateAuction = () => {
 
             </div>
 
-
             {images.length > 0 ? (
 
               <div className="ca-image-grid">
 
-                {images.map((image, index) => (
+                {images.map(
+                  (image, index) => (
 
-                  <div
-                    className="ca-image-item"
-                    key={`${image.name}-${index}`}
-                  >
-
-                    <img
-                      src={image.preview}
-                      alt={`Product ${index + 1}`}
-                    />
-
-                    {index === 0 && (
-                      <span className="ca-cover-badge">
-                        COVER
-                      </span>
-                    )}
-
-                    <button
-                      type="button"
-                      className="ca-remove-image"
-                      onClick={() => removeImage(index)}
+                    <div
+                      className="ca-image-item"
+                      key={`${image.name}-${index}`}
                     >
-                      ×
-                    </button>
 
-                  </div>
+                      <img
+                        src={
+                          image.preview
+                        }
+                        alt={`Product ${
+                          index + 1
+                        }`}
+                      />
 
-                ))}
+                      {index === 0 && (
+                        <span className="ca-cover-badge">
+                          COVER
+                        </span>
+                      )}
+
+                      <button
+                        type="button"
+                        className="ca-remove-image"
+                        onClick={() =>
+                          removeImage(
+                            index
+                          )
+                        }
+                      >
+                        ×
+                      </button>
+
+                    </div>
+
+                  )
+                )}
 
               </div>
 
             ) : (
 
               <div className="ca-empty-preview">
-                Images will appear here after uploading
+                Images will appear here
+                after uploading
               </div>
 
             )}
-
 
             <div className="ca-image-note">
 
               <span>ⓘ</span>
 
               <p>
-                You can upload up to 12 product images.
-                Minimum 3 images are required.
+                You can upload up to 12
+                product images. Minimum
+                3 images are required.
               </p>
 
             </div>
 
           </section>
-
 
           {/* =================================================
               RIGHT - AUCTION DETAILS
@@ -1030,16 +1814,19 @@ const CreateAuction = () => {
               </div>
 
               <div>
-                <h2>Auction Details</h2>
+
+                <h2>
+                  Auction Details
+                </h2>
+
                 <p>
-                  Fill in the details to create a new auction
+                  Fill in the details to
+                  create a new auction
                 </p>
+
               </div>
 
             </div>
-
-
-            {/* TITLE + CATEGORY */}
 
             <div className="ca-field-grid">
 
@@ -1059,8 +1846,12 @@ const CreateAuction = () => {
                   <input
                     type="text"
                     name="productTitle"
-                    value={formData.productTitle}
-                    onChange={handleChange}
+                    value={
+                      formData.productTitle
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="Enter auction title"
                     required
                   />
@@ -1069,6 +1860,39 @@ const CreateAuction = () => {
 
               </div>
 
+              <div className="ca-field">
+
+                <label>
+                  Brand / Model
+                  <span>*</span>
+                </label>
+
+                <div className="ca-input-wrap">
+
+                  <span className="ca-input-icon">
+                    ◇
+                  </span>
+
+                  <input
+                    type="text"
+                    name="brandModel"
+                    value={
+                      formData.brandModel
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="e.g. Apple iPhone 15 Pro"
+                    required
+                  />
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <div className="ca-field-grid">
 
               <div className="ca-field">
 
@@ -1079,22 +1903,21 @@ const CreateAuction = () => {
 
                 <CustomSelect
                   name="category"
-                  value={formData.category}
-                  onChange={handleSelectChange}
-                  options={CATEGORY_OPTIONS}
+                  value={
+                    formData.category
+                  }
+                  onChange={
+                    handleSelectChange
+                  }
+                  options={
+                    CATEGORY_OPTIONS
+                  }
                   placeholder="Select category"
                   icon="▦"
                   required
                 />
 
               </div>
-
-            </div>
-
-
-            {/* CONDITION + WARRANTY */}
-
-            <div className="ca-field-grid">
 
               <div className="ca-field">
 
@@ -1105,36 +1928,44 @@ const CreateAuction = () => {
 
                 <CustomSelect
                   name="condition"
-                  value={formData.condition}
-                  onChange={handleSelectChange}
-                  options={CONDITION_OPTIONS}
+                  value={
+                    formData.condition
+                  }
+                  onChange={
+                    handleSelectChange
+                  }
+                  options={
+                    CONDITION_OPTIONS
+                  }
                   placeholder="Select condition"
                   required
                 />
 
               </div>
 
-
-              <div className="ca-field">
-
-                <label>
-                  Warranty Status
-                </label>
-
-                <CustomSelect
-                  name="warrantyStatus"
-                  value={formData.warrantyStatus}
-                  onChange={handleSelectChange}
-                  options={WARRANTY_OPTIONS}
-                  placeholder="Select warranty status"
-                />
-
-              </div>
-
             </div>
 
+            <div className="ca-field">
 
-            {/* DESCRIPTION */}
+              <label>
+                Warranty Status
+              </label>
+
+              <CustomSelect
+                name="warrantyStatus"
+                value={
+                  formData.warrantyStatus
+                }
+                onChange={
+                  handleSelectChange
+                }
+                options={
+                  WARRANTY_OPTIONS
+                }
+                placeholder="Select warranty status"
+              />
+
+            </div>
 
             <div className="ca-field ca-field-full">
 
@@ -1146,24 +1977,29 @@ const CreateAuction = () => {
                 </label>
 
                 <small>
-                  {formData.description.length}/1000
+                  {
+                    formData.description
+                      .length
+                  }
+                  /1000
                 </small>
 
               </div>
 
               <textarea
                 name="description"
-                value={formData.description}
-                onChange={handleChange}
+                value={
+                  formData.description
+                }
+                onChange={
+                  handleChange
+                }
                 maxLength="1000"
                 placeholder="Enter product description, condition, features, accessories and other important information..."
                 required
               />
 
             </div>
-
-
-            {/* PRICE */}
 
             <div className="ca-price-grid">
 
@@ -1184,8 +2020,12 @@ const CreateAuction = () => {
                     type="number"
                     min="0"
                     name="startingPrice"
-                    value={formData.startingPrice}
-                    onChange={handleChange}
+                    value={
+                      formData.startingPrice
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="Enter starting bid"
                     required
                   />
@@ -1193,7 +2033,6 @@ const CreateAuction = () => {
                 </div>
 
               </div>
-
 
               <div className="ca-field">
 
@@ -1212,8 +2051,12 @@ const CreateAuction = () => {
                     type="number"
                     min="0"
                     name="purchasePrice"
-                    value={formData.purchasePrice}
-                    onChange={handleChange}
+                    value={
+                      formData.purchasePrice
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="Enter purchase price"
                     required
                   />
@@ -1223,9 +2066,6 @@ const CreateAuction = () => {
               </div>
 
             </div>
-
-
-            {/* DATE TIME */}
 
             <div className="ca-field-grid">
 
@@ -1239,14 +2079,17 @@ const CreateAuction = () => {
                 <CustomDateField
                   name="auctionStart"
                   mode="datetime"
-                  value={formData.auctionStart}
-                  onChange={handleSelectChange}
+                  value={
+                    formData.auctionStart
+                  }
+                  onChange={
+                    handleSelectChange
+                  }
                   placeholder="Select start date & time"
                   required
                 />
 
               </div>
-
 
               <div className="ca-field">
 
@@ -1258,8 +2101,12 @@ const CreateAuction = () => {
                 <CustomDateField
                   name="auctionEnd"
                   mode="datetime"
-                  value={formData.auctionEnd}
-                  onChange={handleSelectChange}
+                  value={
+                    formData.auctionEnd
+                  }
+                  onChange={
+                    handleSelectChange
+                  }
                   placeholder="Select end date & time"
                   required
                 />
@@ -1272,13 +2119,11 @@ const CreateAuction = () => {
 
         </div>
 
-
         {/* =================================================
             ADDITIONAL INFORMATION
         ================================================= */}
 
         <div className="ca-bottom-grid">
-
 
           {/* =================================================
               PURCHASE INFORMATION
@@ -1293,15 +2138,19 @@ const CreateAuction = () => {
               </div>
 
               <div>
-                <h2>Purchase Information</h2>
+
+                <h2>
+                  Purchase Information
+                </h2>
 
                 <p>
-                  Original purchase and ownership details
+                  Original purchase and
+                  ownership details
                 </p>
+
               </div>
 
             </div>
-
 
             <div className="ca-field-grid">
 
@@ -1315,14 +2164,17 @@ const CreateAuction = () => {
                 <CustomDateField
                   name="purchaseDate"
                   mode="date"
-                  value={formData.purchaseDate}
-                  onChange={handleSelectChange}
+                  value={
+                    formData.purchaseDate
+                  }
+                  onChange={
+                    handleSelectChange
+                  }
                   placeholder="Select date"
                   required
                 />
 
               </div>
-
 
               <div className="ca-field">
 
@@ -1334,8 +2186,12 @@ const CreateAuction = () => {
                 <input
                   type="text"
                   name="purchasedBy"
-                  value={formData.purchasedBy}
-                  onChange={handleChange}
+                  value={
+                    formData.purchasedBy
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Name of original buyer"
                   required
                 />
@@ -1343,7 +2199,6 @@ const CreateAuction = () => {
               </div>
 
             </div>
-
 
             <div className="ca-document-box">
 
@@ -1354,7 +2209,8 @@ const CreateAuction = () => {
                 </strong>
 
                 <p>
-                  Upload original bill, invoice or ownership proof.
+                  Upload original bill,
+                  invoice or ownership proof.
                 </p>
 
               </div>
@@ -1368,7 +2224,8 @@ const CreateAuction = () => {
                   accept=".jpg,.jpeg,.png,.pdf"
                   onChange={(e) =>
                     setPurchaseProof(
-                      e.target.files?.[0] || null
+                      e.target.files?.[0] ||
+                        null
                     )
                   }
                 />
@@ -1377,7 +2234,6 @@ const CreateAuction = () => {
 
             </div>
 
-
             {purchaseProof && (
               <div className="ca-file-name">
                 ✓ {purchaseProof.name}
@@ -1385,7 +2241,6 @@ const CreateAuction = () => {
             )}
 
           </section>
-
 
           {/* =================================================
               DELIVERY & SHIPPING
@@ -1401,16 +2256,18 @@ const CreateAuction = () => {
 
               <div>
 
-                <h2>Delivery & Shipping</h2>
+                <h2>
+                  Delivery & Shipping
+                </h2>
 
                 <p>
-                  Choose how the buyer receives the product
+                  Choose how the buyer
+                  receives the product
                 </p>
 
               </div>
 
             </div>
-
 
             <div className="ca-field">
 
@@ -1437,40 +2294,49 @@ const CreateAuction = () => {
                     "Both",
                     "Pickup or delivery",
                   ],
-                ].map(([value, title, text]) => (
+                ].map(
+                  ([
+                    value,
+                    title,
+                    text,
+                  ]) => (
 
-                  <button
-                    key={value}
-                    type="button"
-                    className={
-                      formData.deliveryType === value
-                        ? "ca-choice active"
-                        : "ca-choice"
-                    }
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        deliveryType: value,
-                      }))
-                    }
-                  >
+                    <button
+                      key={value}
+                      type="button"
+                      className={
+                        formData.deliveryType ===
+                        value
+                          ? "ca-choice active"
+                          : "ca-choice"
+                      }
+                      onClick={() =>
+                        setFormData(
+                          (prev) => ({
+                            ...prev,
+                            deliveryType:
+                              value,
+                          })
+                        )
+                      }
+                    >
 
-                    <strong>
-                      {title}
-                    </strong>
+                      <strong>
+                        {title}
+                      </strong>
 
-                    <small>
-                      {text}
-                    </small>
+                      <small>
+                        {text}
+                      </small>
 
-                  </button>
+                    </button>
 
-                ))}
+                  )
+                )}
 
               </div>
 
             </div>
-
 
             <div className="ca-field">
 
@@ -1483,7 +2349,8 @@ const CreateAuction = () => {
 
                 <label
                   className={
-                    formData.shippingType === "free"
+                    formData.shippingType ===
+                    "free"
                       ? "ca-radio active"
                       : "ca-radio"
                   }
@@ -1494,9 +2361,12 @@ const CreateAuction = () => {
                     name="shippingType"
                     value="free"
                     checked={
-                      formData.shippingType === "free"
+                      formData.shippingType ===
+                      "free"
                     }
-                    onChange={handleChange}
+                    onChange={
+                      handleChange
+                    }
                   />
 
                   <div>
@@ -1513,10 +2383,10 @@ const CreateAuction = () => {
 
                 </label>
 
-
                 <label
                   className={
-                    formData.shippingType === "paid"
+                    formData.shippingType ===
+                    "paid"
                       ? "ca-radio active"
                       : "ca-radio"
                   }
@@ -1527,9 +2397,12 @@ const CreateAuction = () => {
                     name="shippingType"
                     value="paid"
                     checked={
-                      formData.shippingType === "paid"
+                      formData.shippingType ===
+                      "paid"
                     }
-                    onChange={handleChange}
+                    onChange={
+                      handleChange
+                    }
                   />
 
                   <div>
@@ -1550,8 +2423,8 @@ const CreateAuction = () => {
 
             </div>
 
-
-            {formData.shippingType === "paid" && (
+            {formData.shippingType ===
+              "paid" && (
 
               <div className="ca-field-grid">
 
@@ -1565,13 +2438,16 @@ const CreateAuction = () => {
                     type="number"
                     min="0"
                     name="shippingCharges"
-                    value={formData.shippingCharges}
-                    onChange={handleChange}
+                    value={
+                      formData.shippingCharges
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="e.g. 500"
                   />
 
                 </div>
-
 
                 <div className="ca-field">
 
@@ -1581,9 +2457,15 @@ const CreateAuction = () => {
 
                   <CustomSelect
                     name="shippingPaidBy"
-                    value={formData.shippingPaidBy}
-                    onChange={handleSelectChange}
-                    options={SHIPPING_PAID_BY_OPTIONS}
+                    value={
+                      formData.shippingPaidBy
+                    }
+                    onChange={
+                      handleSelectChange
+                    }
+                    options={
+                      SHIPPING_PAID_BY_OPTIONS
+                    }
                     placeholder="Select"
                   />
 
@@ -1594,7 +2476,6 @@ const CreateAuction = () => {
             )}
 
           </section>
-
 
           {/* =================================================
               SELLER DETAILS + LOCATION
@@ -1615,15 +2496,13 @@ const CreateAuction = () => {
                 </h2>
 
                 <p>
-                  Seller contact, location and verification information
+                  Seller contact, location
+                  and verification information
                 </p>
 
               </div>
 
             </div>
-
-
-            {/* SELLER NAME */}
 
             <div className="ca-field">
 
@@ -1635,16 +2514,17 @@ const CreateAuction = () => {
               <input
                 type="text"
                 name="sellerName"
-                value={formData.sellerName}
-                onChange={handleChange}
+                value={
+                  formData.sellerName
+                }
+                onChange={
+                  handleChange
+                }
                 placeholder="Enter seller full name"
                 required
               />
 
             </div>
-
-
-            {/* EMAIL + CONTACT */}
 
             <div className="ca-field-grid">
 
@@ -1658,14 +2538,17 @@ const CreateAuction = () => {
                 <input
                   type="email"
                   name="sellerEmail"
-                  value={formData.sellerEmail}
-                  onChange={handleChange}
+                  value={
+                    formData.sellerEmail
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="seller@example.com"
                   required
                 />
 
               </div>
-
 
               <div className="ca-field">
 
@@ -1677,8 +2560,12 @@ const CreateAuction = () => {
                 <input
                   type="tel"
                   name="sellerContact"
-                  value={formData.sellerContact}
-                  onChange={handleChange}
+                  value={
+                    formData.sellerContact
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="+91 98765 43210"
                   required
                 />
@@ -1686,9 +2573,6 @@ const CreateAuction = () => {
               </div>
 
             </div>
-
-
-            {/* AREA */}
 
             <div className="ca-field">
 
@@ -1700,16 +2584,17 @@ const CreateAuction = () => {
               <input
                 type="text"
                 name="locationArea"
-                value={formData.locationArea}
-                onChange={handleChange}
+                value={
+                  formData.locationArea
+                }
+                onChange={
+                  handleChange
+                }
                 placeholder="e.g. Satellite Road"
                 required
               />
 
             </div>
-
-
-            {/* CITY + STATE */}
 
             <div className="ca-field-grid">
 
@@ -1723,14 +2608,17 @@ const CreateAuction = () => {
                 <input
                   type="text"
                   name="locationCity"
-                  value={formData.locationCity}
-                  onChange={handleChange}
+                  value={
+                    formData.locationCity
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Ahmedabad"
                   required
                 />
 
               </div>
-
 
               <div className="ca-field">
 
@@ -1742,8 +2630,12 @@ const CreateAuction = () => {
                 <input
                   type="text"
                   name="locationState"
-                  value={formData.locationState}
-                  onChange={handleChange}
+                  value={
+                    formData.locationState
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Gujarat"
                   required
                 />
@@ -1751,9 +2643,6 @@ const CreateAuction = () => {
               </div>
 
             </div>
-
-
-            {/* COUNTRY + PINCODE */}
 
             <div className="ca-field-grid">
 
@@ -1767,14 +2656,17 @@ const CreateAuction = () => {
                 <input
                   type="text"
                   name="locationCountry"
-                  value={formData.locationCountry}
-                  onChange={handleChange}
+                  value={
+                    formData.locationCountry
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="India"
                   required
                 />
 
               </div>
-
 
               <div className="ca-field">
 
@@ -1786,8 +2678,12 @@ const CreateAuction = () => {
                 <input
                   type="text"
                   name="locationPincode"
-                  value={formData.locationPincode}
-                  onChange={handleChange}
+                  value={
+                    formData.locationPincode
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="380015"
                   maxLength="6"
                   pattern="[0-9]{6}"
@@ -1798,9 +2694,6 @@ const CreateAuction = () => {
 
             </div>
 
-
-            {/* SELLER VERIFICATION */}
-
             <div className="ca-document-box">
 
               <div>
@@ -1810,7 +2703,8 @@ const CreateAuction = () => {
                 </strong>
 
                 <p>
-                  Upload identity or ownership verification document.
+                  Upload identity or ownership
+                  verification document.
                 </p>
 
               </div>
@@ -1824,7 +2718,8 @@ const CreateAuction = () => {
                   accept=".jpg,.jpeg,.png,.pdf"
                   onChange={(e) =>
                     setSellerProof(
-                      e.target.files?.[0] || null
+                      e.target.files?.[0] ||
+                        null
                     )
                   }
                 />
@@ -1833,20 +2728,16 @@ const CreateAuction = () => {
 
             </div>
 
-
             {sellerProof && (
-
               <div className="ca-file-name">
                 ✓ {sellerProof.name}
               </div>
-
             )}
 
           </section>
 
-
           {/* =================================================
-              PAYMENT
+              PAYMENT + SELLER TERMS
           ================================================= */}
 
           <section className="ca-card ca-payment-card">
@@ -1864,13 +2755,13 @@ const CreateAuction = () => {
                 </h2>
 
                 <p>
-                  Select accepted payment method
+                  Select accepted payment
+                  method
                 </p>
 
               </div>
 
             </div>
-
 
             <div className="ca-payment-grid">
 
@@ -1879,29 +2770,108 @@ const CreateAuction = () => {
                 "Bank Transfer",
                 "Credit / Debit Card",
                 "Cash on Pickup",
-              ].map((method) => (
+              ].map(
+                (method) => (
 
-                <button
-                  type="button"
-                  key={method}
-                  className={
-                    formData.paymentMethod === method
-                      ? "ca-payment active"
-                      : "ca-payment"
-                  }
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      paymentMethod: method,
-                    }))
-                  }
-                >
+                  <button
+                    type="button"
+                    key={method}
+                    className={
+                      formData.paymentMethod ===
+                      method
+                        ? "ca-payment active"
+                        : "ca-payment"
+                    }
+                    onClick={() =>
+                      setFormData(
+                        (prev) => ({
+                          ...prev,
+                          paymentMethod:
+                            method,
+                        })
+                      )
+                    }
+                  >
+                    {method}
+                  </button>
 
-                  {method}
+                )
+              )}
 
-                </button>
+            </div>
 
-              ))}
+            {/* =================================================
+                SELLER TERMS & CONDITIONS
+                POPUP TRIGGER
+            ================================================= */}
+
+            <div className="ca-field ca-product-terms">
+
+              <div className="ca-label-row">
+
+                <label>
+                  Seller Terms & Conditions
+                  <span>*</span>
+                </label>
+
+              </div>
+
+              {/* POPUP OPEN BUTTON */}
+
+              <button
+                type="button"
+                className={`ca-terms-input ${
+                  formData.productTerms
+                    ? "ca-terms-filled"
+                    : ""
+                }`}
+                onClick={
+                  openTermsModal
+                }
+              >
+
+                <span>
+                  {formData.productTerms
+                    ? "Edit Seller Terms & Conditions"
+                    : "Add Seller Terms & Conditions"}
+                </span>
+
+                <span className="ca-terms-arrow">
+                  →
+                </span>
+
+              </button>
+
+              {/* SAVED TERMS PREVIEW */}
+
+              {formData.productTerms && (
+                <div className="ca-seller-terms-preview">
+
+                  <div className="ca-seller-terms-preview-header">
+
+                    <strong>
+                      Your Terms & Conditions
+                    </strong>
+
+                    <button
+                      type="button"
+                      onClick={
+                        openTermsModal
+                      }
+                    >
+                      Edit
+                    </button>
+
+                  </div>
+
+                  <p>
+                    {
+                      formData.productTerms
+                    }
+                  </p>
+
+                </div>
+              )}
 
             </div>
 
@@ -1909,6 +2879,132 @@ const CreateAuction = () => {
 
         </div>
 
+        {/* =================================================
+            SELLER TERMS & CONDITIONS POPUP
+        ================================================= */}
+
+        {termsModalOpen && (
+
+          <div
+            className="ca-terms-overlay"
+            onMouseDown={(e) => {
+              if (
+                e.target ===
+                e.currentTarget
+              ) {
+                closeTermsModal();
+              }
+            }}
+          >
+
+            <div
+              className="ca-terms-modal ca-seller-terms-modal"
+              onMouseDown={(e) =>
+                e.stopPropagation()
+              }
+            >
+
+              {/* MODAL HEADER */}
+
+              <div className="ca-terms-modal-header">
+
+                <div>
+
+                  <h2>
+                    Seller Terms & Conditions
+                  </h2>
+
+                  <p>
+                    Add the terms and conditions
+                    that buyers must agree to
+                    when purchasing your product.
+                  </p>
+
+                </div>
+
+                <button
+                  type="button"
+                  className="ca-terms-close"
+                  onClick={
+                    closeTermsModal
+                  }
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+
+              </div>
+
+              {/* TERMS EDITOR */}
+
+              <div className="ca-seller-terms-editor">
+
+                <label>
+                  Your Terms & Conditions
+                  <span>*</span>
+                </label>
+
+                <textarea
+                  value={
+                    sellerTermsText
+                  }
+                  onChange={(e) =>
+                    setSellerTermsText(
+                      e.target.value
+                    )
+                  }
+                  placeholder={
+                    "Enter your terms and conditions here...\n\n" +
+                    "Example:\n" +
+                    "1. Product will be sold in its current condition.\n" +
+                    "2. Buyer must inspect the product before pickup.\n" +
+                    "3. No returns will be accepted after the transaction.\n" +
+                    "4. Payment must be completed using the selected payment method."
+                  }
+                  maxLength={5000}
+                  autoFocus
+                />
+
+                <div className="ca-terms-character-count">
+                  {
+                    sellerTermsText.length
+                  }
+                  /5000
+                </div>
+
+              </div>
+
+              {/* MODAL FOOTER */}
+
+              <div className="ca-terms-modal-footer">
+
+                <button
+                  type="button"
+                  className="ca-terms-cancel"
+                  onClick={
+                    closeTermsModal
+                  }
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="ca-terms-agree"
+                  onClick={
+                    saveSellerTerms
+                  }
+                >
+                  Save Terms
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
 
         {/* =================================================
             FORM FOOTER
@@ -1918,31 +3014,85 @@ const CreateAuction = () => {
 
           <div className="ca-footer-info">
 
-            <strong>
-              Ready to publish?
-            </strong>
+            <label className="ca-terms-checkbox">
 
-            <span>
-              Make sure all required information is complete.
-            </span>
+              <input
+                type="checkbox"
+                checked={
+                  formData.termsAccepted
+                }
+                onChange={(e) => {
+
+                  if (
+                    !formData.productTerms
+                  ) {
+                    alert(
+                      "Please add Seller Terms & Conditions first."
+                    );
+
+                    return;
+                  }
+
+                  setFormData(
+                    (prev) => ({
+                      ...prev,
+                      termsAccepted:
+                        e.target.checked,
+                    })
+                  );
+
+                }}
+              />
+
+              <span className="ca-custom-checkbox">
+
+                {formData.termsAccepted &&
+                  "✓"}
+
+              </span>
+
+              <span className="ca-terms-text">
+
+                I agree to the{" "}
+
+                <button
+                  type="button"
+                  className="ca-terms-link"
+                  onClick={
+                    openTermsModal
+                  }
+                >
+                  Seller Terms & Conditions
+                </button>
+
+                {" "}and confirm that
+                all information provided
+                is accurate.
+
+              </span>
+
+            </label>
 
           </div>
-
 
           <div className="ca-footer-actions">
 
             <button
               type="button"
               className="ca-btn ca-btn-light ca-cancel"
-              onClick={saveDraft}
+              onClick={
+                saveDraft
+              }
             >
               Cancel
             </button>
 
-
             <button
               type="submit"
               className="ca-btn ca-btn-primary ca-publish"
+              disabled={
+                !formData.termsAccepted
+              }
             >
               + Create Auction
             </button>
@@ -1952,7 +3102,6 @@ const CreateAuction = () => {
         </div>
 
       </form>
-
 
       {/* =================================================
           FOOTER
