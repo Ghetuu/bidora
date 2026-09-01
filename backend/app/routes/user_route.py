@@ -37,7 +37,10 @@ from app.schemas.login import (
 
 from app.services.user_services import UserService
 
-from app.core.security import verify_password
+from app.core.security import (
+    verify_password,
+    create_access_token
+)
 
 from app.core.email import mail_config
 
@@ -634,7 +637,7 @@ async def login(
     }
 
 
-# =========================================================
+## =========================================================
 # VERIFY LOGIN OTP
 # =========================================================
 
@@ -715,6 +718,29 @@ async def verify_login_otp(
         )
 
     # =====================================================
+    # CHECK ACCOUNT STATUS
+    # =====================================================
+    #
+    # You told me that you do NOT want admin approval
+    # to block login right now.
+    #
+    # Therefore, we intentionally DO NOT check:
+    #
+    # if user.account_status != "APPROVED":
+    #
+    # =====================================================
+
+    # =====================================================
+    # CREATE JWT ACCESS TOKEN
+    # =========================================================
+
+    access_token = create_access_token(
+        data={
+            "sub": str(user.id)
+        }
+    )
+
+    # =====================================================
     # DELETE LOGIN OTP
     # =====================================================
 
@@ -728,7 +754,13 @@ async def verify_login_otp(
 
     return {
 
+        "success": True,
+
         "message": "Login successful.",
+
+        "access_token": access_token,
+
+        "token_type": "bearer",
 
         "user": {
 
@@ -738,6 +770,8 @@ async def verify_login_otp(
 
             "username": user.username,
 
-            "email": user.email
+            "email": user.email,
+
+            "account_status": user.account_status
         }
     }
