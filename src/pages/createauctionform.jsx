@@ -61,7 +61,9 @@ const CustomSelect = ({
   const wrapRef = useRef(null);
   const searchRef = useRef(null);
 
+
   const selected = options.find((o) => o.value === value) || null;
+  
 
   const filtered = query.trim()
     ? options.filter((o) =>
@@ -1209,6 +1211,19 @@ const CreateAuction = () => {
   const [sellerProof, setSellerProof] =
     useState(null);
 
+  // =========================================================
+  // SUBMIT STATE
+  // =========================================================
+
+  const [submitLoading, setSubmitLoading] =
+    useState(false);
+
+  const [submitError, setSubmitError] =
+    useState("");
+
+  const [submitSuccess, setSubmitSuccess] =
+    useState("");
+
   /* =========================================================
      SELLER TERMS POPUP
   ========================================================= */
@@ -1263,10 +1278,45 @@ const CreateAuction = () => {
   ===================================================== */
 
   const handleChange = (e) => {
-    const {
-      name,
-      value,
-    } = e.target;
+    const { name } = e.target;
+    let { value } = e.target;
+
+    // Digits only
+    if (name === "sellerContact") {
+      value = value.replace(/\\D/g, "").slice(0, 10);
+    }
+
+    if (name === "locationPincode") {
+      value = value.replace(/\\D/g, "").slice(0, 6);
+    }
+
+    // Letters, spaces, apostrophe and hyphen only
+    if (
+      name === "purchasedBy" ||
+      name === "sellerName" ||
+      name === "locationCity" ||
+      name === "locationState" ||
+      name === "locationCountry"
+    ) {
+      value = value.replace(/[^A-Za-z\\s'-]/g, "");
+    }
+
+    const maxLengths = {
+      productTitle: 100,
+      brandModel: 100,
+      description: 1000,
+      purchasedBy: 100,
+      locationArea: 100,
+      locationCity: 50,
+      locationState: 50,
+      locationCountry: 50,
+      sellerName: 100,
+      sellerEmail: 255,
+    };
+
+    if (maxLengths[name]) {
+      value = value.slice(0, maxLengths[name]);
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -1293,10 +1343,7 @@ const CreateAuction = () => {
   ===================================================== */
 
   const handleImageUpload = (e) => {
-    const files =
-      Array.from(
-        e.target.files || []
-      );
+    const files = Array.from(e.target.files || []);
 
     const allowedTypes = [
       "image/jpeg",
@@ -1305,65 +1352,42 @@ const CreateAuction = () => {
       "image/webp",
     ];
 
-    const maxSize =
-      5 * 1024 * 1024;
-
-    const validFiles =
-      files.filter((file) => {
-        if (
-          !allowedTypes.includes(
-            file.type
-          )
-        ) {
-          alert(
-            `${file.name} is not a valid image format.`
-          );
-
-          return false;
-        }
-
-        if (
-          file.size > maxSize
-        ) {
-          alert(
-            `${file.name} exceeds the 5MB limit.`
-          );
-
-          return false;
-        }
-
-        return true;
-      });
-
-    const remainingSlots =
-      12 - images.length;
+    const maxSize = 5 * 1024 * 1024;
+    const remainingSlots = 12 - images.length;
 
     if (remainingSlots <= 0) {
-      alert(
-        "You can upload a maximum of 12 images."
-      );
-
+      alert("You can upload a maximum of 12 images.");
       e.target.value = "";
-
       return;
     }
 
-    const newImages =
-      validFiles
-        .slice(0, remainingSlots)
-        .map((file) => ({
-          file,
-          preview:
-            URL.createObjectURL(
-              file
-            ),
-          name: file.name,
-        }));
+    const validFiles = [];
 
-    setImages((prev) => [
-      ...prev,
-      ...newImages,
-    ]);
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        alert(
+          `${file.name} is not a valid image format. Use JPG, JPEG, PNG or WEBP.`
+        );
+        continue;
+      }
+
+      if (file.size > maxSize) {
+        alert(`${file.name} exceeds the 5MB limit.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    const newImages = validFiles
+      .slice(0, remainingSlots)
+      .map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+        name: file.name,
+      }));
+
+    setImages((prev) => [...prev, ...newImages]);
 
     e.target.value = "";
   };
@@ -1392,125 +1416,512 @@ const CreateAuction = () => {
      SUBMIT
   ===================================================== */
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (images.length < 3) {
-      alert(
-        "Please upload at least 3 product images."
-      );
+    setSubmitError("");
+    setSubmitSuccess("");
 
+    // =========================================================
+    // REQUIRED FIELDS
+    // =========================================================
+
+    const requiredFields = [
+      ["productTitle", "Auction title"],
+      ["brandModel", "Brand / Model"],
+      ["category", "Category"],
+      ["description", "Description"],
+      ["condition", "Product condition"],
+      ["purchaseDate", "Date of product buy"],
+      ["purchasedBy", "Purchased by"],
+      ["purchasePrice", "Original purchase price"],
+      ["startingPrice", "Starting bid"],
+      ["auctionStart", "Auction start"],
+      ["auctionEnd", "Auction end"],
+      ["locationArea", "Area / Locality"],
+      ["locationCity", "City"],
+      ["locationState", "State"],
+      ["locationCountry", "Country"],
+      ["locationPincode", "Pincode"],
+      ["deliveryType", "Delivery / Pickup"],
+      ["shippingType", "Shipping type"],
+      ["paymentMethod", "Payment method"],
+      ["productTerms", "Seller Terms & Conditions"],
+      ["sellerName", "Seller name"],
+      ["sellerEmail", "Seller email"],
+      ["sellerContact", "Contact number"],
+    ];
+
+    for (const [field, label] of requiredFields) {
+      if (!String(formData[field] ?? "").trim()) {
+        setSubmitError(`${label} is required.`);
+        return;
+      }
+    }
+
+    // =========================================================
+    // IMAGE / DOCUMENT VALIDATION
+    // =========================================================
+
+    if (images.length < 3) {
+      setSubmitError("Please upload at least 3 product images.");
+      return;
+    }
+
+    if (images.length > 12) {
+      setSubmitError("You can upload a maximum of 12 product images.");
       return;
     }
 
     if (!purchaseProof) {
-      alert(
-        "Please upload the bill or proof of purchase."
-      );
-
+      setSubmitError("Please upload the bill or proof of purchase.");
       return;
     }
 
     if (!sellerProof) {
-      alert(
-        "Please upload seller verification proof."
-      );
-
+      setSubmitError("Please upload seller verification proof.");
       return;
     }
 
-    if (!formData.category) {
-      alert(
-        "Please select a category."
-      );
+    const documentTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+    ];
 
+    const documentMaxSize = 10 * 1024 * 1024;
+
+    if (!documentTypes.includes(purchaseProof.type)) {
+      setSubmitError("Purchase proof must be JPG, JPEG, PNG or PDF.");
       return;
     }
 
-    if (!formData.condition) {
-      alert(
-        "Please select a product condition."
-      );
-
+    if (purchaseProof.size > documentMaxSize) {
+      setSubmitError("Purchase proof cannot exceed 10MB.");
       return;
     }
 
-    if (
-      formData.auctionStart &&
-      formData.auctionEnd &&
-      new Date(
-        formData.auctionEnd
-      ) <=
-        new Date(
-          formData.auctionStart
-        )
-    ) {
-      alert(
+    if (!documentTypes.includes(sellerProof.type)) {
+      setSubmitError(
+        "Seller verification proof must be JPG, JPEG, PNG or PDF."
+      );
+      return;
+    }
+
+    if (sellerProof.size > documentMaxSize) {
+      setSubmitError("Seller verification proof cannot exceed 10MB.");
+      return;
+    }
+
+    // =========================================================
+    // MAX LENGTH VALIDATION - MATCHES MYSQL
+    // =========================================================
+
+    const lengthRules = [
+      ["productTitle", 100, "Auction title"],
+      ["brandModel", 100, "Brand / Model"],
+      ["description", 1000, "Description"],
+      ["purchasedBy", 100, "Purchased by"],
+      ["locationArea", 100, "Area / Locality"],
+      ["locationCity", 50, "City"],
+      ["locationState", 50, "State"],
+      ["locationCountry", 50, "Country"],
+      ["sellerName", 100, "Seller name"],
+      ["sellerEmail", 255, "Seller email"],
+    ];
+
+    for (const [field, max, label] of lengthRules) {
+      if (formData[field].trim().length > max) {
+        setSubmitError(`${label} cannot exceed ${max} characters.`);
+        return;
+      }
+    }
+
+    if (formData.productTerms.trim().length > 5000) {
+      setSubmitError(
+        "Seller Terms & Conditions cannot exceed 5000 characters."
+      );
+      return;
+    }
+
+    // =========================================================
+    // CHARACTER VALIDATION
+    // =========================================================
+
+    const textNameFields = [
+      ["purchasedBy", "Purchased by"],
+      ["sellerName", "Seller name"],
+      ["locationCity", "City"],
+      ["locationState", "State"],
+      ["locationCountry", "Country"],
+    ];
+
+    for (const [field, label] of textNameFields) {
+      if (!/^[A-Za-z][A-Za-z\s'-]*$/.test(formData[field].trim())) {
+        setSubmitError(
+          `${label} can contain only letters, spaces, apostrophe and hyphen.`
+        );
+        return;
+      }
+    }
+
+    // =========================================================
+    // PINCODE / CONTACT
+    // =========================================================
+
+    if (!/^\d{6}$/.test(formData.locationPincode)) {
+      setSubmitError("Pincode must contain exactly 6 digits.");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(formData.sellerContact)) {
+      setSubmitError("Contact number must contain exactly 10 digits.");
+      return;
+    }
+
+    // =========================================================
+    // EMAIL
+    // =========================================================
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!emailRegex.test(formData.sellerEmail.trim())) {
+      setSubmitError("Please enter a valid seller email address.");
+      return;
+    }
+
+    // =========================================================
+    // PRICE VALIDATION
+    // =========================================================
+
+    const purchasePrice = Number(formData.purchasePrice);
+    const startingPrice = Number(formData.startingPrice);
+
+    if (!Number.isFinite(purchasePrice) || purchasePrice <= 0) {
+      setSubmitError("Original purchase price must be greater than 0.");
+      return;
+    }
+
+    if (!Number.isFinite(startingPrice) || startingPrice <= 0) {
+      setSubmitError("Starting bid must be greater than 0.");
+      return;
+    }
+
+    if (purchasePrice > 9999999999.99) {
+      setSubmitError("Original purchase price is too large.");
+      return;
+    }
+
+    if (startingPrice > 9999999999.99) {
+      setSubmitError("Starting bid is too large.");
+      return;
+    }
+
+    // =========================================================
+    // SHIPPING VALIDATION
+    // =========================================================
+
+    let shippingCharges = "0";
+
+    if (formData.shippingType === "paid") {
+      if (!formData.shippingCharges.trim()) {
+        setSubmitError("Please enter the shipping charges.");
+        return;
+      }
+
+      const charges = Number(formData.shippingCharges);
+
+      if (!Number.isFinite(charges) || charges < 0) {
+        setSubmitError("Shipping charges must be a valid number.");
+        return;
+      }
+
+      if (charges > 9999999999.99) {
+        setSubmitError("Shipping charges are too large.");
+        return;
+      }
+
+      if (!formData.shippingPaidBy) {
+        setSubmitError("Please select who will pay the shipping charges.");
+        return;
+      }
+
+      shippingCharges = String(charges);
+    }
+
+    // =========================================================
+    // DATE VALIDATION
+    // =========================================================
+
+    const purchaseDate = new Date(
+      `${formData.purchaseDate}T00:00:00`
+    );
+
+    const auctionStart = new Date(formData.auctionStart);
+    const auctionEnd = new Date(formData.auctionEnd);
+
+    if (Number.isNaN(purchaseDate.getTime())) {
+      setSubmitError("Please select a valid purchase date.");
+      return;
+    }
+
+    if (Number.isNaN(auctionStart.getTime())) {
+      setSubmitError("Please select a valid auction start date and time.");
+      return;
+    }
+
+    if (Number.isNaN(auctionEnd.getTime())) {
+      setSubmitError("Please select a valid auction end date and time.");
+      return;
+    }
+
+    if (auctionEnd <= auctionStart) {
+      setSubmitError(
         "Auction end date and time must be after the start date and time."
       );
-
       return;
     }
 
-    if (!formData.productTerms) {
-      alert(
-        "Please add your Seller Terms & Conditions."
-      );
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
 
+    if (purchaseDate > today) {
+      setSubmitError("Purchase date cannot be in the future.");
+      return;
+    }
+
+    // =========================================================
+    // TERMS
+    // =========================================================
+
+    if (!formData.productTerms.trim()) {
+      setSubmitError("Please add your Seller Terms & Conditions.");
       return;
     }
 
     if (!formData.termsAccepted) {
-      alert(
-        "Please accept the Terms & Conditions before creating the auction."
+      setSubmitError(
+        "Please accept the Seller Terms & Conditions before creating the auction."
       );
-
       return;
     }
 
     if (!formData.paymentMethod) {
-      alert(
-        "Please select a payment method."
-      );
-
+      setSubmitError("Please select a payment method.");
       return;
     }
 
-    if (
-      formData.shippingType ===
-        "paid" &&
-      !formData.shippingCharges
-    ) {
-      alert(
-        "Please enter the shipping charges."
-      );
+    // =========================================================
+    // GET JWT TOKEN
+    // =========================================================
 
+    const storedUser = localStorage.getItem("user");
+    let user = null;
+
+    try {
+      user = storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      user = null;
+    }
+
+    const accessToken =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("accessToken") ||
+      localStorage.getItem("token") ||
+      user?.access_token ||
+      user?.accessToken ||
+      user?.token;
+
+    if (!accessToken) {
+      setSubmitError(
+        "Your login session is missing. Please login again before creating an auction."
+      );
       return;
     }
 
-    console.log(
-      "Auction Data:",
-      formData
+    // =========================================================
+    // CREATE MULTIPART FORM DATA
+    // =========================================================
+
+    const data = new FormData();
+
+    data.append("product_title", formData.productTitle.trim());
+    data.append("brand_model", formData.brandModel.trim());
+    data.append("category", formData.category);
+    data.append("description", formData.description.trim());
+    data.append("product_condition", formData.condition);
+    data.append("purchase_date", formData.purchaseDate);
+    data.append("purchased_by", formData.purchasedBy.trim());
+    data.append("purchase_price", purchasePrice.toFixed(2));
+    data.append("starting_price", startingPrice.toFixed(2));
+    data.append("auction_start", formData.auctionStart);
+    data.append("auction_end", formData.auctionEnd);
+    data.append("location_area", formData.locationArea.trim());
+    data.append("location_city", formData.locationCity.trim());
+    data.append("location_state", formData.locationState.trim());
+    data.append("location_country", formData.locationCountry.trim());
+    data.append("location_pincode", formData.locationPincode);
+    data.append("delivery_type", formData.deliveryType);
+    data.append("shipping_type", formData.shippingType);
+    data.append("shipping_charges", shippingCharges);
+
+    if (formData.shippingPaidBy) {
+      data.append("shipping_paid_by", formData.shippingPaidBy);
+    }
+
+    if (formData.warrantyStatus) {
+      data.append("warranty_status", formData.warrantyStatus);
+    }
+
+    data.append("payment_method", formData.paymentMethod);
+    data.append("product_terms", formData.productTerms.trim());
+    data.append("terms_accepted", String(formData.termsAccepted));
+    data.append("seller_name", formData.sellerName.trim());
+    data.append(
+      "seller_email",
+      formData.sellerEmail.trim().toLowerCase()
+    );
+    data.append("seller_contact", formData.sellerContact);
+
+    images.forEach((image) => {
+      data.append("images", image.file, image.file.name);
+    });
+
+    data.append(
+      "purchase_proof",
+      purchaseProof,
+      purchaseProof.name
     );
 
-    console.log(
-      "Product Images:",
-      images
+    data.append(
+      "seller_proof",
+      sellerProof,
+      sellerProof.name
     );
 
-    console.log(
-      "Purchase Proof:",
-      purchaseProof
-    );
+    // =========================================================
+    // SEND TO FASTAPI
+    // =========================================================
 
-    console.log(
-      "Seller Proof:",
-      sellerProof
-    );
+    try {
+      setSubmitLoading(true);
 
-    alert(
-      "Auction published successfully!"
-    );
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/auctions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: data,
+        }
+      );
+
+      let result = {};
+
+      try {
+        result = await response.json();
+      } catch {
+        result = {};
+      }
+
+      if (!response.ok) {
+        console.error("CREATE AUCTION ERROR:", result);
+
+        let message =
+          result?.detail ||
+          result?.message ||
+          "Unable to create auction.";
+
+        if (Array.isArray(result?.detail)) {
+          message = result.detail
+            .map((item) => {
+              const location = item?.loc
+                ? item.loc.join(".")
+                : "Field";
+
+              return `${location}: ${
+                item?.msg || "Invalid value."
+              }`;
+            })
+            .join(" ");
+        }
+
+        if (response.status === 401) {
+          message =
+            "Your login session has expired or is invalid. Please login again.";
+        }
+
+        setSubmitError(message);
+        return;
+      }
+
+      // =======================================================
+      // SUCCESS - ONLY AFTER FASTAPI RETURNS SUCCESS
+      // =======================================================
+
+      setSubmitSuccess(
+        result?.message ||
+          "Auction submitted successfully and is waiting for admin approval."
+      );
+
+      alert(
+        result?.message ||
+          "Auction submitted successfully and is waiting for admin approval."
+      );
+
+      console.log("Auction created successfully:", result);
+
+      images.forEach((image) => {
+        if (image?.preview) {
+          URL.revokeObjectURL(image.preview);
+        }
+      });
+
+      setImages([]);
+      setPurchaseProof(null);
+      setSellerProof(null);
+
+      setFormData({
+        productTitle: "",
+        brandModel: "",
+        category: "",
+        description: "",
+        condition: "",
+        purchaseDate: "",
+        purchasedBy: "",
+        purchasePrice: "",
+        startingPrice: "",
+        auctionStart: "",
+        auctionEnd: "",
+        locationArea: "",
+        locationCity: "",
+        locationState: "",
+        locationCountry: "India",
+        locationPincode: "",
+        deliveryType: "pickup",
+        shippingType: "free",
+        shippingCharges: "",
+        shippingPaidBy: "",
+        warrantyStatus: "",
+        paymentMethod: "",
+        productTerms: "",
+        termsAccepted: false,
+        sellerName: "",
+        sellerEmail: "",
+        sellerContact: "",
+      });
+
+    } catch (error) {
+      console.error("CREATE AUCTION REQUEST ERROR:", error);
+
+      setSubmitError(
+        "Unable to connect to the server. Please make sure FastAPI is running on http://127.0.0.1:8000."
+      );
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   /* =====================================================
@@ -3007,6 +3418,30 @@ const CreateAuction = () => {
         )}
 
         {/* =================================================
+            SUBMIT MESSAGE
+        ================================================= */}
+
+        {(submitError || submitSuccess) && (
+          <div
+            style={{
+              margin: "0 0 16px",
+              padding: "12px 16px",
+              borderRadius: "10px",
+              fontSize: "14px",
+              lineHeight: "1.5",
+              background: submitError ? "#fff1f2" : "#ecfdf5",
+              color: submitError ? "#b42318" : "#067647",
+              border: submitError
+                ? "1px solid #fecdd3"
+                : "1px solid #a7f3d0",
+            }}
+            role="alert"
+          >
+            {submitError || submitSuccess}
+          </div>
+        )}
+
+        {/* =================================================
             FORM FOOTER
         ================================================= */}
 
@@ -3091,10 +3526,11 @@ const CreateAuction = () => {
               type="submit"
               className="ca-btn ca-btn-primary ca-publish"
               disabled={
-                !formData.termsAccepted
+                !formData.termsAccepted ||
+                submitLoading
               }
             >
-              + Create Auction
+              {submitLoading ? "Submitting..." : "+ Create Auction"}
             </button>
 
           </div>
