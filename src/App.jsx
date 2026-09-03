@@ -32,6 +32,9 @@ import PendingAuction from "./admin/PendingAuction";
 import Dashboard from "./pages/Dashboard";
 import DashboardHome from "./pages/dashboard_home";
 import CreateAuction from "./pages/createauctionform";
+import MyAuctions from "./pages/MyAuctions";
+import AuctionDetails from "./pages/auctiondetails";
+
 function App() {
 
   return (
@@ -88,6 +91,17 @@ function App() {
             path="create-auction" 
             element={<CreateAuction />} 
           />
+
+          <Route
+            path="my-auctions"
+            element={<MyAuctions />}
+          />
+
+            <Route
+              path="auction/:id"
+              element={<AuctionDetails />}
+            />
+          
 
         </Route>
 

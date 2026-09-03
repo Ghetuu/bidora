@@ -65,7 +65,9 @@ def get_current_user(
         JWTError,
         ValueError,
         TypeError
-    ):
+    ) as e:
+
+        print("JWT ERROR:", str(e))
 
         raise credentials_exception
 
@@ -78,6 +80,12 @@ def get_current_user(
     )
 
     if user is None:
+
+        print(
+            "JWT USER NOT FOUND:",
+            user_id
+        )
+
         raise credentials_exception
 
     return user

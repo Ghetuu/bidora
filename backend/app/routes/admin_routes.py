@@ -598,14 +598,22 @@ def get_pending_auctions(
 # APPROVE AUCTION
 # =====================================================
 
+# =====================================================
+# APPROVE AUCTION
+# =====================================================
+
 @router.put("/auctions/{auction_id}/approve")
-def approve_auction(
+async def approve_auction(
 
     auction_id: int,
 
     db: Session = Depends(get_db)
 
 ):
+
+    # =================================================
+    # FIND AUCTION
+    # =================================================
 
     auction = (
         db.query(Auction)
@@ -622,6 +630,10 @@ def approve_auction(
             detail="Auction not found."
         )
 
+    # =================================================
+    # CHECK STATUS
+    # =================================================
+
     if auction.status != "pending":
 
         raise HTTPException(
@@ -632,11 +644,137 @@ def approve_auction(
             )
         )
 
+    # =================================================
+    # FIND USER WHO CREATED AUCTION
+    # =================================================
+
+    user = (
+        db.query(User)
+        .filter(
+            User.id == auction.user_id
+        )
+        .first()
+    )
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Auction creator user not found."
+        )
+
+    # =================================================
+    # UPDATE AUCTION STATUS
+    # =================================================
+
     auction.status = "approved"
+
+    # =================================================
+    # CREATE USER WEB NOTIFICATION
+    # =================================================
+
+    notification = Notification(
+
+        recipient_type="user",
+
+        user_id=user.id,
+
+        auction_id=auction.id,
+
+        notif_type="auction_approved",
+
+        title="Auction Approved",
+
+        message=(
+            f'Your auction "{auction.product_title}" '
+            f'has been approved by the admin.'
+        ),
+
+        is_read=False
+
+    )
+
+    db.add(notification)
+
+    # =================================================
+    # SAVE AUCTION + NOTIFICATION
+    # =================================================
 
     db.commit()
 
     db.refresh(auction)
+
+    # =================================================
+    # SEND APPROVAL EMAIL
+    # =================================================
+
+    email_sent = True
+
+    try:
+
+        message = MessageSchema(
+
+            subject="Bidora - Auction Approved",
+
+            recipients=[user.email],
+
+            body=f"""
+            <html>
+                <body>
+
+                    <h2>Bidora - Auction Approved</h2>
+
+                    <p>
+                        Hello <b>{user.fullname}</b>,
+                    </p>
+
+                    <p>
+                        Your auction request has been
+                        <b>approved by the admin</b>.
+                    </p>
+
+                    <p>
+                        <b>Auction:</b>
+                        {auction.product_title}
+                    </p>
+
+                    <p>
+                        Your auction is now approved
+                        and will be available according
+                        to its scheduled auction time.
+                    </p>
+
+                    <br>
+
+                    <p>
+                        Regards,<br>
+                        <b>Bidora Team</b>
+                    </p>
+
+                </body>
+            </html>
+            """,
+
+            subtype=MessageType.html
+
+        )
+
+        fm = FastMail(mail_config)
+
+        await fm.send_message(message)
+
+    except Exception as e:
+
+        email_sent = False
+
+        print(
+            "AUCTION APPROVAL EMAIL ERROR:",
+            str(e)
+        )
+
+    # =================================================
+    # RESPONSE
+    # =================================================
 
     return {
 
@@ -648,7 +786,11 @@ def approve_auction(
 
         "auction_id": auction.id,
 
-        "status": auction.status
+        "status": auction.status,
+
+        "notification_created": True,
+
+        "email_sent": email_sent
 
     }
 
