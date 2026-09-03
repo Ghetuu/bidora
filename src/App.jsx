@@ -23,7 +23,7 @@ import AdminLogin from "./admin/adminlogin";
 import AdminDashboard from "./admin/admindashboard";
 import AdminHome from "./admin/adminhome";
 import AdminUsers from "./admin/adminusers";
-
+import PendingAuction from "./admin/PendingAuction";
 
 // =====================================================
 // USER DASHBOARD
@@ -32,6 +32,9 @@ import AdminUsers from "./admin/adminusers";
 import Dashboard from "./pages/Dashboard";
 import DashboardHome from "./pages/dashboard_home";
 import CreateAuction from "./pages/createauctionform";
+import MyAuctions from "./pages/MyAuctions";
+import AuctionDetails from "./pages/auctiondetails";
+
 function App() {
 
   return (
@@ -89,6 +92,17 @@ function App() {
             element={<CreateAuction />} 
           />
 
+          <Route
+            path="my-auctions"
+            element={<MyAuctions />}
+          />
+
+            <Route
+              path="auction/:id"
+              element={<AuctionDetails />}
+            />
+          
+
         </Route>
 
 
@@ -137,8 +151,15 @@ function App() {
             element={<AdminUsers />}
           />
 
+           <Route
+          path="auctions/pending"
+          element={<PendingAuction />}
+        />
+
+
         </Route>
 
+       
 
         {/* =================================================
             UNKNOWN URL

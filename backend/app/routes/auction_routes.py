@@ -20,7 +20,8 @@ from app.database import get_db
 from app.core.auth import get_current_user
 
 from app.models.user import User
-
+from app.models.auction import Auction
+from app.models.auction_image import AuctionImage
 from app.repositories.auction_repository import (
     AuctionRepository
 )
@@ -176,3 +177,195 @@ async def create_auction(
 
         "status": auction.status
     }
+
+# =========================================================
+# GET MY AUCTIONS
+# =========================================================
+
+@router.get("/my-auctions")
+def get_my_auctions(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+
+        auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.user_id == current_user.id
+            )
+            .order_by(
+                Auction.created_at.desc()
+            )
+            .all()
+        )
+
+        result = []
+
+        for auction in auctions:
+
+            # ==========================================
+            # PRODUCT IMAGES
+            # ==========================================
+
+            auction_images = sorted(
+                auction.images,
+                key=lambda image: image.display_order
+            )
+
+            # ==========================================
+            # BUILD RESPONSE
+            # ==========================================
+
+            result.append({
+
+                # ======================================
+                # BASIC
+                # ======================================
+
+                "id": auction.id,
+                "user_id": auction.user_id,
+
+                # ======================================
+                # PRODUCT INFORMATION
+                # ======================================
+
+                "product_title": auction.product_title,
+                "brand_model": auction.brand_model,
+                "category": auction.category,
+                "description": auction.description,
+                "product_condition": auction.product_condition,
+
+                # ======================================
+                # PURCHASE INFORMATION
+                # ======================================
+
+                "purchase_date": (
+                    auction.purchase_date.isoformat()
+                    if auction.purchase_date
+                    else None
+                ),
+
+                "purchased_by": auction.purchased_by,
+
+                "purchase_price": (
+                    float(auction.purchase_price)
+                    if auction.purchase_price is not None
+                    else 0
+                ),
+
+                # ======================================
+                # AUCTION INFORMATION
+                # ======================================
+
+                "starting_price": (
+                    float(auction.starting_price)
+                    if auction.starting_price is not None
+                    else 0
+                ),
+
+                "auction_start": (
+                    auction.auction_start.isoformat()
+                    if auction.auction_start
+                    else None
+                ),
+
+                "auction_end": (
+                    auction.auction_end.isoformat()
+                    if auction.auction_end
+                    else None
+                ),
+
+                "status": auction.status,
+
+                # ======================================
+                # LOCATION
+                # ======================================
+
+                "location_area": auction.location_area,
+                "location_city": auction.location_city,
+                "location_state": auction.location_state,
+                "location_country": auction.location_country,
+                "location_pincode": auction.location_pincode,
+
+                # ======================================
+                # DELIVERY & SHIPPING
+                # ======================================
+
+                "delivery_type": auction.delivery_type,
+                "shipping_type": auction.shipping_type,
+
+                "shipping_charges": (
+                    float(auction.shipping_charges)
+                    if auction.shipping_charges is not None
+                    else 0
+                ),
+
+                "shipping_paid_by": auction.shipping_paid_by,
+
+                # ======================================
+                # ADDITIONAL INFORMATION
+                # ======================================
+
+                "warranty_status": auction.warranty_status,
+                "payment_method": auction.payment_method,
+
+                "product_terms": auction.product_terms,
+                "terms_accepted": auction.terms_accepted,
+
+                # ======================================
+                # SELLER INFORMATION
+                # ======================================
+
+                "seller_name": auction.seller_name,
+                "seller_email": auction.seller_email,
+                "seller_contact": auction.seller_contact,
+
+                # ======================================
+                # PRODUCT IMAGES
+                # ======================================
+
+                "images": [
+                    {
+                        "id": image.id,
+                        "image_path": image.image_path,
+                        "display_order": image.display_order
+                    }
+                    for image in auction_images
+                ],
+
+                # ======================================
+                # DOCUMENTS
+                # ======================================
+
+                "purchase_proof_path": auction.purchase_proof_path,
+
+                "seller_proof_path": auction.seller_proof_path,
+
+                # ======================================
+                # RECORD INFORMATION
+                # ======================================
+
+                "created_at": (
+                    auction.created_at.isoformat()
+                    if auction.created_at
+                    else None
+                ),
+
+                "updated_at": (
+                    auction.updated_at.isoformat()
+                    if auction.updated_at
+                    else None
+                )
+            })
+
+        return result
+
+    except Exception as e:
+
+        print("GET MY AUCTIONS ERROR:", repr(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to load your auctions."
+        )

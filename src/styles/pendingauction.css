@@ -1,0 +1,842 @@
+/* =========================================================
+   BIDORA - PENDING AUCTIONS
+========================================================= */
+
+.pa-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px;
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.pa-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.pa-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #64748b;
+  margin-bottom: 7px;
+}
+
+.pa-page-header h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  color: #172033;
+}
+
+.pa-page-header p {
+  margin: 8px 0 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+.pa-header-count {
+  min-width: 92px;
+  padding: 14px 20px;
+  border: 1px solid #e6eaf0;
+  border-radius: 14px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+}
+
+.pa-header-count strong {
+  display: block;
+  font-size: 25px;
+  color: #172033;
+}
+
+.pa-header-count span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a94a6;
+}
+
+
+/* =========================================================
+   AUCTION LIST
+========================================================= */
+
+.pa-auction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pa-auction-card {
+  background: #ffffff;
+  border: 1px solid #e7ebf1;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.045);
+}
+
+
+/* =========================================================
+   CARD TOP
+========================================================= */
+
+.pa-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+}
+
+.pa-card-title-area {
+  min-width: 0;
+}
+
+.pa-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #fff6dc;
+  color: #a66b00;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+.pa-card-title-area h2 {
+  margin: 9px 0 5px;
+  font-size: 20px;
+  color: #172033;
+}
+
+.pa-card-title-area p {
+  margin: 0;
+  font-size: 12px;
+  color: #8993a4;
+}
+
+.pa-view-btn {
+  border: 1px solid #dce2ea;
+  background: #ffffff;
+  color: #344054;
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pa-view-btn:hover {
+  background: #f7f8fa;
+}
+
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.pa-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+  border-top: 1px solid #eef1f5;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.pa-summary-item {
+  padding: 16px 20px;
+  border-right: 1px solid #eef1f5;
+}
+
+.pa-summary-item:last-child {
+  border-right: none;
+}
+
+.pa-summary-item span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #929baa;
+  font-weight: 700;
+}
+
+.pa-summary-item strong {
+  display: block;
+  color: #303b4d;
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   IMAGES
+========================================================= */
+
+.pa-card-images {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 16px 20px;
+  overflow-x: auto;
+}
+
+.pa-thumbnail {
+  width: 62px;
+  height: 62px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #e5e9ef;
+  flex-shrink: 0;
+}
+
+.pa-more-images {
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f2f4f7;
+  color: #5f6b7b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.pa-bottom-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+  background: #fafbfc;
+  border-top: 1px solid #eef1f5;
+}
+
+.pa-reject-btn,
+.pa-approve-btn {
+  border: none;
+  border-radius: 9px;
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pa-reject-btn {
+  background: #ffffff;
+  color: #c53030;
+  border: 1px solid #f0caca;
+}
+
+.pa-approve-btn {
+  background: #1f7a4d;
+  color: #ffffff;
+}
+
+.pa-reject-btn:hover {
+  background: #fff5f5;
+}
+
+.pa-approve-btn:hover {
+  opacity: 0.9;
+}
+
+.pa-reject-btn:disabled,
+.pa-approve-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.pa-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.pa-modal {
+  width: min(1050px, 100%);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(15, 23, 42, 0.25);
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.pa-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 23px 26px;
+  border-bottom: 1px solid #e9edf2;
+}
+
+.pa-modal-header h2 {
+  margin: 3px 0 0;
+  font-size: 23px;
+  color: #172033;
+}
+
+.pa-close-btn {
+  width: 35px;
+  height: 35px;
+  border: none;
+  border-radius: 9px;
+  background: #f1f3f6;
+  color: #475467;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.pa-close-btn:hover {
+  background: #e5e8ec;
+}
+
+
+/* =========================================================
+   MODAL BODY
+========================================================= */
+
+.pa-modal-body {
+  overflow-y: auto;
+  padding: 25px;
+}
+
+
+/* =========================================================
+   DETAIL SECTION
+========================================================= */
+
+.pa-detail-section {
+  margin-bottom: 28px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #e8ebef;
+}
+
+.pa-detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.pa-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 17px;
+}
+
+.pa-section-heading > span {
+  width: 31px;
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f0f3f7;
+  color: #566274;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.pa-section-heading h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #202b3d;
+}
+
+
+/* =========================================================
+   DETAIL GRID
+========================================================= */
+
+.pa-detail-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pa-detail-item {
+  padding: 14px 15px;
+  background: #f8f9fb;
+  border: 1px solid #edf0f3;
+  border-radius: 10px;
+}
+
+.pa-detail-item span {
+  display: block;
+  margin-bottom: 5px;
+  color: #8993a3;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pa-detail-item strong {
+  display: block;
+  color: #293548;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.pa-description {
+  margin-top: 12px;
+  padding: 15px;
+  background: #f8f9fb;
+  border: 1px solid #edf0f3;
+  border-radius: 10px;
+}
+
+.pa-description > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #8993a3;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pa-description p {
+  margin: 0;
+  color: #3b4657;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+
+/* =========================================================
+   PROOF
+========================================================= */
+
+.pa-proof-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.pa-proof-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: #f3f6fa;
+  border: 1px solid #e0e6ed;
+  color: #344054;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pa-proof-btn:hover {
+  background: #e9eef4;
+}
+
+.pa-proof-missing {
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: #fff6f6;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   FULL IMAGE GRID
+========================================================= */
+
+.pa-full-image-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pa-full-image-item {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f3f4f6;
+  border: 1px solid #e4e8ed;
+}
+
+.pa-full-image-item img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.pa-cover-label {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #344054;
+  font-size: 9px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.pa-no-file {
+  padding: 18px;
+  border: 1px dashed #d8dee7;
+  border-radius: 10px;
+  text-align: center;
+  color: #8993a3;
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   TERMS
+========================================================= */
+
+.pa-terms-status {
+  margin-top: 12px;
+}
+
+.pa-terms-accepted,
+.pa-terms-not-accepted {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pa-terms-accepted {
+  background: #eaf8f0;
+  color: #207346;
+}
+
+.pa-terms-not-accepted {
+  background: #fff0f0;
+  color: #b42318;
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.pa-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 25px;
+  border-top: 1px solid #e9edf2;
+  background: #fafbfc;
+}
+
+.pa-modal-reject,
+.pa-modal-approve {
+  padding: 11px 20px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pa-modal-reject {
+  background: #ffffff;
+  color: #c53030;
+  border: 1px solid #efcaca;
+}
+
+.pa-modal-approve {
+  background: #1f7a4d;
+  color: #ffffff;
+  border: none;
+}
+
+.pa-modal-reject:disabled,
+.pa-modal-approve:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.pa-empty {
+  padding: 70px 25px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e7ebf1;
+  border-radius: 18px;
+}
+
+.pa-empty-icon {
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background: #eaf8f0;
+  color: #207346;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.pa-empty h2 {
+  margin: 0;
+  color: #202b3d;
+  font-size: 20px;
+}
+
+.pa-empty p {
+  margin: 8px 0 0;
+  color: #8993a3;
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.pa-loading {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #718096;
+}
+
+.pa-spinner {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 12px;
+  border: 3px solid #e5e9ef;
+  border-top-color: #596579;
+  border-radius: 50%;
+  animation: pa-spin 0.8s linear infinite;
+}
+
+@keyframes pa-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.pa-error {
+  padding: 55px 25px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #f0d3d3;
+  border-radius: 18px;
+}
+
+.pa-error-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff0f0;
+  color: #b42318;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.pa-error h3 {
+  margin: 0;
+  color: #293548;
+}
+
+.pa-error p {
+  margin: 7px 0 17px;
+  color: #8993a3;
+  font-size: 13px;
+}
+
+.pa-retry-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  background: #293548;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .pa-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .pa-summary-item {
+    border-bottom: 1px solid #eef1f5;
+  }
+
+  .pa-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pa-full-image-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .pa-page {
+    padding: 18px;
+  }
+
+  .pa-page-header {
+    align-items: flex-start;
+  }
+
+  .pa-page-header h1 {
+    font-size: 24px;
+  }
+
+  .pa-card-top {
+    flex-direction: column;
+  }
+
+  .pa-card-actions {
+    width: 100%;
+  }
+
+  .pa-view-btn {
+    width: 100%;
+  }
+
+  .pa-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .pa-summary-item {
+    border-right: none;
+  }
+
+  .pa-bottom-actions {
+    flex-direction: column-reverse;
+  }
+
+  .pa-reject-btn,
+  .pa-approve-btn {
+    width: 100%;
+  }
+
+  .pa-modal-overlay {
+    padding: 10px;
+  }
+
+  .pa-modal {
+    max-height: 96vh;
+  }
+
+  .pa-modal-body {
+    padding: 18px;
+  }
+
+  .pa-full-image-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .pa-full-image-item {
+    height: 140px;
+  }
+
+  .pa-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .pa-modal-reject,
+  .pa-modal-approve {
+    width: 100%;
+  }
+
+}
+
+/* =========================================================
+   AUCTION CREATED BY USER
+========================================================= */
+
+.pa-user-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 18px;
+  background: #f8f9fb;
+  border: 1px solid #e5e9ef;
+  border-radius: 14px;
+}
+
+@media (max-width: 700px) {
+  .pa-user-card {
+    grid-template-columns: 1fr;
+  }
+}

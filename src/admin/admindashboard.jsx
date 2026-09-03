@@ -15,7 +15,7 @@ import {
   FaTrophy,
 } from "react-icons/fa";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 
 
@@ -27,6 +27,58 @@ function AdminDashboard() {
   const [userMenu, setUserMenu] = useState(false);
   const [auctionMenu, setAuctionMenu] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  /* =====================================================
+     NOTIFICATIONS
+  ===================================================== */
+
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationPopup, setNotificationPopup] = useState(false);
+
+
+  /* =====================================================
+     FETCH NOTIFICATIONS
+  ===================================================== */
+
+  useEffect(() => {
+
+    const fetchNotifications = async () => {
+
+      try {
+
+        const response = await fetch(
+          "http://127.0.0.1:8000/admin/notifications"
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch notifications");
+        }
+
+        const data = await response.json();
+
+        setNotifications(data);
+
+        const unreadCount = data.filter(
+          (notification) => !notification.is_read
+        ).length;
+
+        setNotificationCount(unreadCount);
+
+      } catch (error) {
+
+        console.error(
+          "Notification error:",
+          error
+        );
+
+      }
+
+    };
+
+    fetchNotifications();
+
+  }, []);
 
 
   /* =====================================================
@@ -72,6 +124,81 @@ function AdminDashboard() {
   const toggleAuctions = () => {
     setAuctionMenu(!auctionMenu);
     setUserMenu(false);
+  };
+
+
+  /* =====================================================
+     OPEN NOTIFICATION
+  ===================================================== */
+
+  const handleNotificationClick = async (notification) => {
+
+    try {
+
+      /*
+       * Mark notification as read
+       */
+
+      if (!notification.is_read) {
+
+        const response = await fetch(
+          `http://127.0.0.1:8000/admin/notifications/${notification.id}/read`,
+          {
+            method: "PUT",
+          }
+        );
+
+        if (response.ok) {
+
+          setNotifications((prevNotifications) =>
+            prevNotifications.map((item) =>
+              item.id === notification.id
+                ? {
+                    ...item,
+                    is_read: true,
+                  }
+                : item
+            )
+          );
+
+          setNotificationCount((prevCount) =>
+            prevCount > 0
+              ? prevCount - 1
+              : 0
+          );
+
+        }
+
+      }
+
+
+      /*
+       * If this is an auction request,
+       * open Pending Auctions
+       */
+
+      if (
+        notification.notification_type ===
+        "auction_request"
+      ) {
+
+        navigate(
+          "/admin/dashboard/auctions/pending"
+        );
+
+        setNotificationPopup(false);
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Notification click error:",
+        error
+      );
+
+    }
+
   };
 
 
@@ -143,51 +270,69 @@ function AdminDashboard() {
           ================================================= */}
 
           <li
-  className={`dropdown ${userMenu ? "dropdown-open" : ""}`}
-  onClick={toggleUsers}
->
-  <div className="dropdown-title">
+            className={`dropdown ${
+              userMenu ? "dropdown-open" : ""
+            }`}
+            onClick={toggleUsers}
+          >
 
-    <span className="menu-label">
-      <FaUsers />
-      <span>Users</span>
-    </span>
+            <div className="dropdown-title">
 
-    <span className="arrow">
-      {userMenu ? "▲" : "▼"}
-    </span>
+              <span className="menu-label">
 
-  </div>
+                <FaUsers />
 
-  {userMenu && (
-    <ul className="submenu">
+                <span>Users</span>
 
-      <li
-  onClick={(e) => {
-    e.stopPropagation();
-    goTo("/admin/dashboard/users");
-  }}
->
-  All Users
-</li>
+              </span>
 
-      <li
-        onClick={(e) => {
-          e.stopPropagation();
-          goTo("/admin/users/pending");
-        }}
-      >
-        Pending Users
-      </li>
+              <span className="arrow">
 
-    </ul>
-  )}
+                {userMenu ? "▲" : "▼"}
 
-</li>
-         
+              </span>
+
+            </div>
 
 
-          
+            {userMenu && (
+
+              <ul className="submenu">
+
+                <li
+                  onClick={(e) => {
+
+                    e.stopPropagation();
+
+                    goTo(
+                      "/admin/dashboard/users"
+                    );
+
+                  }}
+                >
+                  All Users
+                </li>
+
+
+                <li
+                  onClick={(e) => {
+
+                    e.stopPropagation();
+
+                    goTo(
+                      "/admin/users/pending"
+                    );
+
+                  }}
+                >
+                  Pending Users
+                </li>
+
+              </ul>
+
+            )}
+
+          </li>
 
 
           {/* =================================================
@@ -195,65 +340,99 @@ function AdminDashboard() {
           ================================================= */}
 
           <li
-  className={`dropdown ${auctionMenu ? "dropdown-open" : ""}`}
-  onClick={toggleAuctions}
->
-  <div className="dropdown-title">
+            className={`dropdown ${
+              auctionMenu ? "dropdown-open" : ""
+            }`}
+            onClick={toggleAuctions}
+          >
 
-    <span className="menu-label">
-      <FaGavel />
-      <span>Auctions</span>
-    </span>
+            <div className="dropdown-title">
 
-    <span className="arrow">
-      {auctionMenu ? "▲" : "▼"}
-    </span>
+              <span className="menu-label">
 
-  </div>
+                <FaGavel />
 
-  {auctionMenu && (
-    <ul className="submenu">
+                <span>Auctions</span>
 
-      <li
-        onClick={(e) => {
-          e.stopPropagation();
-          goTo("/admin/auctions");
-        }}
-      >
-        All Auctions
-      </li>
+              </span>
 
-      <li
-        onClick={(e) => {
-          e.stopPropagation();
-          goTo("/admin/auctions/live");
-        }}
-      >
-        Live Auctions
-      </li>
+              <span className="arrow">
 
-      <li
-        onClick={(e) => {
-          e.stopPropagation();
-          goTo("/admin/auctions/pending");
-        }}
-      >
-        Pending Auctions
-      </li>
+                {auctionMenu ? "▲" : "▼"}
 
-      <li
-        onClick={(e) => {
-          e.stopPropagation();
-          goTo("/admin/auctions/completed");
-        }}
-      >
-        Completed Auctions
-      </li>
+              </span>
 
-    </ul>
-  )}
+            </div>
 
-</li>
+
+            {auctionMenu && (
+
+              <ul className="submenu">
+
+                <li
+                  onClick={(e) => {
+
+                    e.stopPropagation();
+
+                    goTo(
+                      "/admin/dashboard/auctions"
+                    );
+
+                  }}
+                >
+                  All Auctions
+                </li>
+
+
+                <li
+                  onClick={(e) => {
+
+                    e.stopPropagation();
+
+                    goTo(
+                      "/admin/dashboard/auctions/live"
+                    );
+
+                  }}
+                >
+                  Live Auctions
+                </li>
+
+
+                <li
+                  onClick={(e) => {
+
+                    e.stopPropagation();
+
+                    goTo(
+                      "/admin/dashboard/auctions/pending"
+                    );
+
+                  }}
+                >
+                  Pending Auctions
+                </li>
+
+
+                <li
+                  onClick={(e) => {
+
+                    e.stopPropagation();
+
+                    goTo(
+                      "/admin/dashboard/auctions/completed"
+                    );
+
+                  }}
+                >
+                  Completed Auctions
+                </li>
+
+              </ul>
+
+            )}
+
+          </li>
 
 
           {/* =================================================
@@ -431,20 +610,156 @@ function AdminDashboard() {
           <div className="topbar-right">
 
 
-            {/* NOTIFICATION */}
+            {/* =================================================
+                NOTIFICATION
+            ================================================= */}
 
-            <div className="notification">
+            <div className="notification-wrapper">
 
-              <FaBell />
+              {/* BELL */}
 
-              <span className="notification-count">
-                5
-              </span>
+              <div
+                className="notification"
+
+                onClick={() =>
+                  setNotificationPopup(
+                    !notificationPopup
+                  )
+                }
+              >
+
+                <FaBell />
+
+                {notificationCount > 0 && (
+
+                  <span className="notification-count">
+
+                    {notificationCount}
+
+                  </span>
+
+                )}
+
+              </div>
+
+
+              {/* =================================================
+                  NOTIFICATION POPUP
+              ================================================= */}
+
+              {notificationPopup && (
+
+                <div className="notification-popup">
+
+
+                  {/* HEADER */}
+
+                  <div className="notification-popup-header">
+
+                    <h3>
+                      Notifications
+                    </h3>
+
+                    {notificationCount > 0 && (
+
+                      <span>
+                        {notificationCount} unread
+                      </span>
+
+                    )}
+
+                  </div>
+
+
+                  {/* NOTIFICATION LIST */}
+
+                  <div className="notification-list">
+
+                    {notifications.length === 0 ? (
+
+                      <div className="no-notifications">
+
+                        <FaBell />
+
+                        <p>
+                          No notifications
+                        </p>
+
+                      </div>
+
+                    ) : (
+
+                      notifications.map(
+                        (notification) => (
+
+                          <div
+                            key={notification.id}
+
+                            className={`notification-item ${
+                              !notification.is_read
+                                ? "unread"
+                                : ""
+                            }`}
+
+                            onClick={() =>
+                              handleNotificationClick(
+                                notification
+                              )
+                            }
+                          >
+
+                            {/* ICON */}
+
+                            <div className="notification-item-icon">
+
+                              <FaGavel />
+
+                            </div>
+
+
+                            {/* CONTENT */}
+
+                            <div className="notification-item-content">
+
+                              <h4>
+                                {notification.title}
+                              </h4>
+
+                              <p>
+                                {notification.message}
+                              </p>
+
+                              <small>
+
+                                {notification.created_at
+                                  ? new Date(
+                                      notification.created_at
+                                    ).toLocaleString()
+                                  : ""}
+
+                              </small>
+
+                            </div>
+
+                          </div>
+
+                        )
+                      )
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              )}
 
             </div>
 
 
-            {/* ADMIN PROFILE */}
+            {/* =================================================
+                ADMIN PROFILE
+            ================================================= */}
 
             <div className="profile">
 
@@ -464,10 +779,13 @@ function AdminDashboard() {
 
 
               <span className="profile-arrow">
+
                 ▼
+
               </span>
 
             </div>
+
 
           </div>
 

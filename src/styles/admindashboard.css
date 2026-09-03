@@ -945,3 +945,201 @@ input::placeholder {
   }
 
 }
+
+/* =====================================================
+   NOTIFICATION WRAPPER
+===================================================== */
+
+.notification-wrapper {
+  position: relative;
+}
+
+
+/* =====================================================
+   NOTIFICATION POPUP
+===================================================== */
+
+.notification-popup {
+  position: absolute;
+  top: 48px;
+  right: -10px;
+
+  width: 380px;
+  max-height: 500px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+
+  overflow: hidden;
+
+  z-index: 9999;
+}
+
+
+/* =====================================================
+   POPUP HEADER
+===================================================== */
+
+.notification-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 20px;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.notification-popup-header h3 {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.notification-popup-header span {
+  font-size: 12px;
+  color: #777;
+}
+
+
+/* =====================================================
+   NOTIFICATION LIST
+===================================================== */
+
+.notification-list {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+
+/* =====================================================
+   NOTIFICATION ITEM
+===================================================== */
+
+.notification-item {
+  display: flex;
+  gap: 12px;
+
+  padding: 16px 18px;
+
+  border-bottom: 1px solid #f0f0f0;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+  background: #f7f8fa;
+}
+
+
+/* =====================================================
+   UNREAD
+===================================================== */
+
+.notification-item.unread {
+  background: #f0f6ff;
+}
+
+.notification-item.unread:hover {
+  background: #e8f1ff;
+}
+
+
+/* =====================================================
+   ICON
+===================================================== */
+
+.notification-item-icon {
+  width: 38px;
+  height: 38px;
+
+  min-width: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #eef3ff;
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.notification-item-content {
+  flex: 1;
+}
+
+.notification-item-content h4 {
+  margin: 0 0 5px;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.notification-item-content p {
+  margin: 0 0 6px;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  color: #555;
+}
+
+.notification-item-content small {
+  font-size: 11px;
+  color: #999;
+}
+
+
+/* =====================================================
+   NO NOTIFICATIONS
+===================================================== */
+
+.no-notifications {
+  padding: 45px 20px;
+
+  text-align: center;
+
+  color: #999;
+}
+
+.no-notifications svg {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.no-notifications p {
+  margin: 0;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+
+  .notification-popup {
+    position: fixed;
+
+    top: 70px;
+    left: 15px;
+    right: 15px;
+
+    width: auto;
+
+    max-height: calc(100vh - 90px);
+  }
+
+}

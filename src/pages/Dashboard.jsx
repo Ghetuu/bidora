@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import {
@@ -27,14 +27,171 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
 
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationPopup, setNotificationPopup] = useState(false);
+
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  // =========================
+  // =========================================================
+  // FETCH USER NOTIFICATIONS
+  // =========================================================
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/users/notifications",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to fetch notifications.");
+      }
+
+      const data = await response.json();
+
+      setNotifications(data);
+
+      const unreadCount = data.filter(
+        (notification) => !notification.is_read
+      ).length;
+
+      setNotificationCount(unreadCount);
+    } catch (error) {
+      console.error("User notification error:", error);
+    }
+  };
+
+  // =========================================================
+  // LOAD NOTIFICATIONS
+  // =========================================================
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  // =========================================================
+  // HANDLE NOTIFICATION CLICK
+  // =========================================================
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        return;
+      }
+
+      // =====================================================
+      // MARK NOTIFICATION AS READ
+      // =====================================================
+
+      if (!notification.is_read) {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/users/notifications/${notification.id}/read`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          setNotifications((previousNotifications) =>
+            previousNotifications.map((item) =>
+              item.id === notification.id
+                ? {
+                    ...item,
+                    is_read: true,
+                  }
+                : item
+            )
+          );
+
+          setNotificationCount((previousCount) =>
+            previousCount > 0 ? previousCount - 1 : 0
+          );
+        }
+      }
+
+      // =====================================================
+      // CLOSE NOTIFICATION POPUP
+      // =====================================================
+
+      setNotificationPopup(false);
+
+      // =====================================================
+      // AUCTION REJECTED
+      // OPEN GMAIL
+      // =====================================================
+
+      // =========================================================
+// AUCTION REJECTED
+// OPEN GMAIL
+// =========================================================
+
+if (notification.notif_type === "auction_rejected") {
+
+  const searchQuery = encodeURIComponent(
+    `"Bidora - Auction Rejected"`
+  );
+
+  window.open(
+    `https://mail.google.com/mail/u/0/#search/${searchQuery}`,
+    "_blank"
+  );
+
+  return;
+}
+
+// =========================================================
+// AUCTION APPROVED
+// OPEN MY AUCTIONS
+// =========================================================
+
+if (notification.notif_type === "auction_approved") {
+
+  const searchQuery = encodeURIComponent(
+    `"Bidora - Auction Approve"`
+  );
+
+  window.open(
+    `https://mail.google.com/mail/u/0/#search/${searchQuery}`,
+    "_blank"
+  );
+
+  return;
+}
+
+      // =====================================================
+      // OTHER NOTIFICATIONS
+      // =====================================================
+      // Keep user on the dashboard for other notification types.
+      // You can add specific navigation later if required.
+
+    } catch (error) {
+      console.error("Notification click error:", error);
+    }
+  };
+
+  // =========================================================
   // LOGOUT
-  // =========================
+  // =========================================================
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
@@ -43,9 +200,9 @@ function Dashboard() {
     navigate("/login");
   };
 
-  // =========================
+  // =========================================================
   // NAV LINK
-  // =========================
+  // =========================================================
 
   const navClass = ({ isActive }) =>
     `dashboard-nav-link ${isActive ? "active" : ""}`;
@@ -56,7 +213,6 @@ function Dashboard() {
         sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed"
       }`}
     >
-
       {/* =====================================================
           SIDEBAR
       ===================================================== */}
@@ -87,7 +243,6 @@ function Dashboard() {
             )}
 
           </div>
-
 
           {/* =================================================
               SIDEBAR OPEN / CLOSE BUTTON
@@ -125,7 +280,6 @@ function Dashboard() {
 
         </div>
 
-
         {/* =====================================================
             SIDEBAR USER
         ===================================================== */}
@@ -145,7 +299,6 @@ function Dashboard() {
           </div>
         )}
 
-
         {/* ================= NAVIGATION ================= */}
 
         <div className="sidebar-navigation">
@@ -155,7 +308,6 @@ function Dashboard() {
               MAIN MENU
             </p>
           )}
-
 
           {/* DASHBOARD */}
 
@@ -172,7 +324,6 @@ function Dashboard() {
             )}
           </NavLink>
 
-
           {/* CREATE AUCTION */}
 
           <NavLink
@@ -186,7 +337,6 @@ function Dashboard() {
               <span>Create Auction</span>
             )}
           </NavLink>
-
 
           {/* MY AUCTIONS */}
 
@@ -202,7 +352,6 @@ function Dashboard() {
             )}
           </NavLink>
 
-
           {/* ALL AUCTIONS */}
 
           <NavLink
@@ -216,7 +365,6 @@ function Dashboard() {
               <span>All Auctions</span>
             )}
           </NavLink>
-
 
           {/* LIVE AUCTIONS */}
 
@@ -236,7 +384,6 @@ function Dashboard() {
             )}
           </NavLink>
 
-
           {/* CATEGORIES */}
 
           <NavLink
@@ -250,7 +397,6 @@ function Dashboard() {
               <span>Categories</span>
             )}
           </NavLink>
-
 
           {/* ================= HISTORY ================= */}
 
@@ -280,7 +426,6 @@ function Dashboard() {
             )}
 
           </button>
-
 
           {/* HISTORY SUBMENU */}
 
@@ -314,7 +459,6 @@ function Dashboard() {
             </div>
           )}
 
-
           {/* MANAGE PROFILE */}
 
           <NavLink
@@ -330,7 +474,6 @@ function Dashboard() {
           </NavLink>
 
         </div>
-
 
         {/* ================= SIDEBAR BOTTOM ================= */}
 
@@ -354,7 +497,6 @@ function Dashboard() {
         </div>
 
       </aside>
-
 
       {/* =====================================================
           MAIN AREA
@@ -383,24 +525,139 @@ function Dashboard() {
 
           </div>
 
-
           {/* ================= NAVBAR RIGHT ================= */}
 
           <div className="navbar-right">
 
-            {/* NOTIFICATION */}
+            {/* =====================================================
+                USER NOTIFICATIONS
+            ===================================================== */}
 
-            <button
-              type="button"
-              className="notification-button"
-            >
-              <FaBell />
+            <div className="user-notification-wrapper">
 
-              <span className="notification-badge">
-                5
-              </span>
-            </button>
+              <button
+                type="button"
+                className="notification-button"
+                onClick={() =>
+                  setNotificationPopup(
+                    !notificationPopup
+                  )
+                }
+              >
 
+                <FaBell />
+
+                {notificationCount > 0 && (
+                  <span className="notification-badge">
+                    {notificationCount}
+                  </span>
+                )}
+
+              </button>
+
+              {/* ===================================================
+                  NOTIFICATION POPUP
+              =================================================== */}
+
+              {notificationPopup && (
+
+                <div className="user-notification-popup">
+
+                  {/* HEADER */}
+
+                  <div className="user-notification-header">
+
+                    <h3>
+                      Notifications
+                    </h3>
+
+                    {notificationCount > 0 && (
+                      <span>
+                        {notificationCount} unread
+                      </span>
+                    )}
+
+                  </div>
+
+                  {/* LIST */}
+
+                  <div className="user-notification-list">
+
+                    {notifications.length === 0 ? (
+
+                      <div className="user-no-notifications">
+
+                        <FaBell />
+
+                        <p>
+                          No notifications
+                        </p>
+
+                      </div>
+
+                    ) : (
+
+                      notifications.map(
+                        (notification) => (
+
+                          <div
+                            key={notification.id}
+                            className={
+                              `user-notification-item ${
+                                !notification.is_read
+                                  ? "unread"
+                                  : ""
+                              }`
+                            }
+                            onClick={() =>
+                              handleNotificationClick(
+                                notification
+                              )
+                            }
+                          >
+
+                            <div className="user-notification-icon">
+
+                              <FaGavel />
+
+                            </div>
+
+                            <div className="user-notification-content">
+
+                              <h4>
+                                {notification.title}
+                              </h4>
+
+                              <p>
+                                {notification.message}
+                              </p>
+
+                              <small>
+                                {notification.created_at
+                                  ? new Date(
+                                      notification.created_at
+                                    ).toLocaleString(
+                                      "en-IN"
+                                    )
+                                  : ""}
+                              </small>
+
+                            </div>
+
+                          </div>
+
+                        )
+                      )
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
 
             {/* NAVBAR USER PROFILE */}
 
@@ -412,8 +669,13 @@ function Dashboard() {
 
               <div className="profile-info">
 
-                <strong>{user?.fullname || "User"}</strong>
-                <small>User</small>
+                <strong>
+                  {user?.fullname || "User"}
+                </strong>
+
+                <small>
+                  User
+                </small>
 
               </div>
 
@@ -424,7 +686,6 @@ function Dashboard() {
           </div>
 
         </header>
-
 
         {/* ================= PAGE CONTENT ================= */}
 
