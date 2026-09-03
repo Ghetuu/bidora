@@ -23,7 +23,7 @@ import AdminLogin from "./admin/adminlogin";
 import AdminDashboard from "./admin/admindashboard";
 import AdminHome from "./admin/adminhome";
 import AdminUsers from "./admin/adminusers";
-
+import PendingAuction from "./admin/PendingAuction";
 
 // =====================================================
 // USER DASHBOARD
@@ -137,8 +137,15 @@ function App() {
             element={<AdminUsers />}
           />
 
+           <Route
+          path="auctions/pending"
+          element={<PendingAuction />}
+        />
+
+
         </Route>
 
+       
 
         {/* =================================================
             UNKNOWN URL

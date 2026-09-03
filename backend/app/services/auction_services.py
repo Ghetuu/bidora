@@ -10,6 +10,8 @@ from app.repositories.auction_repository import AuctionRepository
 from app.schemas.auction import AuctionCreate
 from app.models.auction_image import AuctionImage
 
+from app.models.admin_notification import AdminNotification
+from app.models.user import User
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -373,7 +375,30 @@ class AuctionService:
                     db=db,
                     auction_image=auction_image
                 )
+            # ==========================================
+            # CREATE ADMIN NOTIFICATION
+            # ==========================================
 
+            user = (
+                db.query(User)
+                .filter(User.id == user_id)
+                .first()
+            )
+
+            notification = AdminNotification(
+                notification_type="auction_request",
+                auction_id=auction.id,
+                user_id=user_id,
+                title="New Auction Request",
+                message=(
+                    f"{user.fullname if user else 'A user'} "
+                    f"submitted a new auction request "
+                    f"for '{auction.product_title}'."
+                ),
+                is_read=False
+            )
+
+            db.add(notification)
             # ==========================================
             # COMMIT EVERYTHING
             # ==========================================

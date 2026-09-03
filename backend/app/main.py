@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # IMPORTANT:
 # Import models before starting the application
 # so SQLAlchemy knows about all tables.
+from app.models.admin_notification import AdminNotification
 
 from app.models import (
     User,
@@ -47,6 +49,22 @@ app.add_middleware(
     allow_methods=["*"],
 
     allow_headers=["*"]
+)
+
+
+# =========================================================
+# STATIC FILES
+# =========================================================
+# Makes uploaded auction images/documents accessible
+#
+# Example:
+# http://127.0.0.1:8000/uploads/auctions/image.jpg
+# =========================================================
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads"
 )
 
 
