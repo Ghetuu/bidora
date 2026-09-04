@@ -9,6 +9,7 @@ from app.models.admin_notification import AdminNotification
 from app.models.user import User
 from app.models.auction import Auction
 from app.models.auction_image import AuctionImage
+from app.models.contact_message import ContactMessage
 
 
 class AuctionReject(BaseModel):
@@ -1093,3 +1094,482 @@ def mark_notification_read(
         "success": True,
         "message": "Notification marked as read."
     }
+
+# =========================================================
+# CONTACT MESSAGE APIs
+# =========================================================
+
+class ContactMessageCreate(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+    phone: str | None = None
+    helpTopic: str
+    otherTopic: str | None = None
+    auctionId: str | None = None
+    message: str
+    privacy: bool
+
+
+class ContactStatusUpdate(BaseModel):
+    status: str
+
+class ContactReplyCreate(BaseModel):
+
+    reply: str
+
+# =========================================================
+# CREATE CONTACT MESSAGE
+# POST /admin/contact
+# =========================================================
+
+@router.post("/contact")
+def create_contact_message(
+    data: ContactMessageCreate,
+    db: Session = Depends(get_db)
+):
+
+    # Check privacy agreement
+    if not data.privacy:
+        raise HTTPException(
+            status_code=400,
+            detail="Please agree to the Privacy Policy."
+        )
+
+    # Clean input values
+    first_name = data.firstName.strip()
+    last_name = data.lastName.strip()
+    email = data.email.strip().lower()
+
+    phone = (
+        data.phone.strip()
+        if data.phone
+        else None
+    )
+
+    help_topic = data.helpTopic.strip()
+
+    other_topic = (
+        data.otherTopic.strip()
+        if data.otherTopic
+        else None
+    )
+
+    auction_id = (
+        data.auctionId.strip()
+        if data.auctionId
+        else None
+    )
+
+    message = data.message.strip()
+
+    # Validation
+    if not first_name:
+        raise HTTPException(
+            status_code=400,
+            detail="First name is required."
+        )
+
+    if not last_name:
+        raise HTTPException(
+            status_code=400,
+            detail="Last name is required."
+        )
+
+    if not email:
+        raise HTTPException(
+            status_code=400,
+            detail="Email is required."
+        )
+
+    if not help_topic:
+        raise HTTPException(
+            status_code=400,
+            detail="Please select a help topic."
+        )
+
+    if not message:
+        raise HTTPException(
+            status_code=400,
+            detail="Message is required."
+        )
+
+    if help_topic == "Other" and not other_topic:
+        raise HTTPException(
+            status_code=400,
+            detail="Please specify your topic."
+        )
+
+    try:
+
+        # Create database record
+        contact = ContactMessage(
+
+            first_name=first_name,
+
+            last_name=last_name,
+
+            email=email,
+
+            phone=phone,
+
+            help_topic=help_topic,
+
+            other_topic=(
+                other_topic
+                if help_topic == "Other"
+                else None
+            ),
+
+            auction_id=auction_id,
+
+            message=message,
+
+            is_read=False,
+
+            status="OPEN"
+        )
+
+        db.add(contact)
+
+        db.commit()
+
+        db.refresh(contact)
+
+        print(
+            f"CONTACT MESSAGE SAVED - ID: {contact.id}"
+        )
+
+        return {
+            "success": True,
+            "message": "Contact message submitted successfully.",
+            "ticket_id": contact.id
+        }
+
+    except Exception as e:
+
+        db.rollback()
+
+        print(
+            "CONTACT MESSAGE DATABASE ERROR:",
+            str(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to save contact message."
+        )
+
+
+# =========================================================
+# GET ALL CONTACT MESSAGES
+# GET /admin/contact-messages
+# =========================================================
+
+@router.get("/contact-messages")
+def get_contact_messages(
+    db: Session = Depends(get_db)
+):
+
+    contacts = (
+        db.query(ContactMessage)
+        .order_by(
+            ContactMessage.created_at.desc()
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": contact.id,
+
+            "first_name":
+                contact.first_name,
+
+            "last_name":
+                contact.last_name,
+
+            "email":
+                contact.email,
+
+            "phone":
+                contact.phone,
+
+            "help_topic":
+                contact.help_topic,
+
+            "other_topic":
+                contact.other_topic,
+
+            "auction_id":
+                contact.auction_id,
+
+            "message":
+                contact.message,
+
+            "is_read":
+                contact.is_read,
+
+            "status":
+                contact.status,
+
+            "created_at":
+                (
+                    contact.created_at.isoformat()
+                    if contact.created_at
+                    else None
+                )
+        }
+
+        for contact in contacts
+    ]
+
+
+# =========================================================
+# MARK CONTACT MESSAGE AS READ
+# PUT /admin/contact-messages/{message_id}/read
+# =========================================================
+
+@router.put("/contact-messages/{message_id}/read")
+def mark_contact_message_read(
+    message_id: int,
+    db: Session = Depends(get_db)
+):
+
+    contact = (
+        db.query(ContactMessage)
+        .filter(
+            ContactMessage.id == message_id
+        )
+        .first()
+    )
+
+    if not contact:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Contact message not found."
+        )
+
+    contact.is_read = True
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Contact message marked as read."
+    }
+
+
+# =========================================================
+# UPDATE CONTACT MESSAGE STATUS
+# PUT /admin/contact-messages/{message_id}/status
+# =========================================================
+
+@router.put("/contact-messages/{message_id}/status")
+def update_contact_message_status(
+    message_id: int,
+    data: ContactStatusUpdate,
+    db: Session = Depends(get_db)
+):
+
+    allowed_statuses = [
+        "OPEN",
+        "IN_PROGRESS",
+        "RESOLVED"
+    ]
+
+    status = data.status.strip().upper()
+
+    if status not in allowed_statuses:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid contact message status."
+        )
+
+    contact = (
+        db.query(ContactMessage)
+        .filter(
+            ContactMessage.id == message_id
+        )
+        .first()
+    )
+
+    if not contact:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Contact message not found."
+        )
+
+    contact.status = status
+
+    # If admin moves it from OPEN,
+    # automatically consider it read
+    if status != "OPEN":
+        contact.is_read = True
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Contact message status updated successfully.",
+        "status": contact.status
+    }
+
+# =========================================================
+# REPLY TO CONTACT MESSAGE
+# POST /admin/contact-messages/{message_id}/reply
+# =========================================================
+
+@router.post("/contact-messages/{message_id}/reply")
+async def reply_to_contact_message(
+    message_id: int,
+    data: ContactReplyCreate,
+    db: Session = Depends(get_db)
+):
+
+    # =====================================================
+    # FIND CONTACT MESSAGE
+    # =====================================================
+
+    contact = (
+        db.query(ContactMessage)
+        .filter(
+            ContactMessage.id == message_id
+        )
+        .first()
+    )
+
+    if not contact:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Contact message not found."
+        )
+
+    # =====================================================
+    # CLEAN REPLY
+    # =====================================================
+
+    reply = data.reply.strip()
+
+    if not reply:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Reply message is required."
+        )
+
+    # =====================================================
+    # SEND REPLY EMAIL
+    # =====================================================
+
+    try:
+
+        message = MessageSchema(
+
+            subject=(
+                f"Bidora Support - "
+                f"Ticket #{contact.id}"
+            ),
+
+            recipients=[
+                contact.email
+            ],
+
+            body=f"""
+Hello {contact.first_name},
+
+Thank you for contacting Bidora Support.
+
+Regarding your query:
+
+{contact.message}
+
+----------------------------------------
+
+Admin Response:
+
+{reply}
+
+----------------------------------------
+
+If you have any further questions,
+please contact Bidora Support again.
+
+Regards,
+Bidora Support Team
+Bidora
+""",
+
+            subtype=MessageType.plain
+
+        )
+
+        # IMPORTANT:
+        # Use the existing email configuration
+        # from app.core.email
+
+        fm = FastMail(mail_config)
+
+        await fm.send_message(message)
+
+        # =================================================
+        # UPDATE CONTACT MESSAGE
+        # =================================================
+
+        contact.status = "IN_PROGRESS"
+
+        contact.is_read = True
+
+        db.commit()
+
+        db.refresh(contact)
+
+        # =================================================
+        # SUCCESS RESPONSE
+        # =================================================
+
+        return {
+
+            "success": True,
+
+            "message": (
+                "Reply sent successfully."
+            ),
+
+            "email": contact.email,
+
+            "ticket_id": contact.id,
+
+            "status": contact.status
+
+        }
+
+    # =====================================================
+    # EMAIL / DATABASE ERROR
+    # =====================================================
+
+    except Exception as e:
+
+        db.rollback()
+
+        print(
+            "========================================"
+        )
+
+        print(
+            "CONTACT REPLY ERROR:",
+            str(e)
+        )
+
+        print(
+            "========================================"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send reply."
+        )

@@ -13,6 +13,7 @@ import {
   FaSearch,
   FaBars,
   FaTrophy,
+  FaEnvelope,
 } from "react-icons/fa";
 
 import { useState, useEffect } from "react";
@@ -519,6 +520,27 @@ function AdminDashboard() {
 
           </li>
 
+            {/* =================================================
+    CONTACT MESSAGES
+================================================= */}
+
+<li
+  className={
+    location.pathname ===
+    "/admin/dashboard/contact-messages"
+      ? "active"
+      : ""
+  }
+  onClick={() =>
+    goTo("/admin/dashboard/contact-messages")
+  }
+>
+
+  <FaEnvelope />
+
+  <span>Contact Messages</span>
+
+</li>
 
           {/* =================================================
               SETTINGS

@@ -6,11 +6,13 @@ from fastapi.staticfiles import StaticFiles
 # Import models before starting the application
 # so SQLAlchemy knows about all tables.
 from app.models.admin_notification import AdminNotification
+from app.models.contact_message import ContactMessage
 
 from app.models import (
     User,
     Auction,
-    AuctionImage
+    AuctionImage,
+    ContactMessage
 )
 
 from app.routes.user_route import (

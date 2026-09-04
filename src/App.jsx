@@ -26,6 +26,7 @@ import AdminDashboard from "./admin/admindashboard";
 import AdminHome from "./admin/adminhome";
 import AdminUsers from "./admin/adminusers";
 import PendingAuction from "./admin/PendingAuction";
+import ContactMessages from "./admin/ContactMessages";
 
 // =====================================================
 // USER DASHBOARD
@@ -176,6 +177,11 @@ function App() {
           path="auctions/pending"
           element={<PendingAuction />}
         />
+
+         <Route
+            path="contact-messages"
+            element={<ContactMessages />}
+          />
 
 
         </Route>
