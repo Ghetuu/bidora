@@ -1,0 +1,1824 @@
+/* =========================================================
+   BIDORA - LIVE AUCTIONS
+   Modern marketplace design
+========================================================= */
+
+.live-auctions-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 36px 42px 55px;
+  background: #f7f7fb;
+  box-sizing: border-box;
+  color: #18152b;
+  overflow-x: hidden;
+  font-family:
+    Inter,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+}
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.live-auctions-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 26px;
+}
+
+.live-title-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.live-title-dot {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.1);
+}
+
+.live-title-row h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  color: #17142b;
+}
+
+.live-title-row h1 span {
+  color: #5b21d6;
+}
+
+.live-auctions-heading > div > p {
+  margin: 9px 0 0;
+  color: #737083;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.live-auction-count {
+  min-height: 44px;
+  padding: 0 17px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #e5e1ec;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #5b21d6;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(30, 20, 70, 0.045);
+}
+
+.live-auction-count svg {
+  font-size: 14px;
+}
+
+.count-live-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+/* =========================================================
+   SEARCH + FILTER TOOLBAR
+========================================================= */
+
+.live-search-filter-wrapper {
+  margin-bottom: 30px;
+  padding: 16px;
+  border: 1px solid #e5e1eb;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(30, 20, 70, 0.045);
+}
+
+.live-search-row {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) 220px 135px 185px;
+  gap: 11px;
+  align-items: center;
+}
+
+/* =========================================================
+   SEARCH BOX
+========================================================= */
+
+.live-search-box {
+  min-height: 48px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd8e7;
+  border-radius: 11px;
+  background: #faf9fc;
+  transition: all 0.2s ease;
+}
+
+.live-search-box:hover {
+  border-color: #cfc8dd;
+  background: #ffffff;
+}
+
+.live-search-box:focus-within {
+  border-color: #7541df;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(91, 33, 214, 0.08);
+}
+
+.live-search-box > svg {
+  margin-left: 15px;
+  flex-shrink: 0;
+  color: #766f84;
+  font-size: 15px;
+}
+
+.live-search-box input {
+  width: 100%;
+  height: 46px;
+  padding: 0 40px 0 11px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #29243b;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.live-search-box input::placeholder {
+  color: #96909f;
+  font-weight: 400;
+}
+
+.live-search-clear {
+  position: absolute;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #eeeaf5;
+  color: #6c6678;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.2s ease;
+}
+
+.live-search-clear:hover {
+  background: #e4dff0;
+  color: #4d465d;
+}
+
+/* =========================================================
+   CATEGORY + SORT DROPDOWNS
+========================================================= */
+
+.live-category-select,
+.live-sort-select {
+  min-height: 48px;
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #ddd8e7;
+  border-radius: 11px;
+  background: #faf9fc;
+
+  transition: all 0.2s ease;
+}
+
+.live-category-select:hover,
+.live-sort-select:hover {
+  border-color: #cfc8dd;
+  background: #ffffff;
+}
+
+.live-category-select:focus-within,
+.live-sort-select:focus-within {
+  border-color: #7541df;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(91, 33, 214, 0.07);
+}
+
+.live-category-select > svg:first-child {
+  margin-left: 14px;
+  flex-shrink: 0;
+  color: #6332d0;
+  font-size: 14px;
+}
+
+.live-category-select select,
+.live-sort-select select {
+  width: 100%;
+  height: 46px;
+
+  padding: 0 38px 0 11px;
+
+  border: 0;
+  outline: 0;
+  appearance: none;
+
+  background: transparent;
+
+  color: #353044;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+/* Dropdown arrow */
+
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+
+  color: #706a7c;
+  font-size: 10px;
+
+  transition: transform 0.2s ease;
+}
+
+/* Native option styling */
+
+.live-category-select select option,
+.live-sort-select select option {
+  padding: 10px;
+  background: #ffffff;
+  color: #302b42;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   FILTER BUTTON
+========================================================= */
+
+.live-filter-button {
+  min-height: 48px;
+  padding: 0 14px;
+
+  border: 1px solid #ded7eb;
+  border-radius: 11px;
+
+  background: #faf9fc;
+  color: #5524bf;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  transition: all 0.2s ease;
+}
+
+.live-filter-button:hover {
+  border-color: #cdbfe7;
+  background: #f4f0ff;
+  color: #4e1db8;
+}
+
+.live-filter-button.active {
+  border-color: #7541df;
+  background: #eee9ff;
+  color: #5421c2;
+}
+
+.filter-chevron {
+  font-size: 9px;
+  transition: transform 0.2s ease;
+}
+
+.filter-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+/* =========================================================
+   FILTER PANEL
+========================================================= */
+
+.live-filter-panel {
+  margin-top: 14px;
+  padding: 18px 4px 4px;
+
+  border-top: 1px solid #eeeaf3;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 15px;
+  align-items: end;
+}
+
+.live-filter-field {
+  min-width: 0;
+}
+
+.live-filter-field label {
+  display: block;
+  margin-bottom: 7px;
+
+  color: #575163;
+
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.1px;
+}
+
+/* =========================================================
+   FILTER DROPDOWN
+========================================================= */
+
+.live-filter-select {
+  height: 43px;
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #ddd8e7;
+  border-radius: 9px;
+
+  background: #faf9fc;
+
+  transition: all 0.2s ease;
+}
+
+.live-filter-select:hover {
+  border-color: #cfc8dd;
+  background: #ffffff;
+}
+
+.live-filter-select:focus-within {
+  border-color: #7541df;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(91, 33, 214, 0.07);
+}
+
+.live-filter-select select {
+  width: 100%;
+  height: 41px;
+
+  padding: 0 35px 0 12px;
+
+  border: 0;
+  outline: 0;
+  appearance: none;
+
+  background: transparent;
+
+  color: #393348;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 550;
+
+  cursor: pointer;
+}
+
+.live-filter-select select option {
+  background: #ffffff;
+  color: #302b42;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.live-filter-select > svg {
+  position: absolute;
+  right: 12px;
+
+  pointer-events: none;
+
+  color: #81798d;
+  font-size: 9px;
+}
+
+/* =========================================================
+   PRICE INPUT
+========================================================= */
+
+.live-price-input {
+  height: 43px;
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #ddd8e7;
+  border-radius: 9px;
+
+  background: #faf9fc;
+
+  transition: all 0.2s ease;
+}
+
+.live-price-input:hover {
+  border-color: #cfc8dd;
+  background: #ffffff;
+}
+
+.live-price-input:focus-within {
+  border-color: #7541df;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(91, 33, 214, 0.07);
+}
+
+.live-price-input span {
+  padding-left: 12px;
+
+  color: #6332d0;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.live-price-input input {
+  width: 100%;
+  height: 41px;
+
+  padding: 0 11px;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: #383247;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.live-price-input input::placeholder {
+  color: #a19baa;
+  font-weight: 400;
+}
+
+/* =========================================================
+   RESET FILTER
+========================================================= */
+
+.live-reset-filter {
+  height: 43px;
+
+  padding: 0 15px;
+
+  border: 1px solid #eadfe1;
+  border-radius: 9px;
+
+  background: #fff8f8;
+  color: #d43b3b;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  transition: all 0.2s ease;
+}
+
+.live-reset-filter:hover {
+  border-color: #efcaca;
+  background: #fff0f0;
+}
+
+/* =========================================================
+   FILTER RESULT
+========================================================= */
+
+.live-filter-result {
+  min-height: 27px;
+
+  margin-top: 10px;
+  padding: 7px 3px 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  color: #777183;
+
+  font-size: 12px;
+  font-weight: 450;
+}
+
+.live-filter-result strong {
+  color: #5724c9;
+  font-weight: 750;
+}
+
+.live-filter-result button {
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: #5b21d6;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.live-filter-result button:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.live-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+  margin-bottom: 19px;
+}
+
+.live-section-header h2 {
+  margin: 0;
+
+  color: #1b1830;
+
+  font-size: 21px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -0.2px;
+}
+
+.live-section-header p {
+  margin: 5px 0 0;
+
+  color: #777181;
+
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.live-section-total {
+  padding: 8px 13px;
+
+  flex-shrink: 0;
+
+  border-radius: 8px;
+
+  background: #eee9ff;
+  color: #5b21d6;
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+/* =========================================================
+   AUCTION GRID
+========================================================= */
+
+.live-auctions-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 22px;
+}
+
+/* =========================================================
+   AUCTION CARD
+========================================================= */
+
+.live-auction-card {
+  min-width: 0;
+  overflow: hidden;
+
+  border: 1px solid #e7e3ed;
+  border-radius: 15px;
+
+  background: #ffffff;
+
+  box-shadow: 0 5px 18px rgba(30, 20, 70, 0.055);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.live-auction-card:hover {
+  transform: translateY(-4px);
+
+  border-color: #ddd6e9;
+
+  box-shadow: 0 14px 30px rgba(30, 20, 70, 0.11);
+}
+
+/* =========================================================
+   CARD IMAGE
+========================================================= */
+
+.live-card-image {
+  height: 205px;
+
+  position: relative;
+  overflow: hidden;
+
+  background: #f3f1f7;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-card-image-clickable {
+  cursor: zoom-in;
+}
+
+.live-card-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition: transform 0.4s ease;
+}
+
+.live-card-image-clickable:hover img {
+  transform: scale(1.05);
+}
+
+.live-card-image-fallback {
+  width: 100%;
+  height: 100%;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #bbb6c7;
+
+  font-size: 50px;
+}
+
+/* =========================================================
+   CARD BADGES
+========================================================= */
+
+.live-card-badge {
+  position: absolute;
+
+  top: 12px;
+  left: 12px;
+
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 10px;
+
+  border-radius: 7px;
+
+  background: #ef4444;
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 750;
+
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.22);
+}
+
+.live-card-badge span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+}
+
+.live-card-number {
+  position: absolute;
+
+  top: 12px;
+  right: 12px;
+
+  z-index: 2;
+
+  padding: 6px 9px;
+
+  border-radius: 7px;
+
+  background: rgba(255, 255, 255, 0.94);
+  color: #4d4860;
+
+  font-size: 10px;
+  font-weight: 650;
+}
+
+/* =========================================================
+   CARD CONTENT
+========================================================= */
+
+.live-card-content {
+  padding: 17px;
+}
+
+.live-card-category {
+  width: fit-content;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 5px 9px;
+
+  border-radius: 6px;
+
+  background: #eee9ff;
+  color: #5724c9;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.live-card-content h2 {
+  margin: 10px 0 0;
+
+  min-height: 42px;
+
+  color: #1c1930;
+
+  font-size: 17px;
+  line-height: 1.3;
+  font-weight: 750;
+
+  word-break: break-word;
+}
+
+.live-card-brand {
+  margin: 5px 0 0;
+
+  color: #777181;
+
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 450;
+}
+
+.live-card-description {
+  margin: 8px 0 0;
+
+  min-height: 36px;
+
+  color: #747080;
+
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+/* =========================================================
+   PRICE
+========================================================= */
+
+.live-card-price-row {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-top: 15px;
+  padding-top: 13px;
+
+  border-top: 1px solid #eeeaf2;
+}
+
+.live-card-price-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.live-card-price-row span {
+  color: #797487;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.live-card-price-row strong {
+  margin-top: 3px;
+
+  color: #5724c9;
+
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.live-card-live-price {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  flex-shrink: 0;
+
+  color: #16a34a;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   CARD INFO
+========================================================= */
+
+.live-card-info {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 8px;
+
+  margin-top: 14px;
+}
+
+.live-card-info-item {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 8px;
+
+  padding: 9px;
+
+  border-radius: 8px;
+
+  background: #faf9fc;
+}
+
+.live-card-info-item > svg {
+  flex-shrink: 0;
+
+  margin-top: 2px;
+
+  color: #6a34d7;
+
+  font-size: 12px;
+}
+
+.live-card-info-item div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.live-card-info-item span {
+  color: #85808f;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.live-card-info-item strong {
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: #39344b;
+
+  font-size: 11px;
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   LOCATION
+========================================================= */
+
+.live-card-location {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 12px;
+
+  color: #777181;
+
+  font-size: 11px;
+  font-weight: 450;
+}
+
+.live-card-location svg {
+  flex-shrink: 0;
+  color: #6941c6;
+}
+
+/* =========================================================
+   SELLER
+========================================================= */
+
+.live-card-seller {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-top: 13px;
+  padding-top: 12px;
+
+  border-top: 1px solid #eeeaf2;
+}
+
+.seller-avatar {
+  width: 31px;
+  height: 31px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #eee9ff;
+  color: #5b21d6;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.live-card-seller > div:last-child {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.live-card-seller span {
+  color: #898493;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.live-card-seller strong {
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: #302b42;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   VIEW BUTTON
+========================================================= */
+
+.live-card-button {
+  width: 100%;
+
+  min-height: 43px;
+
+  margin-top: 15px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #5b21d6;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.live-card-button:hover {
+  background: #4918b6;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 5px 12px rgba(91, 33, 214, 0.2);
+}
+
+/* =========================================================
+   NO RESULTS
+========================================================= */
+
+.live-no-results {
+  min-height: 300px;
+
+  margin-bottom: 30px;
+  padding: 40px 20px;
+
+  border: 1px solid #e7e3ed;
+  border-radius: 17px;
+
+  background: #ffffff;
+
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.live-no-results-icon {
+  width: 65px;
+  height: 65px;
+
+  border-radius: 50%;
+
+  background: #eee9ff;
+  color: #5b21d6;
+
+  font-size: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-no-results h2 {
+  margin: 15px 0 6px;
+
+  color: #29243c;
+
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.live-no-results p {
+  margin: 0;
+
+  color: #777388;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.live-no-results button {
+  margin-top: 18px;
+
+  padding: 10px 16px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: #5b21d6;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.live-auctions-loading {
+  min-height: 430px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #e7e3ed;
+  border-radius: 17px;
+
+  background: #ffffff;
+}
+
+.live-auctions-loading p {
+  margin: 16px 0 0;
+
+  color: #777388;
+
+  font-size: 14px;
+  font-weight: 450;
+}
+
+.live-auctions-spinner {
+  width: 42px;
+  height: 42px;
+
+  border: 4px solid #e8e1f8;
+  border-top-color: #5b21d6;
+
+  border-radius: 50%;
+
+  animation: live-auction-spin 0.8s linear infinite;
+}
+
+@keyframes live-auction-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.live-auctions-error {
+  min-height: 430px;
+
+  padding: 40px 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #e7e3ed;
+  border-radius: 17px;
+
+  background: #ffffff;
+
+  text-align: center;
+}
+
+.live-state-icon {
+  width: 74px;
+  height: 74px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  font-size: 30px;
+}
+
+.error-state-icon {
+  background: #fff0f0;
+  color: #ef4444;
+}
+
+.live-auctions-error h2 {
+  margin: 18px 0 6px;
+
+  color: #252136;
+
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.live-auctions-error p {
+  max-width: 480px;
+
+  margin: 0;
+
+  color: #777388;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.live-retry-btn {
+  margin-top: 20px;
+
+  padding: 11px 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: #5b21d6;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.live-retry-btn:hover {
+  background: #4918b6;
+}
+
+/* =========================================================
+   IMAGE MODAL
+========================================================= */
+
+.live-image-modal {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  padding: 30px;
+
+  background: rgba(13, 10, 25, 0.82);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  backdrop-filter: blur(5px);
+}
+
+.live-image-modal-content {
+  position: relative;
+
+  max-width: 90vw;
+  max-height: 90vh;
+
+  padding: 10px;
+
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.live-image-modal-img {
+  display: block;
+
+  max-width: 85vw;
+  max-height: 82vh;
+
+  border-radius: 10px;
+
+  object-fit: contain;
+}
+
+.live-image-modal-close {
+  position: absolute;
+
+  top: -15px;
+  right: -15px;
+
+  width: 36px;
+  height: 36px;
+
+  z-index: 2;
+
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+
+  background: #ef4444;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.live-image-modal-close:hover {
+  background: #dc2626;
+}
+
+/* =========================================================
+   RESPONSIVE - 1400px
+========================================================= */
+
+@media (max-width: 1400px) {
+  .live-auctions-page {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .live-auctions-grid {
+    gap: 20px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - 1200px
+========================================================= */
+
+@media (max-width: 1200px) {
+  .live-search-row {
+    grid-template-columns:
+      minmax(230px, 1fr)
+      200px
+      125px;
+  }
+
+  .live-sort-select {
+    grid-column: 1 / -1;
+    width: 205px;
+  }
+
+  .live-auctions-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - 950px
+========================================================= */
+
+@media (max-width: 950px) {
+  .live-auctions-page {
+    padding: 27px 20px 42px;
+  }
+
+  .live-auctions-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-search-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .live-search-box {
+    grid-column: 1 / -1;
+  }
+
+  .live-sort-select {
+    grid-column: auto;
+    width: auto;
+  }
+
+  .live-filter-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .live-reset-filter {
+    width: 100%;
+  }
+
+  .live-auctions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - 620px
+========================================================= */
+
+@media (max-width: 620px) {
+  .live-auctions-page {
+    padding: 22px 14px 35px;
+  }
+
+  .live-title-row h1 {
+    font-size: 28px;
+  }
+
+  .live-auctions-heading > div > p {
+    font-size: 13px;
+  }
+
+  .live-auction-count {
+    width: 100%;
+
+    justify-content: center;
+
+    box-sizing: border-box;
+  }
+
+  .live-search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .live-search-box,
+  .live-sort-select {
+    grid-column: auto;
+    width: auto;
+  }
+
+  .live-category-select,
+  .live-filter-button,
+  .live-sort-select {
+    width: 100%;
+  }
+
+  .live-filter-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .live-filter-result {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-section-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .live-section-total {
+    flex-shrink: 0;
+  }
+
+  .live-auctions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-card-image {
+    height: 230px;
+  }
+}
+
+/* =========================================================
+   VERY SMALL DEVICES
+========================================================= */
+
+@media (max-width: 400px) {
+  .live-auctions-page {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  .live-search-filter-wrapper {
+    padding: 12px;
+  }
+
+  .live-title-row h1 {
+    font-size: 25px;
+  }
+
+  .live-card-content {
+    padding: 15px;
+  }
+
+  .live-card-content h2 {
+    font-size: 16px;
+  }
+}
+
+/* =========================================================
+   CUSTOM DROPDOWN
+========================================================= */
+
+.live-custom-dropdown {
+  position: relative;
+  width: 100%;
+  min-width: 190px;
+  z-index: 30;
+}
+
+/* Dropdown button */
+.live-custom-dropdown-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  border: 1px solid #dfe2eb;
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: #292d3a;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+/* Hover + opened state */
+.live-custom-dropdown-button:hover,
+.live-custom-dropdown-button.open {
+  border-color: #6c5ce7;
+  background: #fbfaff;
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.09);
+}
+
+/* Left side */
+.live-custom-dropdown-left {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Icon */
+.live-custom-dropdown-icon {
+  width: 18px;
+  height: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #6c5ce7;
+  flex-shrink: 0;
+}
+
+/* Selected value */
+.live-custom-dropdown-value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Arrow */
+.live-custom-dropdown-chevron {
+  color: #777d8d;
+  font-size: 12px;
+
+  flex-shrink: 0;
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.live-custom-dropdown-chevron.rotate {
+  transform: rotate(180deg);
+  color: #6c5ce7;
+}
+
+
+/* =========================================================
+   DROPDOWN MENU
+========================================================= */
+
+.live-custom-dropdown-menu {
+  position: absolute;
+
+  top: calc(100% + 8px);
+  left: 0;
+
+  width: 100%;
+  min-width: 210px;
+
+  max-height: 280px;
+  overflow-y: auto;
+
+  padding: 7px;
+
+  background: #ffffff;
+
+  border: 1px solid #e4e6ee;
+  border-radius: 14px;
+
+  box-shadow:
+    0 18px 45px rgba(31, 36, 52, 0.15),
+    0 4px 12px rgba(31, 36, 52, 0.06);
+
+  z-index: 1000;
+
+  animation: liveDropdownOpen 0.16s ease-out;
+}
+
+
+/* Dropdown animation */
+@keyframes liveDropdownOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   DROPDOWN OPTIONS
+========================================================= */
+
+.live-custom-dropdown-option {
+  width: 100%;
+  min-height: 42px;
+
+  padding: 9px 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: transparent;
+  color: #363b4a;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+
+/* Option hover */
+.live-custom-dropdown-option:hover {
+  background: #f3f1ff;
+  color: #5c4bdc;
+}
+
+
+/* Selected option */
+.live-custom-dropdown-option.selected {
+  background: #ece9ff;
+  color: #5c4bdc;
+  font-weight: 700;
+}
+
+
+/* Check icon */
+.live-dropdown-check {
+  color: #6c5ce7;
+  font-size: 14px;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.live-custom-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.live-custom-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.live-custom-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #d6d8e2;
+  border-radius: 10px;
+}
+
+.live-custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #b8bac6;
+}
+
+
+/* =========================================================
+   INDIVIDUAL DROPDOWN SIZES
+========================================================= */
+
+/* Category */
+.live-category-dropdown {
+  width: 230px;
+  min-width: 230px;
+  flex: 0 0 230px;
+}
+
+
+/* Sort */
+.live-sort-dropdown {
+  width: 190px;
+  min-width: 190px;
+  flex: 0 0 190px;
+}
+
+
+/* Condition */
+.live-condition-dropdown {
+  width: 100%;
+  min-width: 180px;
+}
+
+
+/* =========================================================
+   FILTER PANEL
+========================================================= */
+
+.live-filter-panel {
+  position: relative;
+  z-index: 20;
+}
+
+
+/* Make dropdown appear above other filter elements */
+.live-filter-field {
+  position: relative;
+  z-index: 25;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .live-category-dropdown,
+  .live-sort-dropdown {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .live-custom-dropdown {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .live-custom-dropdown-menu {
+    min-width: 100%;
+    max-height: 240px;
+  }
+
+}
