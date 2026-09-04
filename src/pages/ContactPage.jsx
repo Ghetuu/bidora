@@ -37,21 +37,71 @@ const ContactPage = () => {
     setSubmitted(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!formData.privacy) {
-      alert("Please agree to the Privacy Policy.");
+  setSubmitted(false);
+
+  if (!formData.privacy) {
+    alert("Please agree to the Privacy Policy.");
+    return;
+  }
+
+  if (
+    formData.helpTopic === "Other" &&
+    !formData.otherTopic.trim()
+  ) {
+    alert("Please specify your topic.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/admin/contact",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("Backend response:", data);
+
+    if (!response.ok) {
+      alert(
+        data.detail ||
+        "Unable to submit your support ticket."
+      );
       return;
     }
 
-    console.log("Contact Form Data:", formData);
-
+    // Only show success AFTER FastAPI successfully saves it
     setSubmitted(true);
 
-    // Add your backend API call here later
-  };
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      helpTopic: "",
+      otherTopic: "",
+      auctionId: "",
+      message: "",
+      privacy: false,
+    });
 
+  } catch (error) {
+    console.error("Contact form error:", error);
+
+    alert(
+      "Unable to connect to the server. Please make sure FastAPI is running."
+    );
+  }
+};
   return (
     <div className="cp-page">
       <style>{`
