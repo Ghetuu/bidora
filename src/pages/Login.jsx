@@ -467,7 +467,7 @@ function Login() {
 
                       </label>
 
-                      <Link to="/forgot-password">
+                      <Link to="/reset-password" className="forgot-password-link">
                         Forgot Password?
                       </Link>
 

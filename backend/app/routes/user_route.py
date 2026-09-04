@@ -40,7 +40,8 @@ from app.services.user_services import UserService
 
 from app.core.security import (
     verify_password,
-    create_access_token
+    create_access_token,
+    hash_password
 )
 
 from app.core.email import mail_config
@@ -83,6 +84,22 @@ class OTPVerifyRequest(BaseModel):
     email: EmailStr
     otp: str
 
+# =========================================================
+# FORGOT PASSWORD OTP SCHEMAS
+# =========================================================
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ForgotPasswordOTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    new_password: str
 
 # =========================================================
 # SEND REGISTRATION OTP
@@ -878,4 +895,366 @@ def mark_user_notification_read(
     return {
         "success": True,
         "message": "Notification marked as read."
+    }
+
+# =========================================================
+# FORGOT PASSWORD - SEND OTP
+# =========================================================
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+
+    email = str(
+        request.email
+    ).lower().strip()
+
+    # =====================================================
+    # FIND REGISTERED USER
+    # =====================================================
+
+    user = (
+        db.query(User)
+        .filter(
+            User.email == email
+        )
+        .first()
+    )
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="No account found with this email address."
+        )
+
+    # =====================================================
+    # GENERATE OTP
+    # =====================================================
+
+    otp = str(
+        random.randint(
+            100000,
+            999999
+        )
+    )
+
+    expires_at = (
+        datetime.utcnow()
+        + timedelta(
+            minutes=3,
+            seconds=40
+        )
+    )
+
+    # =====================================================
+    # DELETE OLD OTP
+    # =====================================================
+
+    db.query(EmailOTP).filter(
+        EmailOTP.email == email
+    ).delete(
+        synchronize_session=False
+    )
+
+    # =====================================================
+    # SAVE FORGOT PASSWORD OTP
+    # =====================================================
+
+    otp_record = EmailOTP(
+        email=email,
+        otp=otp,
+        expires_at=expires_at,
+        is_verified=False
+    )
+
+    db.add(otp_record)
+    db.commit()
+
+    # =====================================================
+    # SEND OTP EMAIL
+    # =====================================================
+
+    message = MessageSchema(
+
+        subject="Bidora - Forgot Password OTP",
+
+        recipients=[email],
+
+        body=f"""
+        <html>
+            <body>
+
+                <h2>Bidora Password Reset</h2>
+
+                <p>
+                    Hello {user.fullname},
+                </p>
+
+                <p>
+                    We received a request to reset
+                    your Bidora account password.
+                </p>
+
+                <p>
+                    Your password reset OTP is:
+                </p>
+
+                <h1>{otp}</h1>
+
+                <p>
+                    This OTP is valid for
+                    <b>3 minutes 40 seconds</b>.
+                </p>
+
+                <p>
+                    If you did not request a password reset,
+                    please ignore this email.
+                </p>
+
+                <br>
+
+                <p>
+                    Regards,<br>
+                    <b>Bidora Team</b>
+                </p>
+
+            </body>
+        </html>
+        """,
+
+        subtype=MessageType.html
+    )
+
+    try:
+
+        fm = FastMail(
+            mail_config
+        )
+
+        await fm.send_message(
+            message
+        )
+
+    except Exception as e:
+
+        db.delete(otp_record)
+        db.commit()
+
+        print(
+            "FORGOT PASSWORD EMAIL ERROR:",
+            str(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to send password reset OTP."
+        )
+
+    print("--------------------------------")
+    print("FORGOT PASSWORD OTP")
+    print("EMAIL:", email)
+    print("OTP:", otp)
+    print("--------------------------------")
+
+    return {
+        "success": True,
+        "message": "OTP sent successfully to your email."
+    }
+
+
+# =========================================================
+# VERIFY FORGOT PASSWORD OTP
+# =========================================================
+
+@router.post("/verify-forgot-password-otp")
+async def verify_forgot_password_otp(
+    request: ForgotPasswordOTPVerifyRequest,
+    db: Session = Depends(get_db)
+):
+
+    email = str(
+        request.email
+    ).lower().strip()
+
+    otp = request.otp.strip()
+
+    # =====================================================
+    # FIND USER
+    # =====================================================
+
+    user = (
+        db.query(User)
+        .filter(
+            User.email == email
+        )
+        .first()
+    )
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="No account found with this email address."
+        )
+
+    # =====================================================
+    # FIND OTP
+    # =====================================================
+
+    otp_record = (
+        db.query(EmailOTP)
+        .filter(
+            EmailOTP.email == email
+        )
+        .first()
+    )
+
+    if not otp_record:
+
+        raise HTTPException(
+            status_code=400,
+            detail="OTP not found. Please request a new OTP."
+        )
+
+    # =====================================================
+    # CHECK OTP EXPIRY
+    # =====================================================
+
+    if datetime.utcnow() > otp_record.expires_at:
+
+        db.delete(otp_record)
+        db.commit()
+
+        raise HTTPException(
+            status_code=400,
+            detail="OTP has expired. Please request a new OTP."
+        )
+
+    # =====================================================
+    # CHECK OTP
+    # =====================================================
+
+    if otp_record.otp != otp:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid OTP."
+        )
+
+    # =====================================================
+    # MARK OTP VERIFIED
+    # =====================================================
+
+    otp_record.is_verified = True
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "OTP verified successfully."
+    }
+
+
+# =========================================================
+# RESET PASSWORD AFTER OTP VERIFICATION
+# =========================================================
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+
+    email = str(
+        request.email
+    ).lower().strip()
+
+    new_password = request.new_password
+
+    # =====================================================
+    # PASSWORD VALIDATION
+    # =====================================================
+
+    if len(new_password) < 8:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 8 characters long."
+        )
+
+    # =====================================================
+    # FIND USER
+    # =====================================================
+
+    user = (
+        db.query(User)
+        .filter(
+            User.email == email
+        )
+        .first()
+    )
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    # =====================================================
+    # CHECK VERIFIED OTP
+    # =====================================================
+
+    otp_record = (
+        db.query(EmailOTP)
+        .filter(
+            EmailOTP.email == email,
+            EmailOTP.is_verified == True
+        )
+        .first()
+    )
+
+    if not otp_record:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Please verify the OTP first."
+        )
+
+    # =====================================================
+    # CHECK OTP EXPIRY AGAIN
+    # =====================================================
+
+    if datetime.utcnow() > otp_record.expires_at:
+
+        db.delete(otp_record)
+        db.commit()
+
+        raise HTTPException(
+            status_code=400,
+            detail="OTP has expired. Please request a new OTP."
+        )
+
+    # =====================================================
+    # HASH NEW PASSWORD
+    # =====================================================
+
+    user.password = hash_password(
+        new_password
+    )
+
+    # =====================================================
+    # DELETE USED OTP
+    # =====================================================
+
+    db.delete(otp_record)
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Password changed successfully. You can now login."
     }
