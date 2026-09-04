@@ -369,3 +369,149 @@ def get_my_auctions(
             status_code=500,
             detail="Unable to load your auctions."
         )
+
+
+# =========================================================
+# GET ALL APPROVED AUCTIONS
+# Shows approved auctions from ALL USERS
+# =========================================================
+
+@router.get("/all-auctions")
+def get_all_approved_auctions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+
+        auctions = (
+            db.query(Auction)
+            .filter(Auction.status == "approved")
+            .order_by(Auction.created_at.desc())
+            .all()
+        )
+
+        result = []
+
+        for auction in auctions:
+
+            sorted_images = sorted(
+                auction.images or [],
+                key=lambda image: image.display_order
+                if image.display_order is not None
+                else 0
+            )
+
+            result.append({
+
+                # -------------------------------------------------
+                # BASIC
+                # -------------------------------------------------
+
+                "id": auction.id,
+                "user_id": auction.user_id,
+
+                # -------------------------------------------------
+                # PRODUCT
+                # -------------------------------------------------
+
+                "product_title": auction.product_title,
+                "brand_model": auction.brand_model,
+                "category": auction.category,
+                "description": auction.description,
+                "product_condition": auction.product_condition,
+
+                # -------------------------------------------------
+                # PURCHASE
+                # -------------------------------------------------
+
+                "purchase_date": auction.purchase_date,
+                "purchased_by": auction.purchased_by,
+                "purchase_price": auction.purchase_price,
+
+                # -------------------------------------------------
+                # AUCTION
+                # -------------------------------------------------
+
+                "starting_price": auction.starting_price,
+                "auction_start": auction.auction_start,
+                "auction_end": auction.auction_end,
+
+                # -------------------------------------------------
+                # LOCATION
+                # -------------------------------------------------
+
+                "location_city": auction.location_city,
+                "location_state": auction.location_state,
+                "location_pincode": auction.location_pincode,
+
+                # -------------------------------------------------
+                # DELIVERY / SHIPPING
+                # -------------------------------------------------
+
+                "delivery_type": auction.delivery_type,
+                "shipping_type": auction.shipping_type,
+                "shipping_charges": auction.shipping_charges,
+                "shipping_paid_by": auction.shipping_paid_by,
+
+                # -------------------------------------------------
+                # WARRANTY / PAYMENT
+                # -------------------------------------------------
+
+                "warranty_status": auction.warranty_status,
+                "payment_method": auction.payment_method,
+
+                # -------------------------------------------------
+                # TERMS
+                # -------------------------------------------------
+
+                "product_terms": auction.product_terms,
+                "terms_accepted": auction.terms_accepted,
+
+                # -------------------------------------------------
+                # SELLER
+                # -------------------------------------------------
+
+                "seller_name": auction.seller_name,
+                "seller_email": auction.seller_email,
+                "seller_contact": auction.seller_contact,
+
+                # -------------------------------------------------
+                # STATUS
+                # -------------------------------------------------
+
+                "status": auction.status,
+
+                # -------------------------------------------------
+                # IMAGES
+                # -------------------------------------------------
+
+                "images": [
+                    {
+                        "id": image.id,
+                        "image_path": image.image_path,
+                        "display_order": image.display_order
+                    }
+                    for image in sorted_images
+                ],
+
+                # -------------------------------------------------
+                # TIMESTAMPS
+                # -------------------------------------------------
+
+                "created_at": auction.created_at,
+                "updated_at": auction.updated_at
+            })
+
+        return result
+
+    except Exception as e:
+
+        print(
+            "ALL AUCTIONS ERROR:",
+            str(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load approved auctions."
+        )

@@ -26,7 +26,34 @@ function AuctionDetails() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // ---------------------------------------------------------
+  // AUCTION DATA
+  // ---------------------------------------------------------
+
   const auction = location.state?.auction;
+
+  // ---------------------------------------------------------
+  // SOURCE PAGE
+  // ---------------------------------------------------------
+  // "all-auctions"  -> opened from All Auctions
+  // "my-auctions"   -> opened from My Auctions
+  //
+  // IMPORTANT:
+  // AllAuctions.jsx and MyAuctions.jsx must pass the "from"
+  // value while navigating to this page.
+  // ---------------------------------------------------------
+
+  const from = location.state?.from || "my-auctions";
+
+  const isAllAuctions = from === "all-auctions";
+
+  const backPath = isAllAuctions
+    ? "/dashboard/all-auctions"
+    : "/dashboard/my-auctions";
+
+  const backLabel = isAllAuctions
+    ? "Back to All Auctions"
+    : "Back to My Auctions";
 
   // ---------------------------------------------------------
   // IMAGE POPUP
@@ -47,16 +74,16 @@ function AuctionDetails() {
           <h2>Auction Details Not Available</h2>
 
           <p>
-            This auction information is not available. Please return to
-            My Auctions and try again.
+            This auction information is not available. Please return to{" "}
+            {isAllAuctions ? "All Auctions" : "My Auctions"} and try again.
           </p>
 
           <button
             type="button"
-            onClick={() => navigate("/dashboard/my-auctions")}
+            onClick={() => navigate(backPath)}
           >
             <FaArrowLeft />
-            Back to My Auctions
+            {backLabel}
           </button>
         </div>
       </div>
@@ -253,17 +280,11 @@ function AuctionDetails() {
     };
 
     if (selectedImage) {
-      document.addEventListener(
-        "keydown",
-        handleEscape
-      );
+      document.addEventListener("keydown", handleEscape);
     }
 
     return () => {
-      document.removeEventListener(
-        "keydown",
-        handleEscape
-      );
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [selectedImage]);
 
@@ -283,10 +304,7 @@ function AuctionDetails() {
       return documentPath;
     }
 
-    return `${API_BASE_URL}/${documentPath.replace(
-      /^\/+/,
-      ""
-    )}`;
+    return `${API_BASE_URL}/${documentPath.replace(/^\/+/, "")}`;
   };
 
   const purchaseProofUrl = getDocumentUrl(
@@ -313,15 +331,14 @@ function AuctionDetails() {
       ===================================================== */}
 
       <div className="auction-details-header">
+
         <button
           type="button"
           className="auction-back-btn"
-          onClick={() =>
-            navigate("/dashboard/my-auctions")
-          }
+          onClick={() => navigate(backPath)}
         >
           <FaArrowLeft />
-          Back to My Auctions
+          {backLabel}
         </button>
 
         <div
@@ -330,6 +347,7 @@ function AuctionDetails() {
           <span></span>
           {formatLabel(status)}
         </div>
+
       </div>
 
       {/* =====================================================
@@ -349,6 +367,7 @@ function AuctionDetails() {
           </div>
 
           <div>
+
             <span className="auction-details-number">
               Auction #{formatValue(auction.id)}
             </span>
@@ -365,7 +384,9 @@ function AuctionDetails() {
                 {auction.brand_model}
               </p>
             )}
+
           </div>
+
         </div>
 
         {/* =================================================
@@ -387,7 +408,9 @@ function AuctionDetails() {
           <section className="auction-detail-section auction-images-section">
 
             <div className="auction-images-section-header">
+
               <div>
+
                 <h2>
                   <FaImage />
                   Product Images
@@ -396,6 +419,7 @@ function AuctionDetails() {
                 <p className="auction-images-subtitle">
                   Images uploaded with this auction
                 </p>
+
               </div>
 
               <span className="auction-image-count">
@@ -404,6 +428,7 @@ function AuctionDetails() {
                   ? "Image"
                   : "Images"}
               </span>
+
             </div>
 
             <div className="auction-details-image-grid">
@@ -420,6 +445,7 @@ function AuctionDetails() {
                   >
 
                     {/* IMAGE */}
+
                     <button
                       type="button"
                       className="auction-details-image"
@@ -433,6 +459,7 @@ function AuctionDetails() {
                         index
                       )}`}
                     >
+
                       <img
                         src={image.url}
                         alt={`${getImageLabel(
@@ -472,17 +499,21 @@ function AuctionDetails() {
                       </div>
 
                       {/* COVER BADGE */}
+
                       {index === 0 && (
                         <span className="auction-cover-badge">
                           COVER IMAGE
                         </span>
                       )}
+
                     </button>
 
                     {/* IMAGE INFORMATION */}
+
                     <div className="auction-image-info">
 
                       <div>
+
                         <strong>
                           {getImageLabel(index)}
                         </strong>
@@ -492,6 +523,7 @@ function AuctionDetails() {
                             index
                           )}
                         </span>
+
                       </div>
 
                       <span className="auction-image-number">
@@ -500,11 +532,13 @@ function AuctionDetails() {
                       </span>
 
                     </div>
+
                   </div>
                 )
               )}
 
             </div>
+
           </section>
         )}
 
@@ -513,6 +547,7 @@ function AuctionDetails() {
         ================================================= */}
 
         <section className="auction-detail-section">
+
           <h2>
             <FaBoxOpen />
             Product Information
@@ -521,6 +556,7 @@ function AuctionDetails() {
           <div className="auction-details-grid">
 
             <div className="auction-detail-item">
+
               <span>Auction Title</span>
 
               <strong>
@@ -529,9 +565,11 @@ function AuctionDetails() {
                   "Untitled Auction"
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Brand / Model</span>
 
               <strong>
@@ -539,9 +577,11 @@ function AuctionDetails() {
                   auction.brand_model
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Category</span>
 
               <strong>
@@ -549,9 +589,11 @@ function AuctionDetails() {
                   auction.category
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Condition</span>
 
               <strong>
@@ -559,9 +601,11 @@ function AuctionDetails() {
                   auction.product_condition
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Warranty Status</span>
 
               <strong>
@@ -569,9 +613,11 @@ function AuctionDetails() {
                   auction.warranty_status
                 )}
               </strong>
+
             </div>
 
           </div>
+
         </section>
 
         {/* =================================================
@@ -579,19 +625,23 @@ function AuctionDetails() {
         ================================================= */}
 
         <section className="auction-detail-section">
+
           <h2>
             <FaFileAlt />
             Product Description
           </h2>
 
           <div className="auction-detail-description">
+
             <p>
               {formatValue(
                 auction.description,
                 "No description available."
               )}
             </p>
+
           </div>
+
         </section>
 
         {/* =================================================
@@ -599,6 +649,7 @@ function AuctionDetails() {
         ================================================= */}
 
         <section className="auction-detail-section">
+
           <h2>
             <FaGavel />
             Auction Information
@@ -607,6 +658,7 @@ function AuctionDetails() {
           <div className="auction-details-grid">
 
             <div className="auction-detail-item">
+
               <span>Starting Bid</span>
 
               <strong className="auction-price">
@@ -614,9 +666,11 @@ function AuctionDetails() {
                   auction.starting_price
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Original Purchase Price</span>
 
               <strong>
@@ -624,9 +678,11 @@ function AuctionDetails() {
                   auction.purchase_price
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Auction Start</span>
 
               <strong>
@@ -634,9 +690,11 @@ function AuctionDetails() {
                   auction.auction_start
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Auction End</span>
 
               <strong>
@@ -644,9 +702,11 @@ function AuctionDetails() {
                   auction.auction_end
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Status</span>
 
               <strong
@@ -654,9 +714,11 @@ function AuctionDetails() {
               >
                 {formatLabel(status)}
               </strong>
+
             </div>
 
           </div>
+
         </section>
 
         {/* =================================================
@@ -673,6 +735,7 @@ function AuctionDetails() {
           <div className="auction-details-grid">
 
             <div className="auction-detail-item">
+
               <span>Date of Product Buy</span>
 
               <strong>
@@ -680,9 +743,11 @@ function AuctionDetails() {
                   auction.purchase_date
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Purchased By</span>
 
               <strong>
@@ -690,9 +755,11 @@ function AuctionDetails() {
                   auction.purchased_by
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Original Purchase Price</span>
 
               <strong className="auction-price">
@@ -700,6 +767,7 @@ function AuctionDetails() {
                   auction.purchase_price
                 )}
               </strong>
+
             </div>
 
           </div>
@@ -710,11 +778,13 @@ function AuctionDetails() {
             <div className="auction-document-view">
 
               <div className="auction-document-info">
+
                 <div className="auction-document-icon">
                   <FaFileInvoice />
                 </div>
 
                 <div>
+
                   <strong>
                     Bill / Proof of Purchase
                   </strong>
@@ -722,7 +792,9 @@ function AuctionDetails() {
                   <span>
                     Purchase verification document
                   </span>
+
                 </div>
+
               </div>
 
               <a
@@ -753,6 +825,7 @@ function AuctionDetails() {
           <div className="auction-location-details">
 
             <div>
+
               <span>Area / Locality</span>
 
               <strong>
@@ -760,9 +833,11 @@ function AuctionDetails() {
                   auction.location_area
                 )}
               </strong>
+
             </div>
 
             <div>
+
               <span>City</span>
 
               <strong>
@@ -770,9 +845,11 @@ function AuctionDetails() {
                   auction.location_city
                 )}
               </strong>
+
             </div>
 
             <div>
+
               <span>State</span>
 
               <strong>
@@ -780,9 +857,11 @@ function AuctionDetails() {
                   auction.location_state
                 )}
               </strong>
+
             </div>
 
             <div>
+
               <span>Country</span>
 
               <strong>
@@ -790,9 +869,11 @@ function AuctionDetails() {
                   auction.location_country
                 )}
               </strong>
+
             </div>
 
             <div>
+
               <span>Pincode</span>
 
               <strong>
@@ -800,6 +881,7 @@ function AuctionDetails() {
                   auction.location_pincode
                 )}
               </strong>
+
             </div>
 
           </div>
@@ -820,6 +902,7 @@ function AuctionDetails() {
           <div className="auction-details-grid">
 
             <div className="auction-detail-item">
+
               <span>Delivery / Pickup</span>
 
               <strong>
@@ -827,9 +910,11 @@ function AuctionDetails() {
                   auction.delivery_type
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Shipping Type</span>
 
               <strong>
@@ -837,9 +922,11 @@ function AuctionDetails() {
                   auction.shipping_type
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Shipping Charges</span>
 
               <strong>
@@ -847,9 +934,11 @@ function AuctionDetails() {
                   auction.shipping_charges
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Shipping Paid By</span>
 
               <strong>
@@ -857,6 +946,7 @@ function AuctionDetails() {
                   auction.shipping_paid_by
                 )}
               </strong>
+
             </div>
 
           </div>
@@ -877,6 +967,7 @@ function AuctionDetails() {
           <div className="auction-details-grid">
 
             <div className="auction-detail-item">
+
               <span>Warranty Status</span>
 
               <strong>
@@ -884,9 +975,11 @@ function AuctionDetails() {
                   auction.warranty_status
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Payment Method</span>
 
               <strong>
@@ -894,9 +987,11 @@ function AuctionDetails() {
                   auction.payment_method
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Terms Accepted</span>
 
               <strong>
@@ -905,6 +1000,7 @@ function AuctionDetails() {
                   ? "Yes"
                   : "No"}
               </strong>
+
             </div>
 
           </div>
@@ -925,6 +1021,7 @@ function AuctionDetails() {
           <div className="auction-details-grid">
 
             <div className="auction-detail-item">
+
               <span>Seller Name</span>
 
               <strong>
@@ -932,9 +1029,11 @@ function AuctionDetails() {
                   auction.seller_name
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Email Address</span>
 
               <strong>
@@ -942,9 +1041,11 @@ function AuctionDetails() {
                   auction.seller_email
                 )}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Contact Number</span>
 
               <strong>
@@ -952,6 +1053,7 @@ function AuctionDetails() {
                   auction.seller_contact
                 )}
               </strong>
+
             </div>
 
           </div>
@@ -968,6 +1070,7 @@ function AuctionDetails() {
                 </div>
 
                 <div>
+
                   <strong>
                     Seller Verification Proof
                   </strong>
@@ -976,6 +1079,7 @@ function AuctionDetails() {
                     Seller identity / ownership
                     verification
                   </span>
+
                 </div>
 
               </div>
@@ -1005,12 +1109,14 @@ function AuctionDetails() {
           </h2>
 
           <div className="auction-terms-box">
+
             <p>
               {formatValue(
                 auction.product_terms,
                 "No Seller Terms & Conditions provided."
               )}
             </p>
+
           </div>
 
         </section>
@@ -1029,14 +1135,17 @@ function AuctionDetails() {
           <div className="auction-details-grid">
 
             <div className="auction-detail-item">
+
               <span>Auction ID</span>
 
               <strong>
                 #{formatValue(auction.id)}
               </strong>
+
             </div>
 
             <div className="auction-detail-item">
+
               <span>Created On</span>
 
               <strong>
@@ -1044,10 +1153,12 @@ function AuctionDetails() {
                   auction.created_at
                 )}
               </strong>
+
             </div>
 
             {auction.updated_at && (
               <div className="auction-detail-item">
+
                 <span>Last Updated</span>
 
                 <strong>
@@ -1055,6 +1166,7 @@ function AuctionDetails() {
                     auction.updated_at
                   )}
                 </strong>
+
               </div>
             )}
 
@@ -1069,6 +1181,7 @@ function AuctionDetails() {
         <div className="auction-details-footer">
 
           <div>
+
             <FaCalendarAlt />
 
             <span>
@@ -1077,16 +1190,15 @@ function AuctionDetails() {
                 auction.created_at
               )}
             </span>
+
           </div>
 
           <button
             type="button"
-            onClick={() =>
-              navigate("/dashboard/my-auctions")
-            }
+            onClick={() => navigate(backPath)}
           >
             <FaArrowLeft />
-            Back to My Auctions
+            {backLabel}
           </button>
 
         </div>
@@ -1124,6 +1236,7 @@ function AuctionDetails() {
             {/* IMAGE LABEL */}
 
             <div className="auction-image-preview-label">
+
               <FaImage />
 
               <span>
@@ -1131,6 +1244,7 @@ function AuctionDetails() {
                   selectedImage.index
                 )}
               </span>
+
             </div>
 
             {/* LARGE IMAGE */}
@@ -1146,9 +1260,11 @@ function AuctionDetails() {
             {/* IMAGE COUNTER */}
 
             <div className="auction-image-preview-counter">
+
               Image{" "}
               {selectedImage.index + 1} of{" "}
               {auctionImages.length}
+
             </div>
 
           </div>

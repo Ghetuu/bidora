@@ -13,6 +13,8 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
+import ContactPage from "./pages/ContactPage";
 
 
 // =====================================================
@@ -34,6 +36,7 @@ import DashboardHome from "./pages/dashboard_home";
 import CreateAuction from "./pages/createauctionform";
 import MyAuctions from "./pages/MyAuctions";
 import AuctionDetails from "./pages/auctiondetails";
+import AllAuctions from "./pages/AllAuctions";
 
 function App() {
 
@@ -61,6 +64,19 @@ function App() {
         <Route
           path="/register"
           element={<Register />}
+        />
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
+
+        <Route
+          path="/reset-password/:token"
+          element={<ResetPassword />}
+        />
+        <Route
+          path="/contact"
+          element={<ContactPage />}
         />
 
 
@@ -100,6 +116,11 @@ function App() {
             <Route
               path="auction/:id"
               element={<AuctionDetails />}
+            />
+
+            <Route
+              path="all-auctions"
+              element={<AllAuctions />}
             />
           
 
