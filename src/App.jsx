@@ -38,6 +38,7 @@ import CreateAuction from "./pages/createauctionform";
 import MyAuctions from "./pages/MyAuctions";
 import AuctionDetails from "./pages/auctiondetails";
 import AllAuctions from "./pages/AllAuctions";
+import LiveAuctions from "./pages/LiveAuctions";
 
 function App() {
 
@@ -122,6 +123,10 @@ function App() {
             <Route
               path="all-auctions"
               element={<AllAuctions />}
+            />
+            <Route
+              path="live-auctions"
+              element={<LiveAuctions />}
             />
           
 

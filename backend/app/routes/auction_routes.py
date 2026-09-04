@@ -515,3 +515,187 @@ def get_all_approved_auctions(
             status_code=500,
             detail="Failed to load approved auctions."
         )
+# =========================================================
+# GET LIVE AUCTIONS
+# Shows only currently LIVE auctions
+# =========================================================
+
+@router.get("/live")
+def get_live_auctions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+
+        auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.status == "live"
+            )
+            .order_by(
+                Auction.auction_end.asc()
+            )
+            .all()
+        )
+
+        result = []
+
+        for auction in auctions:
+
+            sorted_images = sorted(
+                auction.images or [],
+                key=lambda image: (
+                    image.display_order
+                    if image.display_order is not None
+                    else 0
+                )
+            )
+
+            result.append({
+
+                # -------------------------------------------------
+                # BASIC
+                # -------------------------------------------------
+
+                "id": auction.id,
+                "user_id": auction.user_id,
+
+                # -------------------------------------------------
+                # PRODUCT
+                # -------------------------------------------------
+
+                "product_title": auction.product_title,
+                "brand_model": auction.brand_model,
+                "category": auction.category,
+                "description": auction.description,
+                "product_condition": auction.product_condition,
+
+                # -------------------------------------------------
+                # PURCHASE
+                # -------------------------------------------------
+
+                "purchase_date": auction.purchase_date,
+                "purchased_by": auction.purchased_by,
+
+                "purchase_price": (
+                    float(auction.purchase_price)
+                    if auction.purchase_price is not None
+                    else 0
+                ),
+
+                # -------------------------------------------------
+                # AUCTION
+                # -------------------------------------------------
+
+                "starting_price": (
+                    float(auction.starting_price)
+                    if auction.starting_price is not None
+                    else 0
+                ),
+
+                "auction_start": (
+                    auction.auction_start.isoformat()
+                    if auction.auction_start
+                    else None
+                ),
+
+                "auction_end": (
+                    auction.auction_end.isoformat()
+                    if auction.auction_end
+                    else None
+                ),
+
+                # -------------------------------------------------
+                # LOCATION
+                # -------------------------------------------------
+
+                "location_city": auction.location_city,
+                "location_state": auction.location_state,
+                "location_pincode": auction.location_pincode,
+
+                # -------------------------------------------------
+                # DELIVERY / SHIPPING
+                # -------------------------------------------------
+
+                "delivery_type": auction.delivery_type,
+                "shipping_type": auction.shipping_type,
+
+                "shipping_charges": (
+                    float(auction.shipping_charges)
+                    if auction.shipping_charges is not None
+                    else 0
+                ),
+
+                "shipping_paid_by": auction.shipping_paid_by,
+
+                # -------------------------------------------------
+                # WARRANTY / PAYMENT
+                # -------------------------------------------------
+
+                "warranty_status": auction.warranty_status,
+                "payment_method": auction.payment_method,
+
+                # -------------------------------------------------
+                # TERMS
+                # -------------------------------------------------
+
+                "product_terms": auction.product_terms,
+                "terms_accepted": auction.terms_accepted,
+
+                # -------------------------------------------------
+                # SELLER
+                # -------------------------------------------------
+
+                "seller_name": auction.seller_name,
+                "seller_email": auction.seller_email,
+                "seller_contact": auction.seller_contact,
+
+                # -------------------------------------------------
+                # STATUS
+                # -------------------------------------------------
+
+                "status": auction.status,
+
+                # -------------------------------------------------
+                # IMAGES
+                # -------------------------------------------------
+
+                "images": [
+                    {
+                        "id": image.id,
+                        "image_path": image.image_path,
+                        "display_order": image.display_order
+                    }
+                    for image in sorted_images
+                ],
+
+                # -------------------------------------------------
+                # TIMESTAMPS
+                # -------------------------------------------------
+
+                "created_at": (
+                    auction.created_at.isoformat()
+                    if auction.created_at
+                    else None
+                ),
+
+                "updated_at": (
+                    auction.updated_at.isoformat()
+                    if auction.updated_at
+                    else None
+                )
+            })
+
+        return result
+
+    except Exception as e:
+
+        print(
+            "LIVE AUCTIONS ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load live auctions."
+        )
