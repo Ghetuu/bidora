@@ -554,15 +554,15 @@ function LiveAuctions() {
   // =========================================================
 
   const handleViewAuction = (auction) => {
-    console.log("VIEW LIVE AUCTION:", auction);
+  console.log("VIEW LIVE AUCTION:", auction);
 
-    navigate(`/dashboard/auction/${auction.id}`, {
-      state: {
-        auction,
-        from: "live-auctions",
-      },
-    });
-  };
+  navigate(`/dashboard/live-auction/${auction.id}`, {
+    state: {
+      auction,
+      from: "live-auctions",
+    },
+  });
+};
 
   // =========================================================
   // LOADING
@@ -1228,18 +1228,15 @@ function LiveAuctions() {
 
                   {/* BUTTON */}
 
-                  <button
-                    type="button"
-                    className="live-card-button"
-                    onClick={() =>
-                      handleViewAuction(
-                        auction
-                      )
-                    }
-                  >
-                    <FaEye />
-                    View Auction
-                  </button>
+                 <button
+  type="button"
+  className="live-card-button"
+  onClick={() => handleViewAuction(auction)}
+>
+  <FaEye />
+  View Auction
+</button>
+
 
                 </div>
               </div>

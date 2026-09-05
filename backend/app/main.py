@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 # so SQLAlchemy knows about all tables.
 from app.models.admin_notification import AdminNotification
 from app.models.contact_message import ContactMessage
+from app.routes.live_auction_routes import router as live_auction_router
 
 from app.models import (
     User,
@@ -88,6 +89,7 @@ app.include_router(
     auction_router
 )
 
+app.include_router(live_auction_router)
 
 # =========================================================
 # ROOT

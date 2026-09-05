@@ -39,6 +39,7 @@ import MyAuctions from "./pages/MyAuctions";
 import AuctionDetails from "./pages/auctiondetails";
 import AllAuctions from "./pages/AllAuctions";
 import LiveAuctions from "./pages/LiveAuctions";
+import LiveAuctionDetails from "./pages/LiveAuctionDetails";
 
 function App() {
 
@@ -128,7 +129,11 @@ function App() {
               path="live-auctions"
               element={<LiveAuctions />}
             />
-          
+            <Route 
+              path="live-auction/:auctionId" 
+              element={<LiveAuctionDetails />} 
+            />
+                      
 
         </Route>
 
