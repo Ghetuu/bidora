@@ -1682,6 +1682,14 @@ const CreateAuction = () => {
       );
       return;
     }
+    const now = new Date();
+
+if (auctionStart <= now) {
+  setSubmitError(
+    "Auction start date and time must be in the future."
+  );
+  return
+}
 
     const today = new Date();
     today.setHours(23, 59, 59, 999);

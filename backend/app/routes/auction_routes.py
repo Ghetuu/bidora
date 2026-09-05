@@ -32,6 +32,7 @@ from app.services.auction_services import (
     AuctionService
 )
 
+#from datetime import datetime, timezone
 
 router = APIRouter(
     prefix="/api/auctions",
@@ -45,6 +46,25 @@ service = AuctionService(
     repository
 )
 
+
+# =========================================================
+# CALCULATE AUCTION TIME STATUS
+# =========================================================
+
+def get_auction_time_status(auction):
+    if not auction.auction_start or not auction.auction_end:
+        return "unknown"
+
+    now = datetime.now()
+
+    if now < auction.auction_start:
+        return "upcoming"
+
+    elif now < auction.auction_end:
+        return "live"
+
+    else:
+        return "ended"
 
 @router.post("")
 async def create_auction(
@@ -376,6 +396,8 @@ def get_my_auctions(
 # Shows approved auctions from ALL USERS
 # =========================================================
 
+from datetime import datetime, timezone
+
 @router.get("/all-auctions")
 def get_all_approved_auctions(
     db: Session = Depends(get_db),
@@ -383,23 +405,92 @@ def get_all_approved_auctions(
 ):
     try:
 
+        # =========================================================
+        # GET APPROVED + LIVE AUCTIONS
+        # REJECTED AUCTIONS ARE NOT INCLUDED
+        # =========================================================
+
         auctions = (
             db.query(Auction)
-            .filter(Auction.status == "approved")
+            .filter(
+                Auction.status.in_(["approved", "live"])
+            )
             .order_by(Auction.created_at.desc())
             .all()
         )
 
         result = []
 
+        # Current UTC time
+        now = datetime.now(timezone.utc)
+
         for auction in auctions:
+
+            # =====================================================
+            # AUCTION STATUS
+            # =====================================================
+
+            auction_status = "unknown"
+
+            if auction.auction_start and auction.auction_end:
+
+                start_time = auction.auction_start
+                end_time = auction.auction_end
+
+                # Handle timezone-naive database values
+                if start_time.tzinfo is None:
+                    start_time = start_time.replace(
+                        tzinfo=timezone.utc
+                    )
+
+                if end_time.tzinfo is None:
+                    end_time = end_time.replace(
+                        tzinfo=timezone.utc
+                    )
+
+                # -------------------------------------------------
+                # UPCOMING
+                # -------------------------------------------------
+
+                if now < start_time:
+
+                    auction_status = "upcoming"
+
+                # -------------------------------------------------
+                # LIVE
+                # -------------------------------------------------
+
+                elif start_time <= now <= end_time:
+
+                    auction_status = "live"
+
+                # -------------------------------------------------
+                # ENDED
+                # -------------------------------------------------
+
+                else:
+
+                    auction_status = "ended"
+
+                    # IMPORTANT:
+                    # Do NOT add ended auctions to result
+                    continue
+
+            # =====================================================
+            # SORT IMAGES
+            # =====================================================
 
             sorted_images = sorted(
                 auction.images or [],
-                key=lambda image: image.display_order
-                if image.display_order is not None
-                else 0
+                key=lambda image:
+                    image.display_order
+                    if image.display_order is not None
+                    else 0
             )
+
+            # =====================================================
+            # RESPONSE
+            # =====================================================
 
             result.append({
 
@@ -436,6 +527,8 @@ def get_all_approved_auctions(
                 "auction_start": auction.auction_start,
                 "auction_end": auction.auction_end,
 
+                "auction_status": auction_status,
+
                 # -------------------------------------------------
                 # LOCATION
                 # -------------------------------------------------
@@ -451,6 +544,181 @@ def get_all_approved_auctions(
                 "delivery_type": auction.delivery_type,
                 "shipping_type": auction.shipping_type,
                 "shipping_charges": auction.shipping_charges,
+                "shipping_paid_by": auction.shipping_paid_by,
+
+                # -------------------------------------------------
+                # WARRANTY / PAYMENT
+                # -------------------------------------------------
+
+                "warranty_status": auction.warranty_status,
+                "payment_method": auction.payment_method,
+
+                # -------------------------------------------------
+                # TERMS
+                # -------------------------------------------------
+
+                "product_terms": auction.product_terms,
+                "terms_accepted": auction.terms_accepted,
+
+                # -------------------------------------------------
+                # SELLER
+                # -------------------------------------------------
+
+                "seller_name": auction.seller_name,
+                "seller_email": auction.seller_email,
+                "seller_contact": auction.seller_contact,
+
+                # -------------------------------------------------
+                # DATABASE STATUS
+                # -------------------------------------------------
+
+                "status": auction.status,
+
+                # -------------------------------------------------
+                # IMAGES
+                # -------------------------------------------------
+
+                "images": [
+                    {
+                        "id": image.id,
+                        "image_path": image.image_path,
+                        "display_order": image.display_order
+                    }
+                    for image in sorted_images
+                ],
+
+                # -------------------------------------------------
+                # TIMESTAMPS
+                # -------------------------------------------------
+
+                "created_at": auction.created_at,
+                "updated_at": auction.updated_at
+            })
+
+        return result
+
+    except Exception as e:
+
+        print(
+            "ALL AUCTIONS ERROR:",
+            str(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load auctions."
+        )
+# =========================================================
+# GET LIVE AUCTIONS
+# Shows only currently LIVE auctions
+# =========================================================
+
+@router.get("/live")
+def get_live_auctions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+
+        auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.status == "live"
+            )
+            .order_by(
+                Auction.auction_end.asc()
+            )
+            .all()
+        )
+
+        result = []
+
+        for auction in auctions:
+
+            sorted_images = sorted(
+                auction.images or [],
+                key=lambda image: (
+                    image.display_order
+                    if image.display_order is not None
+                    else 0
+                )
+            )
+
+            result.append({
+
+                # -------------------------------------------------
+                # BASIC
+                # -------------------------------------------------
+
+                "id": auction.id,
+                "user_id": auction.user_id,
+
+                # -------------------------------------------------
+                # PRODUCT
+                # -------------------------------------------------
+
+                "product_title": auction.product_title,
+                "brand_model": auction.brand_model,
+                "category": auction.category,
+                "description": auction.description,
+                "product_condition": auction.product_condition,
+
+                # -------------------------------------------------
+                # PURCHASE
+                # -------------------------------------------------
+
+                "purchase_date": auction.purchase_date,
+                "purchased_by": auction.purchased_by,
+
+                "purchase_price": (
+                    float(auction.purchase_price)
+                    if auction.purchase_price is not None
+                    else 0
+                ),
+
+                # -------------------------------------------------
+                # AUCTION
+                # -------------------------------------------------
+
+                "starting_price": (
+                    float(auction.starting_price)
+                    if auction.starting_price is not None
+                    else 0
+                ),
+
+                "auction_start": (
+                    auction.auction_start.isoformat()
+                    if auction.auction_start
+                    else None
+                ),
+
+                "auction_end": (
+                    auction.auction_end.isoformat()
+                    if auction.auction_end
+                    else None
+                ),
+
+                # -------------------------------------------------
+                # LOCATION
+                # -------------------------------------------------
+
+                "location_city": auction.location_city,
+                "location_state": auction.location_state,
+                "location_pincode": auction.location_pincode,
+
+                # -------------------------------------------------
+                # DELIVERY / SHIPPING
+                # -------------------------------------------------
+
+                "delivery_type": auction.delivery_type,
+                "shipping_type": auction.shipping_type,
+
+                "shipping_charges": (
+                    float(auction.shipping_charges)
+                    if auction.shipping_charges is not None
+                    else 0
+                ),
+
                 "shipping_paid_by": auction.shipping_paid_by,
 
                 # -------------------------------------------------
@@ -498,8 +766,17 @@ def get_all_approved_auctions(
                 # TIMESTAMPS
                 # -------------------------------------------------
 
-                "created_at": auction.created_at,
-                "updated_at": auction.updated_at
+                "created_at": (
+                    auction.created_at.isoformat()
+                    if auction.created_at
+                    else None
+                ),
+
+                "updated_at": (
+                    auction.updated_at.isoformat()
+                    if auction.updated_at
+                    else None
+                )
             })
 
         return result
@@ -507,11 +784,11 @@ def get_all_approved_auctions(
     except Exception as e:
 
         print(
-            "ALL AUCTIONS ERROR:",
-            str(e)
+            "LIVE AUCTIONS ERROR:",
+            repr(e)
         )
 
         raise HTTPException(
             status_code=500,
-            detail="Failed to load approved auctions."
+            detail="Failed to load live auctions."
         )
