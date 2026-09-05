@@ -32,6 +32,7 @@ from app.services.auction_services import (
     AuctionService
 )
 
+#from datetime import datetime, timezone
 
 router = APIRouter(
     prefix="/api/auctions",
@@ -45,6 +46,25 @@ service = AuctionService(
     repository
 )
 
+
+# =========================================================
+# CALCULATE AUCTION TIME STATUS
+# =========================================================
+
+def get_auction_time_status(auction):
+    if not auction.auction_start or not auction.auction_end:
+        return "unknown"
+
+    now = datetime.now()
+
+    if now < auction.auction_start:
+        return "upcoming"
+
+    elif now < auction.auction_end:
+        return "live"
+
+    else:
+        return "ended"
 
 @router.post("")
 async def create_auction(
@@ -376,6 +396,8 @@ def get_my_auctions(
 # Shows approved auctions from ALL USERS
 # =========================================================
 
+from datetime import datetime, timezone
+
 @router.get("/all-auctions")
 def get_all_approved_auctions(
     db: Session = Depends(get_db),
@@ -383,23 +405,92 @@ def get_all_approved_auctions(
 ):
     try:
 
+        # =========================================================
+        # GET APPROVED + LIVE AUCTIONS
+        # REJECTED AUCTIONS ARE NOT INCLUDED
+        # =========================================================
+
         auctions = (
             db.query(Auction)
-            .filter(Auction.status == "approved")
+            .filter(
+                Auction.status.in_(["approved", "live"])
+            )
             .order_by(Auction.created_at.desc())
             .all()
         )
 
         result = []
 
+        # Current UTC time
+        now = datetime.now(timezone.utc)
+
         for auction in auctions:
+
+            # =====================================================
+            # AUCTION STATUS
+            # =====================================================
+
+            auction_status = "unknown"
+
+            if auction.auction_start and auction.auction_end:
+
+                start_time = auction.auction_start
+                end_time = auction.auction_end
+
+                # Handle timezone-naive database values
+                if start_time.tzinfo is None:
+                    start_time = start_time.replace(
+                        tzinfo=timezone.utc
+                    )
+
+                if end_time.tzinfo is None:
+                    end_time = end_time.replace(
+                        tzinfo=timezone.utc
+                    )
+
+                # -------------------------------------------------
+                # UPCOMING
+                # -------------------------------------------------
+
+                if now < start_time:
+
+                    auction_status = "upcoming"
+
+                # -------------------------------------------------
+                # LIVE
+                # -------------------------------------------------
+
+                elif start_time <= now <= end_time:
+
+                    auction_status = "live"
+
+                # -------------------------------------------------
+                # ENDED
+                # -------------------------------------------------
+
+                else:
+
+                    auction_status = "ended"
+
+                    # IMPORTANT:
+                    # Do NOT add ended auctions to result
+                    continue
+
+            # =====================================================
+            # SORT IMAGES
+            # =====================================================
 
             sorted_images = sorted(
                 auction.images or [],
-                key=lambda image: image.display_order
-                if image.display_order is not None
-                else 0
+                key=lambda image:
+                    image.display_order
+                    if image.display_order is not None
+                    else 0
             )
+
+            # =====================================================
+            # RESPONSE
+            # =====================================================
 
             result.append({
 
@@ -435,6 +526,8 @@ def get_all_approved_auctions(
                 "starting_price": auction.starting_price,
                 "auction_start": auction.auction_start,
                 "auction_end": auction.auction_end,
+
+                "auction_status": auction_status,
 
                 # -------------------------------------------------
                 # LOCATION
@@ -476,7 +569,7 @@ def get_all_approved_auctions(
                 "seller_contact": auction.seller_contact,
 
                 # -------------------------------------------------
-                # STATUS
+                # DATABASE STATUS
                 # -------------------------------------------------
 
                 "status": auction.status,
@@ -513,7 +606,7 @@ def get_all_approved_auctions(
 
         raise HTTPException(
             status_code=500,
-            detail="Failed to load approved auctions."
+            detail="Failed to load auctions."
         )
 # =========================================================
 # GET LIVE AUCTIONS

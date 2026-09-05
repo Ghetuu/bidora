@@ -36,9 +36,17 @@ function AllAuctions() {
   // FETCH ALL APPROVED AUCTIONS
   // =========================================================
 
-  useEffect(() => {
+useEffect(() => {
+  fetchAllAuctions();
+
+  const interval = setInterval(() => {
     fetchAllAuctions();
-  }, []);
+  }, 30000); // 30 seconds
+
+  return () => {
+    clearInterval(interval);
+  };
+}, []);
 
 
   const fetchAllAuctions = async () => {
@@ -368,6 +376,9 @@ function AllAuctions() {
   // =========================================================
   // VIEW AUCTION
   // =========================================================
+  // =========================================================
+// AUCTION STATUS
+// =========================================================
 
   const handleViewAuction = (auction) => {
 
@@ -634,15 +645,27 @@ function AllAuctions() {
                 </div>
 
 
-                <div className="auction-approved-status">
+               <div className="auction-status-wrapper">
 
-                  <FaCheckCircle />
+  <div className="auction-approved-status">
+    <FaCheckCircle />
+    <span>Approved</span>
+  </div>
 
-                  <span>
-                    Approved
-                  </span>
+  {auction.auction_status === "live" && (
+    <div className="auction-live-status">
+      <span className="live-dot"></span>
+      <span>Live Now</span>
+    </div>
+  )}
 
-                </div>
+  {auction.auction_status === "upcoming" && (
+    <div className="auction-upcoming-status">
+      <span>Upcoming</span>
+    </div>
+  )}
+
+</div>
 
               </div>
 
