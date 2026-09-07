@@ -16,6 +16,12 @@ import {
   FaTimes,
   FaExpand,
   FaFileAlt,
+  FaCheckCircle,
+  FaClock,
+  FaStopCircle,
+  FaEye,
+  FaHeart,
+  FaLink,
 } from "react-icons/fa";
 
 import "../styles/auctiondetails.css";
@@ -26,22 +32,15 @@ function AuctionDetails() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ---------------------------------------------------------
+  // =========================================================
   // AUCTION DATA
-  // ---------------------------------------------------------
+  // =========================================================
 
   const auction = location.state?.auction;
 
-  // ---------------------------------------------------------
+  // =========================================================
   // SOURCE PAGE
-  // ---------------------------------------------------------
-  // "all-auctions"  -> opened from All Auctions
-  // "my-auctions"   -> opened from My Auctions
-  //
-  // IMPORTANT:
-  // AllAuctions.jsx and MyAuctions.jsx must pass the "from"
-  // value while navigating to this page.
-  // ---------------------------------------------------------
+  // =========================================================
 
   const from = location.state?.from || "my-auctions";
 
@@ -55,15 +54,15 @@ function AuctionDetails() {
     ? "Back to All Auctions"
     : "Back to My Auctions";
 
-  // ---------------------------------------------------------
+  // =========================================================
   // IMAGE POPUP
-  // ---------------------------------------------------------
+  // =========================================================
 
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // ---------------------------------------------------------
+  // =========================================================
   // AUCTION NOT FOUND
-  // ---------------------------------------------------------
+  // =========================================================
 
   if (!auction) {
     return (
@@ -90,9 +89,9 @@ function AuctionDetails() {
     );
   }
 
-  // ---------------------------------------------------------
+  // =========================================================
   // HELPERS
-  // ---------------------------------------------------------
+  // =========================================================
 
   const formatPrice = (price) => {
     if (
@@ -167,17 +166,114 @@ function AuctionDetails() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // ---------------------------------------------------------
-  // STATUS
-  // ---------------------------------------------------------
+  // =========================================================
+  // AUCTION STATUS
+  // =========================================================
+  // Priority:
+  // 1. If auction has already ended -> ENDED
+  // 2. If start time is in future -> UPCOMING
+  // 3. If currently between start and end -> LIVE
+  // 4. Otherwise use backend status
+  // =========================================================
 
-  const status = String(
-    auction.status || "pending"
-  ).toLowerCase();
+  const getAuctionStatus = () => {
+    const now = new Date();
 
-  // ---------------------------------------------------------
+    const start = auction.auction_start
+      ? new Date(auction.auction_start)
+      : null;
+
+    const end = auction.auction_end
+      ? new Date(auction.auction_end)
+      : null;
+
+    if (
+      end &&
+      !Number.isNaN(end.getTime()) &&
+      now > end
+    ) {
+      return "ended";
+    }
+
+    if (
+      start &&
+      !Number.isNaN(start.getTime()) &&
+      now < start
+    ) {
+      return "upcoming";
+    }
+
+    if (
+      start &&
+      end &&
+      !Number.isNaN(start.getTime()) &&
+      !Number.isNaN(end.getTime()) &&
+      now >= start &&
+      now <= end
+    ) {
+      return "live";
+    }
+
+    return String(
+      auction.auction_status ||
+      auction.status ||
+      "approved"
+    ).toLowerCase();
+  };
+
+  const status = getAuctionStatus();
+
+  const getStatusLabel = () => {
+    switch (status) {
+      case "live":
+        return "Live Auction";
+
+      case "upcoming":
+        return "Upcoming Auction";
+
+      case "ended":
+        return "Ended Auction";
+
+      case "approved":
+        return "Approved";
+
+      case "pending":
+        return "Pending Approval";
+
+      case "rejected":
+        return "Rejected";
+
+      default:
+        return formatLabel(status);
+    }
+  };
+
+  // =========================================================
+  // STATUS ICON
+  // =========================================================
+
+  const getStatusIcon = () => {
+    switch (status) {
+      case "live":
+        return <span className="status-live-dot"></span>;
+
+      case "upcoming":
+        return <FaClock />;
+
+      case "ended":
+        return <FaStopCircle />;
+
+      case "approved":
+        return <FaCheckCircle />;
+
+      default:
+        return <span className="status-default-dot"></span>;
+    }
+  };
+
+  // =========================================================
   // IMAGE URL
-  // ---------------------------------------------------------
+  // =========================================================
 
   const getImageUrl = (image) => {
     if (!image) {
@@ -206,9 +302,9 @@ function AuctionDetails() {
     return `${API_BASE_URL}/${imagePath.replace(/^\/+/, "")}`;
   };
 
-  // ---------------------------------------------------------
+  // =========================================================
   // AUCTION IMAGES
-  // ---------------------------------------------------------
+  // =========================================================
 
   const auctionImages = Array.isArray(auction.images)
     ? [...auction.images]
@@ -225,9 +321,9 @@ function AuctionDetails() {
         .filter((image) => image.url)
     : [];
 
-  // ---------------------------------------------------------
+  // =========================================================
   // IMAGE LABEL
-  // ---------------------------------------------------------
+  // =========================================================
 
   const getImageLabel = (index) => {
     if (index === 0) {
@@ -245,9 +341,9 @@ function AuctionDetails() {
     return `Additional product image ${index + 1}`;
   };
 
-  // ---------------------------------------------------------
+  // =========================================================
   // OPEN IMAGE POPUP
-  // ---------------------------------------------------------
+  // =========================================================
 
   const openImagePopup = (image, index) => {
     if (!image?.url) {
@@ -260,17 +356,17 @@ function AuctionDetails() {
     });
   };
 
-  // ---------------------------------------------------------
+  // =========================================================
   // CLOSE IMAGE POPUP
-  // ---------------------------------------------------------
+  // =========================================================
 
   const closeImagePopup = () => {
     setSelectedImage(null);
   };
 
-  // ---------------------------------------------------------
+  // =========================================================
   // ESC KEY
-  // ---------------------------------------------------------
+  // =========================================================
 
   useEffect(() => {
     const handleEscape = (event) => {
@@ -288,9 +384,9 @@ function AuctionDetails() {
     };
   }, [selectedImage]);
 
-  // ---------------------------------------------------------
+  // =========================================================
   // DOCUMENT URL
-  // ---------------------------------------------------------
+  // =========================================================
 
   const getDocumentUrl = (documentPath) => {
     if (!documentPath) {
@@ -319,15 +415,24 @@ function AuctionDetails() {
       auction.seller_proof
   );
 
-  // ---------------------------------------------------------
+  // =========================================================
+  // MAIN IMAGE
+  // =========================================================
+
+  const coverImage =
+    auctionImages.length > 0
+      ? auctionImages[0]
+      : null;
+
+  // =========================================================
   // RENDER
-  // ---------------------------------------------------------
+  // =========================================================
 
   return (
     <div className="auction-details-page">
 
       {/* =====================================================
-          HEADER
+          TOP HEADER
       ===================================================== */}
 
       <div className="auction-details-header">
@@ -344,861 +449,278 @@ function AuctionDetails() {
         <div
           className={`auction-details-status ${status}`}
         >
-          <span></span>
-          {formatLabel(status)}
+          {getStatusIcon()}
+          <span>{getStatusLabel()}</span>
         </div>
 
       </div>
 
       {/* =====================================================
-          MAIN CARD
+          MAIN PRODUCT HERO
       ===================================================== */}
 
-      <div className="auction-details-card">
+      <div className="auction-details-hero">
 
-        {/* =================================================
-            PRODUCT HEADER
-        ================================================= */}
+        {/* LEFT IMAGE AREA */}
 
-        <div className="auction-details-product-header">
+        <div className="auction-hero-image-area">
 
-          <div className="auction-details-icon">
-            <FaGavel />
-          </div>
+          <div
+            className={`auction-hero-main-image ${
+              coverImage ? "clickable" : ""
+            }`}
+            onClick={() =>
+              coverImage &&
+              openImagePopup(
+                coverImage,
+                0
+              )
+            }
+          >
 
-          <div>
+            {coverImage ? (
+              <img
+                src={coverImage.url}
+                alt={
+                  auction.product_title ||
+                  "Auction product"
+                }
+                onError={(event) => {
+                  event.currentTarget.style.display =
+                    "none";
 
-            <span className="auction-details-number">
-              Auction #{formatValue(auction.id)}
-            </span>
+                  const fallback =
+                    event.currentTarget.parentElement?.querySelector(
+                      ".auction-hero-image-fallback"
+                    );
 
-            <h1>
-              {formatValue(
-                auction.product_title,
-                "Untitled Auction"
-              )}
-            </h1>
+                  if (fallback) {
+                    fallback.style.display =
+                      "flex";
+                  }
+                }}
+              />
+            ) : null}
 
-            {auction.brand_model && (
-              <p>
-                {auction.brand_model}
-              </p>
+            <div
+              className="auction-hero-image-fallback"
+              style={{
+                display: coverImage
+                  ? "none"
+                  : "flex",
+              }}
+            >
+              <FaBoxOpen />
+              <span>No Image Available</span>
+            </div>
+
+            {coverImage && (
+              <div className="hero-image-expand">
+                <FaExpand />
+              </div>
             )}
 
           </div>
 
-        </div>
+          {/* THUMBNAILS */}
 
-        {/* =================================================
-            CATEGORY
-        ================================================= */}
+          {auctionImages.length > 1 && (
+            <div className="auction-hero-thumbnails">
 
-        {auction.category && (
-          <div className="auction-detail-category">
-            <FaTag />
-            {formatLabel(auction.category)}
-          </div>
-        )}
-
-        {/* =================================================
-            PRODUCT IMAGES
-        ================================================= */}
-
-        {auctionImages.length > 0 && (
-          <section className="auction-detail-section auction-images-section">
-
-            <div className="auction-images-section-header">
-
-              <div>
-
-                <h2>
-                  <FaImage />
-                  Product Images
-                </h2>
-
-                <p className="auction-images-subtitle">
-                  Images uploaded with this auction
-                </p>
-
-              </div>
-
-              <span className="auction-image-count">
-                {auctionImages.length}{" "}
-                {auctionImages.length === 1
-                  ? "Image"
-                  : "Images"}
-              </span>
-
-            </div>
-
-            <div className="auction-details-image-grid">
-
-              {auctionImages.map(
-                (image, index) => (
-                  <div
-                    className={`auction-details-image-card ${
+              {auctionImages
+                .slice(0, 5)
+                .map((image, index) => (
+                  <button
+                    key={`${image.url}-${index}`}
+                    type="button"
+                    className={`auction-thumbnail ${
                       index === 0
-                        ? "auction-cover-image-card"
+                        ? "active"
                         : ""
                     }`}
-                    key={`${image.url}-${index}`}
-                  >
-
-                    {/* IMAGE */}
-
-                    <button
-                      type="button"
-                      className="auction-details-image"
-                      onClick={() =>
-                        openImagePopup(
-                          image,
-                          index
-                        )
-                      }
-                      aria-label={`View ${getImageLabel(
+                    onClick={() =>
+                      openImagePopup(
+                        image,
                         index
-                      )}`}
-                    >
+                      )
+                    }
+                  >
+                    <img
+                      src={image.url}
+                      alt={getImageLabel(index)}
+                    />
+                  </button>
+                ))}
 
-                      <img
-                        src={image.url}
-                        alt={`${getImageLabel(
-                          index
-                        )} - ${
-                          auction.product_title ||
-                          "Auction product"
-                        }`}
-                        onError={(event) => {
-                          event.currentTarget.style.display =
-                            "none";
-
-                          const fallback =
-                            event.currentTarget.parentElement?.querySelector(
-                              ".auction-image-error"
-                            );
-
-                          if (fallback) {
-                            fallback.style.display =
-                              "flex";
-                          }
-                        }}
-                      />
-
-                      <div className="auction-image-error">
-                        <FaImage />
-                        <span>
-                          Image unavailable
-                        </span>
-                      </div>
-
-                      <div className="auction-image-overlay">
-                        <FaExpand />
-                        <span>
-                          Click to preview
-                        </span>
-                      </div>
-
-                      {/* COVER BADGE */}
-
-                      {index === 0 && (
-                        <span className="auction-cover-badge">
-                          COVER IMAGE
-                        </span>
-                      )}
-
-                    </button>
-
-                    {/* IMAGE INFORMATION */}
-
-                    <div className="auction-image-info">
-
-                      <div>
-
-                        <strong>
-                          {getImageLabel(index)}
-                        </strong>
-
-                        <span>
-                          {getImageDescription(
-                            index
-                          )}
-                        </span>
-
-                      </div>
-
-                      <span className="auction-image-number">
-                        {index + 1}/
-                        {auctionImages.length}
-                      </span>
-
-                    </div>
-
-                  </div>
-                )
+              {auctionImages.length > 5 && (
+                <button
+                  type="button"
+                  className="auction-more-images"
+                  onClick={() =>
+                    openImagePopup(
+                      auctionImages[5],
+                      5
+                    )
+                  }
+                >
+                  +{auctionImages.length - 5}
+                </button>
               )}
-
-            </div>
-
-          </section>
-        )}
-
-        {/* =================================================
-            PRODUCT INFORMATION
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaBoxOpen />
-            Product Information
-          </h2>
-
-          <div className="auction-details-grid">
-
-            <div className="auction-detail-item">
-
-              <span>Auction Title</span>
-
-              <strong>
-                {formatValue(
-                  auction.product_title,
-                  "Untitled Auction"
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Brand / Model</span>
-
-              <strong>
-                {formatValue(
-                  auction.brand_model
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Category</span>
-
-              <strong>
-                {formatLabel(
-                  auction.category
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Condition</span>
-
-              <strong>
-                {formatLabel(
-                  auction.product_condition
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Warranty Status</span>
-
-              <strong>
-                {formatLabel(
-                  auction.warranty_status
-                )}
-              </strong>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            DESCRIPTION
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaFileAlt />
-            Product Description
-          </h2>
-
-          <div className="auction-detail-description">
-
-            <p>
-              {formatValue(
-                auction.description,
-                "No description available."
-              )}
-            </p>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            AUCTION INFORMATION
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaGavel />
-            Auction Information
-          </h2>
-
-          <div className="auction-details-grid">
-
-            <div className="auction-detail-item">
-
-              <span>Starting Bid</span>
-
-              <strong className="auction-price">
-                {formatPrice(
-                  auction.starting_price
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Original Purchase Price</span>
-
-              <strong>
-                {formatPrice(
-                  auction.purchase_price
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Auction Start</span>
-
-              <strong>
-                {formatDateTime(
-                  auction.auction_start
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Auction End</span>
-
-              <strong>
-                {formatDateTime(
-                  auction.auction_end
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Status</span>
-
-              <strong
-                className={`detail-status ${status}`}
-              >
-                {formatLabel(status)}
-              </strong>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            PURCHASE INFORMATION
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaFileInvoice />
-            Purchase Information
-          </h2>
-
-          <div className="auction-details-grid">
-
-            <div className="auction-detail-item">
-
-              <span>Date of Product Buy</span>
-
-              <strong>
-                {formatDate(
-                  auction.purchase_date
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Purchased By</span>
-
-              <strong>
-                {formatValue(
-                  auction.purchased_by
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Original Purchase Price</span>
-
-              <strong className="auction-price">
-                {formatPrice(
-                  auction.purchase_price
-                )}
-              </strong>
-
-            </div>
-
-          </div>
-
-          {/* PURCHASE PROOF */}
-
-          {purchaseProofUrl && (
-            <div className="auction-document-view">
-
-              <div className="auction-document-info">
-
-                <div className="auction-document-icon">
-                  <FaFileInvoice />
-                </div>
-
-                <div>
-
-                  <strong>
-                    Bill / Proof of Purchase
-                  </strong>
-
-                  <span>
-                    Purchase verification document
-                  </span>
-
-                </div>
-
-              </div>
-
-              <a
-                href={purchaseProofUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="auction-document-btn"
-              >
-                View Document
-              </a>
 
             </div>
           )}
 
-        </section>
+        </div>
 
-        {/* =================================================
-            LOCATION
-        ================================================= */}
+        {/* MIDDLE PRODUCT INFORMATION */}
 
-        <section className="auction-detail-section">
+        <div className="auction-hero-product">
 
-          <h2>
-            <FaMapMarkerAlt />
-            Location
-          </h2>
+          <span className="auction-details-number">
+            AUCTION #{formatValue(auction.id)}
+          </span>
 
-          <div className="auction-location-details">
+          <h1>
+            {formatValue(
+              auction.product_title,
+              "Untitled Auction"
+            )}
+          </h1>
 
-            <div>
+          {auction.brand_model && (
+            <p className="hero-brand-model">
+              {auction.brand_model}
+            </p>
+          )}
 
-              <span>Area / Locality</span>
+          <div className="hero-category-row">
 
-              <strong>
-                {formatValue(
-                  auction.location_area
+            {auction.category && (
+              <span className="hero-category">
+                <FaTag />
+                {formatLabel(
+                  auction.category
                 )}
-              </strong>
+              </span>
+            )}
 
-            </div>
-
-            <div>
-
-              <span>City</span>
-
-              <strong>
-                {formatValue(
-                  auction.location_city
+            {auction.product_condition && (
+              <span className="hero-condition">
+                {formatLabel(
+                  auction.product_condition
                 )}
-              </strong>
-
-            </div>
-
-            <div>
-
-              <span>State</span>
-
-              <strong>
-                {formatValue(
-                  auction.location_state
-                )}
-              </strong>
-
-            </div>
-
-            <div>
-
-              <span>Country</span>
-
-              <strong>
-                {formatValue(
-                  auction.location_country
-                )}
-              </strong>
-
-            </div>
-
-            <div>
-
-              <span>Pincode</span>
-
-              <strong>
-                {formatValue(
-                  auction.location_pincode
-                )}
-              </strong>
-
-            </div>
+              </span>
+            )}
 
           </div>
 
-        </section>
+          <p className="hero-description">
+            {formatValue(
+              auction.description,
+              "No description available."
+            )}
+          </p>
 
-        {/* =================================================
-            DELIVERY & SHIPPING
-        ================================================= */}
+          <div className="hero-mini-info">
 
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaTruck />
-            Delivery & Shipping
-          </h2>
-
-          <div className="auction-details-grid">
-
-            <div className="auction-detail-item">
-
-              <span>Delivery / Pickup</span>
-
-              <strong>
-                {formatLabel(
-                  auction.delivery_type
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Shipping Type</span>
-
-              <strong>
-                {formatLabel(
-                  auction.shipping_type
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Shipping Charges</span>
-
-              <strong>
-                {formatPrice(
-                  auction.shipping_charges
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Shipping Paid By</span>
-
-              <strong>
-                {formatLabel(
-                  auction.shipping_paid_by
-                )}
-              </strong>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            ADDITIONAL INFORMATION
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaShieldAlt />
-            Additional Information
-          </h2>
-
-          <div className="auction-details-grid">
-
-            <div className="auction-detail-item">
-
-              <span>Warranty Status</span>
-
-              <strong>
-                {formatLabel(
-                  auction.warranty_status
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Payment Method</span>
-
-              <strong>
-                {formatValue(
-                  auction.payment_method
-                )}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Terms Accepted</span>
-
-              <strong>
-                {auction.terms_accepted === true ||
-                auction.terms_accepted === "true"
-                  ? "Yes"
-                  : "No"}
-              </strong>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            SELLER INFORMATION
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaUser />
-            Seller Information
-          </h2>
-
-          <div className="auction-details-grid">
-
-            <div className="auction-detail-item">
-
-              <span>Seller Name</span>
-
+            <div>
+              <FaUser />
+              <span>Seller</span>
               <strong>
                 {formatValue(
                   auction.seller_name
                 )}
               </strong>
-
             </div>
 
-            <div className="auction-detail-item">
-
-              <span>Email Address</span>
-
+            <div>
+              <FaShieldAlt />
+              <span>Warranty</span>
               <strong>
-                {formatValue(
-                  auction.seller_email
+                {formatLabel(
+                  auction.warranty_status
                 )}
               </strong>
-
             </div>
 
-            <div className="auction-detail-item">
-
-              <span>Contact Number</span>
-
+            <div>
+              <FaCalendarAlt />
+              <span>Ends</span>
               <strong>
-                {formatValue(
-                  auction.seller_contact
+                {formatDate(
+                  auction.auction_end
                 )}
               </strong>
-
             </div>
 
           </div>
 
-          {/* SELLER VERIFICATION PROOF */}
+        </div>
 
-          {sellerProofUrl && (
-            <div className="auction-document-view">
+        {/* RIGHT BID CARD */}
 
-              <div className="auction-document-info">
+        <div className="auction-bid-card">
 
-                <div className="auction-document-icon">
-                  <FaUser />
-                </div>
+          <span className="bid-card-label">
+            Starting Price
+          </span>
 
-                <div>
-
-                  <strong>
-                    Seller Verification Proof
-                  </strong>
-
-                  <span>
-                    Seller identity / ownership
-                    verification
-                  </span>
-
-                </div>
-
-              </div>
-
-              <a
-                href={sellerProofUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="auction-document-btn"
-              >
-                View Document
-              </a>
-
-            </div>
-          )}
-
-        </section>
-
-        {/* =================================================
-            SELLER TERMS & CONDITIONS
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            Seller Terms & Conditions
-          </h2>
-
-          <div className="auction-terms-box">
-
-            <p>
-              {formatValue(
-                auction.product_terms,
-                "No Seller Terms & Conditions provided."
-              )}
-            </p>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            AUCTION RECORD
-        ================================================= */}
-
-        <section className="auction-detail-section">
-
-          <h2>
-            <FaCalendarAlt />
-            Auction Record
-          </h2>
-
-          <div className="auction-details-grid">
-
-            <div className="auction-detail-item">
-
-              <span>Auction ID</span>
-
-              <strong>
-                #{formatValue(auction.id)}
-              </strong>
-
-            </div>
-
-            <div className="auction-detail-item">
-
-              <span>Created On</span>
-
-              <strong>
-                {formatDateTime(
-                  auction.created_at
-                )}
-              </strong>
-
-            </div>
-
-            {auction.updated_at && (
-              <div className="auction-detail-item">
-
-                <span>Last Updated</span>
-
-                <strong>
-                  {formatDateTime(
-                    auction.updated_at
-                  )}
-                </strong>
-
-              </div>
+          <strong className="bid-card-price">
+            {formatPrice(
+              auction.starting_price
             )}
+          </strong>
 
+          <div className="bid-card-divider"></div>
+
+          <span className="bid-card-label">
+            Auction Status
+          </span>
+
+          <div
+            className={`bid-status-small ${status}`}
+          >
+            {getStatusIcon()}
+            {getStatusLabel()}
           </div>
 
-        </section>
+          <div className="bid-card-end">
 
-        {/* =================================================
-            FOOTER
-        ================================================= */}
+            <span>Ends On</span>
 
-        <div className="auction-details-footer">
-
-          <div>
-
-            <FaCalendarAlt />
-
-            <span>
-              Created on{" "}
+            <strong>
               {formatDateTime(
-                auction.created_at
+                auction.auction_end
               )}
-            </span>
+            </strong>
 
           </div>
 
           <button
             type="button"
-            onClick={() => navigate(backPath)}
+            className="place-bid-btn"
+            onClick={() =>
+              handleViewAuction?.(auction)
+            }
+            disabled={
+              status === "ended" ||
+              status === "upcoming"
+            }
           >
-            <FaArrowLeft />
-            {backLabel}
+            <FaGavel />
+            {status === "ended"
+              ? "Auction Ended"
+              : status === "upcoming"
+              ? "Auction Not Started"
+              : "Place Your Bid"}
+          </button>
+
+          <button
+            type="button"
+            className="watchlist-btn"
+          >
+            <FaHeart />
+            Add to Watchlist
           </button>
 
         </div>
@@ -1206,7 +728,642 @@ function AuctionDetails() {
       </div>
 
       {/* =====================================================
-          IMAGE PREVIEW POPUP
+          AUCTION INFORMATION + SELLER
+      ===================================================== */}
+
+      <div className="auction-main-layout">
+
+        <div className="auction-main-column">
+
+          {/* AUCTION INFORMATION */}
+
+          <section className="auction-detail-card">
+
+            <div className="auction-card-heading">
+              <div className="heading-icon">
+                <FaGavel />
+              </div>
+
+              <div>
+                <h2>Auction Information</h2>
+                <p>
+                  Important details about this auction
+                </p>
+              </div>
+            </div>
+
+            <div className="auction-info-grid">
+
+              <div className="auction-info-box">
+                <FaCalendarAlt />
+                <div>
+                  <span>Auction Start</span>
+                  <strong>
+                    {formatDateTime(
+                      auction.auction_start
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaCalendarAlt />
+                <div>
+                  <span>Auction End</span>
+                  <strong>
+                    {formatDateTime(
+                      auction.auction_end
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaTag />
+                <div>
+                  <span>Category</span>
+                  <strong>
+                    {formatLabel(
+                      auction.category
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaGavel />
+                <div>
+                  <span>Starting Price</span>
+                  <strong className="info-price">
+                    {formatPrice(
+                      auction.starting_price
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaGavel />
+                <div>
+                  <span>Bid Increment</span>
+                  <strong>
+                    {formatPrice(
+                      auction.bid_increment
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaCheckCircle />
+                <div>
+                  <span>Status</span>
+
+                  <strong
+                    className={`detail-status ${status}`}
+                  >
+                    {getStatusLabel()}
+                  </strong>
+                </div>
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* PRODUCT DESCRIPTION */}
+
+          <section className="auction-detail-card">
+
+            <div className="auction-card-heading">
+              <div className="heading-icon">
+                <FaFileAlt />
+              </div>
+
+              <div>
+                <h2>Product Description</h2>
+                <p>
+                  Detailed information about the product
+                </p>
+              </div>
+            </div>
+
+            <div className="auction-detail-description">
+              <p>
+                {formatValue(
+                  auction.description,
+                  "No description available."
+                )}
+              </p>
+            </div>
+
+            <div className="product-feature-grid">
+
+              <div>
+                <FaBoxOpen />
+                <span>Condition</span>
+                <strong>
+                  {formatLabel(
+                    auction.product_condition
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <FaShieldAlt />
+                <span>Warranty</span>
+                <strong>
+                  {formatLabel(
+                    auction.warranty_status
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <FaTag />
+                <span>Category</span>
+                <strong>
+                  {formatLabel(
+                    auction.category
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <FaUser />
+                <span>Brand / Model</span>
+                <strong>
+                  {formatValue(
+                    auction.brand_model
+                  )}
+                </strong>
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* PURCHASE INFORMATION */}
+
+          <section className="auction-detail-card">
+
+            <div className="auction-card-heading">
+              <div className="heading-icon">
+                <FaFileInvoice />
+              </div>
+
+              <div>
+                <h2>Purchase Information</h2>
+                <p>
+                  Original product purchase details
+                </p>
+              </div>
+            </div>
+
+            <div className="auction-info-grid">
+
+              <div className="auction-info-box">
+                <FaCalendarAlt />
+                <div>
+                  <span>Date of Product Buy</span>
+                  <strong>
+                    {formatDate(
+                      auction.purchase_date
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaUser />
+                <div>
+                  <span>Purchased By</span>
+                  <strong>
+                    {formatValue(
+                      auction.purchased_by
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaGavel />
+                <div>
+                  <span>Original Purchase Price</span>
+                  <strong className="info-price">
+                    {formatPrice(
+                      auction.purchase_price
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+            </div>
+
+            {purchaseProofUrl && (
+              <div className="auction-document-view">
+
+                <div className="auction-document-info">
+
+                  <div className="auction-document-icon">
+                    <FaFileInvoice />
+                  </div>
+
+                  <div>
+                    <strong>
+                      Bill / Proof of Purchase
+                    </strong>
+
+                    <span>
+                      Purchase verification document
+                    </span>
+                  </div>
+
+                </div>
+
+                <a
+                  href={purchaseProofUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="auction-document-btn"
+                >
+                  View Document
+                </a>
+
+              </div>
+            )}
+
+          </section>
+
+          {/* DELIVERY */}
+
+          <section className="auction-detail-card">
+
+            <div className="auction-card-heading">
+              <div className="heading-icon">
+                <FaTruck />
+              </div>
+
+              <div>
+                <h2>Delivery & Shipping</h2>
+                <p>
+                  Delivery and shipping information
+                </p>
+              </div>
+            </div>
+
+            <div className="auction-info-grid">
+
+              <div className="auction-info-box">
+                <FaTruck />
+                <div>
+                  <span>Delivery / Pickup</span>
+                  <strong>
+                    {formatLabel(
+                      auction.delivery_type
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaTruck />
+                <div>
+                  <span>Shipping Type</span>
+                  <strong>
+                    {formatLabel(
+                      auction.shipping_type
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaTag />
+                <div>
+                  <span>Shipping Charges</span>
+                  <strong>
+                    {formatPrice(
+                      auction.shipping_charges
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaUser />
+                <div>
+                  <span>Shipping Paid By</span>
+                  <strong>
+                    {formatLabel(
+                      auction.shipping_paid_by
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* TERMS */}
+
+          <section className="auction-detail-card">
+
+            <div className="auction-card-heading">
+              <div className="heading-icon">
+                <FaShieldAlt />
+              </div>
+
+              <div>
+                <h2>Seller Terms & Conditions</h2>
+                <p>
+                  Terms provided by the seller
+                </p>
+              </div>
+            </div>
+
+            <div className="auction-terms-box">
+
+              <p>
+                {formatValue(
+                  auction.product_terms,
+                  "No Seller Terms & Conditions provided."
+                )}
+              </p>
+
+            </div>
+
+          </section>
+
+          {/* AUCTION RECORD */}
+
+          <section className="auction-detail-card">
+
+            <div className="auction-card-heading">
+              <div className="heading-icon">
+                <FaCalendarAlt />
+              </div>
+
+              <div>
+                <h2>Auction Record</h2>
+                <p>
+                  Auction creation and update information
+                </p>
+              </div>
+            </div>
+
+            <div className="auction-info-grid">
+
+              <div className="auction-info-box">
+                <FaLink />
+                <div>
+                  <span>Auction ID</span>
+                  <strong>
+                    #{formatValue(auction.id)}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="auction-info-box">
+                <FaCalendarAlt />
+                <div>
+                  <span>Created On</span>
+                  <strong>
+                    {formatDateTime(
+                      auction.created_at
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              {auction.updated_at && (
+                <div className="auction-info-box">
+                  <FaCalendarAlt />
+                  <div>
+                    <span>Last Updated</span>
+                    <strong>
+                      {formatDateTime(
+                        auction.updated_at
+                      )}
+                    </strong>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+          </section>
+
+        </div>
+
+        {/* =================================================
+            RIGHT SIDEBAR
+        ================================================= */}
+
+        <aside className="auction-sidebar">
+
+          {/* SELLER */}
+
+          <section className="auction-sidebar-card">
+
+            <div className="sidebar-heading">
+              <FaUser />
+              <h3>Seller Information</h3>
+            </div>
+
+            <div className="seller-profile">
+
+              <div className="seller-avatar">
+                <FaUser />
+              </div>
+
+              <div>
+                <strong>
+                  {formatValue(
+                    auction.seller_name
+                  )}
+                </strong>
+
+                <span>
+                  Seller
+                </span>
+              </div>
+
+            </div>
+
+            <div className="seller-details">
+
+              <div>
+                <span>Email</span>
+                <strong>
+                  {formatValue(
+                    auction.seller_email
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>Contact</span>
+                <strong>
+                  {formatValue(
+                    auction.seller_contact
+                  )}
+                </strong>
+              </div>
+
+            </div>
+
+            {sellerProofUrl && (
+              <a
+                href={sellerProofUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="sidebar-document-btn"
+              >
+                <FaShieldAlt />
+                View Seller Verification
+              </a>
+            )}
+
+          </section>
+
+          {/* LOCATION */}
+
+          <section className="auction-sidebar-card">
+
+            <div className="sidebar-heading">
+              <FaMapMarkerAlt />
+              <h3>Location</h3>
+            </div>
+
+            <div className="sidebar-location">
+
+              <div>
+                <span>Area / Locality</span>
+                <strong>
+                  {formatValue(
+                    auction.location_area
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>City</span>
+                <strong>
+                  {formatValue(
+                    auction.location_city
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>State</span>
+                <strong>
+                  {formatValue(
+                    auction.location_state
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>Country</span>
+                <strong>
+                  {formatValue(
+                    auction.location_country
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>Pincode</span>
+                <strong>
+                  {formatValue(
+                    auction.location_pincode
+                  )}
+                </strong>
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* ADDITIONAL INFORMATION */}
+
+          <section className="auction-sidebar-card">
+
+            <div className="sidebar-heading">
+              <FaShieldAlt />
+              <h3>Additional Information</h3>
+            </div>
+
+            <div className="sidebar-list">
+
+              <div>
+                <span>Warranty</span>
+                <strong>
+                  {formatLabel(
+                    auction.warranty_status
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>Payment Method</span>
+                <strong>
+                  {formatValue(
+                    auction.payment_method
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>Terms Accepted</span>
+                <strong>
+                  {auction.terms_accepted === true ||
+                  auction.terms_accepted === "true"
+                    ? "Yes"
+                    : "No"}
+                </strong>
+              </div>
+
+            </div>
+
+          </section>
+
+        </aside>
+
+      </div>
+
+      {/* =====================================================
+          FOOTER
+      ===================================================== */}
+
+      <div className="auction-details-footer">
+
+        <div>
+          <FaCalendarAlt />
+
+          <span>
+            Created on{" "}
+            {formatDateTime(
+              auction.created_at
+            )}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate(backPath)}
+        >
+          <FaArrowLeft />
+          {backLabel}
+        </button>
+
+      </div>
+
+      {/* =====================================================
+          IMAGE PREVIEW MODAL
       ===================================================== */}
 
       {selectedImage && (
@@ -1222,8 +1379,6 @@ function AuctionDetails() {
             }
           >
 
-            {/* CLOSE BUTTON */}
-
             <button
               type="button"
               className="auction-image-preview-close"
@@ -1233,21 +1388,14 @@ function AuctionDetails() {
               <FaTimes />
             </button>
 
-            {/* IMAGE LABEL */}
-
             <div className="auction-image-preview-label">
-
               <FaImage />
-
               <span>
                 {getImageLabel(
                   selectedImage.index
                 )}
               </span>
-
             </div>
-
-            {/* LARGE IMAGE */}
 
             <img
               src={selectedImage.url}
@@ -1257,14 +1405,9 @@ function AuctionDetails() {
               className="auction-image-preview-img"
             />
 
-            {/* IMAGE COUNTER */}
-
             <div className="auction-image-preview-counter">
-
-              Image{" "}
-              {selectedImage.index + 1} of{" "}
+              Image {selectedImage.index + 1} of{" "}
               {auctionImages.length}
-
             </div>
 
           </div>

@@ -411,13 +411,13 @@ def get_all_approved_auctions(
         # =========================================================
 
         auctions = (
-            db.query(Auction)
-            .filter(
-                Auction.status.in_(["approved", "live"])
-            )
-            .order_by(Auction.created_at.desc())
-            .all()
-        )
+    db.query(Auction)
+    .filter(
+        Auction.status != "rejected"
+    )
+    .order_by(Auction.created_at.desc())
+    .all()
+)
 
         result = []
 
@@ -474,7 +474,7 @@ def get_all_approved_auctions(
 
                     # IMPORTANT:
                     # Do NOT add ended auctions to result
-                    continue
+                    #continue
 
             # =====================================================
             # SORT IMAGES
