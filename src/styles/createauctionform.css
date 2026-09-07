@@ -2675,6 +2675,68 @@
   cursor: pointer;
 }
 
+
+/* =========================================================
+   PURCHASE DATE MONTH / YEAR PICKER
+========================================================= */
+
+.cdf-month-year-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  padding: 4px 8px;
+  border-radius: 7px;
+}
+
+.cdf-month-year-button:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.cdf-month-year-picker {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.cdf-picker-row {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: 8px;
+}
+
+.cdf-picker-select {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #dedede;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #222222;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.cdf-picker-select:focus {
+  border-color: #999999;
+}
+
+.cdf-picker-done {
+  width: 100%;
+  margin-top: 8px;
+  height: 34px;
+  border: none;
+  border-radius: 7px;
+  background: #222222;
+  color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cdf-picker-done:hover {
+  opacity: 0.9;
+}
 .ca-seller-terms-preview-header button:hover {
   text-decoration: underline;
 }

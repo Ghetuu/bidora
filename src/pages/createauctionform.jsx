@@ -450,6 +450,8 @@ const CustomDateField = ({
     useState(
       initial || new Date()
     );
+    const [showMonthYearPicker, setShowMonthYearPicker] =
+  useState(false);
 
   const [selectedDate, setSelectedDate] =
     useState(initial);
@@ -917,37 +919,114 @@ const CustomDateField = ({
         <div className="cdf-panel">
 
           <div className="cdf-cal-header">
-            <button
-              type="button"
-              className="cdf-nav-btn"
-              onClick={() =>
-                changeMonth(-1)
-              }
-            >
-              ‹
-            </button>
 
-            <span className="cdf-month-label">
-              {
-                MONTH_NAMES[
-                  viewDate.getMonth()
-                ]
-              }
-              ,{" "}
-              {viewDate.getFullYear()}
-            </span>
+  <button
+    type="button"
+    className="cdf-nav-btn"
+    onClick={() => changeMonth(-1)}
+  >
+    ‹
+  </button>
 
-            <button
-              type="button"
-              className="cdf-nav-btn"
-              onClick={() =>
-                changeMonth(1)
-              }
-            >
-              ›
-            </button>
-          </div>
+  <button
+    type="button"
+    className="cdf-month-label cdf-month-year-button"
+    onClick={() =>
+      mode === "date" &&
+      setShowMonthYearPicker((prev) => !prev)
+    }
+  >
+    {MONTH_NAMES[viewDate.getMonth()]}, {viewDate.getFullYear()}
+  </button>
 
+  <button
+    type="button"
+    className="cdf-nav-btn"
+    onClick={() => changeMonth(1)}
+  >
+    ›
+  </button>
+
+</div>
+{mode === "date" && showMonthYearPicker && (
+  <div className="cdf-month-year-picker">
+
+    <div className="cdf-picker-row">
+
+      <select
+        className="cdf-picker-select"
+        value={viewDate.getMonth()}
+        onChange={(e) => {
+          const month = Number(e.target.value);
+
+          setViewDate(
+            new Date(
+              viewDate.getFullYear(),
+              month,
+              1
+            )
+          );
+        }}
+      >
+        {MONTH_NAMES.map((month, index) => (
+          <option
+            key={month}
+            value={index}
+          >
+            {month}
+          </option>
+        ))}
+      </select>
+
+      <select
+        className="cdf-picker-select"
+        value={viewDate.getFullYear()}
+        onChange={(e) => {
+          const year = Number(e.target.value);
+
+          setViewDate(
+            new Date(
+              year,
+              viewDate.getMonth(),
+              1
+            )
+          );
+        }}
+      >
+        {Array.from(
+          { length: 101 },
+          (_, index) => {
+            const year =
+              new Date().getFullYear() -
+              50 +
+              index;
+
+            return (
+              <option
+                key={year}
+                value={year}
+              >
+                {year}
+              </option>
+            );
+          }
+        )}
+      </select>
+
+    </div>
+
+    <button
+      type="button"
+      className="cdf-picker-done"
+      onClick={() =>
+        setShowMonthYearPicker(false)
+      }
+    >
+      Select
+    </button>
+
+  </div>
+)}
           <div className="cdf-weekdays">
             {WEEKDAY_NAMES.map(
               (w) => (
