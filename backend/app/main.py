@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -28,6 +29,10 @@ from app.routes.auction_routes import (
     router as auction_router
 )
 
+
+from app.services.auction_scheduler import (
+    auction_scheduler_loop
+)
 
 app = FastAPI(
     title="Bidora API",
@@ -90,6 +95,17 @@ app.include_router(
 )
 
 app.include_router(live_auction_router)
+
+# =========================================================
+# AUTOMATIC AUCTION SCHEDULER
+# =========================================================
+
+@app.on_event("startup")
+async def start_auction_scheduler():
+
+    asyncio.create_task(
+        auction_scheduler_loop()
+    )
 
 # =========================================================
 # ROOT

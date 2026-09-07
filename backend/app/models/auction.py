@@ -200,6 +200,11 @@ class Auction(Base):
         nullable=False
     )
 
+    rejection_reason = Column(
+    Text,
+    nullable=True
+)
+
     purchase_proof_path = Column(
         String(500),
         nullable=False

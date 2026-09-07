@@ -669,6 +669,7 @@ async def approve_auction(
     # =================================================
 
     auction.status = "approved"
+    auction.rejection_reason = None
 
     # =================================================
     # CREATE USER WEB NOTIFICATION
@@ -878,6 +879,7 @@ async def reject_auction(
     # =================================================
 
     auction.status = "rejected"
+    auction.rejection_reason = remark
 
     # =================================================
     # CREATE USER WEB NOTIFICATION
