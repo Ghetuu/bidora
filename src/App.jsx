@@ -5,33 +5,28 @@ import {
   Navigate
 } from "react-router-dom";
 
-
-// =====================================================
-// PUBLIC PAGES
-// =====================================================
-
+// =========================================================
+// PUBLIC
+// =========================================================
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import ContactPage from "./pages/ContactPage";
 
-
-// =====================================================
-// ADMIN PAGES
-// =====================================================
-
+// =========================================================
+// ADMIN
+// =========================================================
 import AdminLogin from "./admin/adminlogin";
 import AdminDashboard from "./admin/admindashboard";
 import AdminHome from "./admin/adminhome";
 import AdminUsers from "./admin/adminusers";
-import PendingAuction from "./admin/PendingAuction";
+import AdminAuctionList from "./admin/AdminAuctionList";
 import ContactMessages from "./admin/ContactMessages";
-
-// =====================================================
+import AdminAuctionDetails from "./admin/AdminAuctionDetails";
+// =========================================================
 // USER DASHBOARD
-// =====================================================
-
+// =========================================================
 import Dashboard from "./pages/Dashboard";
 import DashboardHome from "./pages/dashboard_home";
 import CreateAuction from "./pages/createauctionform";
@@ -41,33 +36,23 @@ import AllAuctions from "./pages/AllAuctions";
 import LiveAuctions from "./pages/LiveAuctions";
 import LiveAuctionDetails from "./pages/LiveAuctionDetails";
 
+
 function App() {
-
   return (
-
     <BrowserRouter>
 
       <Routes>
 
+        {/* =====================================================
+            PUBLIC ROUTES
+        ===================================================== */}
 
-        {/* =================================================
-            PUBLIC PAGES
-        ================================================= */}
+        <Route path="/" element={<Home />} />
 
-        <Route
-          path="/"
-          element={<Home />}
-        />
+        <Route path="/login" element={<Login />} />
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+        <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/register"
-          element={<Register />}
-        />
         <Route
           path="/reset-password"
           element={<ResetPassword />}
@@ -77,70 +62,76 @@ function App() {
           path="/reset-password/:token"
           element={<ResetPassword />}
         />
+
         <Route
           path="/contact"
           element={<ContactPage />}
         />
 
 
-        {/* =================================================
+        {/* =====================================================
             USER DASHBOARD
-        ================================================= */}
+        ===================================================== */}
 
         <Route
           path="/dashboard"
           element={<Dashboard />}
         >
 
-          {/* Default User Dashboard */}
-
+          {/* /dashboard */}
           <Route
             index
             element={<DashboardHome />}
           />
 
-          {/* User Dashboard Home */}
-
+          {/* /dashboard/home */}
           <Route
             path="home"
             element={<DashboardHome />}
           />
 
-          <Route 
-            path="create-auction" 
-            element={<CreateAuction />} 
+          {/* /dashboard/create-auction */}
+          <Route
+            path="create-auction"
+            element={<CreateAuction />}
           />
 
+          {/* /dashboard/my-auctions */}
           <Route
             path="my-auctions"
             element={<MyAuctions />}
           />
 
-            <Route
-              path="auction/:id"
-              element={<AuctionDetails />}
-            />
+          {/* /dashboard/auction/:id */}
+          <Route
+            path="auction/:id"
+            element={<AuctionDetails />}
+          />
 
-            <Route
-              path="all-auctions"
-              element={<AllAuctions />}
-            />
-            <Route
-              path="live-auctions"
-              element={<LiveAuctions />}
-            />
-            <Route 
-              path="live-auction/:auctionId" 
-              element={<LiveAuctionDetails />} 
-            />
-                      
+          {/* /dashboard/all-auctions */}
+          <Route
+            path="all-auctions"
+            element={<AllAuctions />}
+          />
+
+          {/* /dashboard/live-auctions */}
+          <Route
+            path="live-auctions"
+            element={<LiveAuctions />}
+          />
+
+          {/* /dashboard/live-auction/:auctionId */}
+          <Route
+            path="live-auction/:auctionId"
+            element={<LiveAuctionDetails />}
+          />
 
         </Route>
 
 
-        {/* =================================================
+        {/* =====================================================
             ADMIN LOGIN
-        ================================================= */}
+        ===================================================== */}
 
         <Route
           path="/admin/login"
@@ -148,76 +139,147 @@ function App() {
         />
 
 
-        {/* =================================================
+        {/* =====================================================
             ADMIN DASHBOARD
-            Sidebar + Navbar + Page Content
-        ================================================= */}
+        ===================================================== */}
 
         <Route
           path="/admin/dashboard"
           element={<AdminDashboard />}
         >
 
-          {/* =============================================
-              DEFAULT ADMIN HOME
-
-              URL:
-              /admin/dashboard
-          ============================================= */}
-
+          {/* /admin/dashboard */}
           <Route
             index
             element={<AdminHome />}
           />
 
-
-          {/* =============================================
-              ALL USERS
-
-              URL:
-              /admin/dashboard/users
-          ============================================= */}
-
+          {/* /admin/dashboard/users */}
           <Route
             path="users"
             element={<AdminUsers />}
           />
 
-           <Route
-          path="auctions/pending"
-          element={<PendingAuction />}
-        />
 
-         <Route
+          {/* =================================================
+              AUCTIONS
+          ================================================= */}
+
+          {/* All Auctions
+              /admin/dashboard/auctions
+          */}
+          <Route
+            path="auctions"
+            element={
+              <AdminAuctionList
+                status="all"
+                title="All Auctions"
+              />
+            }
+          />
+
+
+          {/* Approved Auctions
+              /admin/dashboard/auctions/approved
+          */}
+          <Route
+            path="auctions/approved"
+            element={
+              <AdminAuctionList
+                status="approved"
+                title="Approved Auctions"
+              />
+            }
+          />
+
+
+          {/* Rejected Auctions
+              /admin/dashboard/auctions/rejected
+          */}
+          <Route
+            path="auctions/rejected"
+            element={
+              <AdminAuctionList
+                status="rejected"
+                title="Rejected Auctions"
+              />
+            }
+          />
+
+
+          {/* Live Auctions
+              /admin/dashboard/auctions/live
+          */}
+          <Route
+            path="auctions/live"
+            element={
+              <AdminAuctionList
+                status="live"
+                title="Live Auctions"
+              />
+            }
+          />
+
+
+          {/* Pending Auctions
+              /admin/dashboard/auctions/pending
+          */}
+          <Route
+            path="auctions/pending"
+            element={
+              <AdminAuctionList
+                status="pending"
+                title="Pending Auctions"
+              />
+            }
+          />
+
+
+          {/* Completed Auctions
+              Database status = ended
+              /admin/dashboard/auctions/completed
+          */}
+          <Route
+            path="auctions/completed"
+            element={
+              <AdminAuctionList
+                status="ended"
+                title="Completed Auctions"
+              />
+            }
+          />
+
+           <Route
+    path="/admin/dashboard/auctions/:id"
+    element={<AdminAuctionDetails />}
+  />
+
+
+          {/* =================================================
+              CONTACT MESSAGES
+          ================================================= */}
+
+          <Route
             path="contact-messages"
             element={<ContactMessages />}
           />
 
-
         </Route>
 
-       
 
-        {/* =================================================
-            UNKNOWN URL
-        ================================================= */}
+        {/* =====================================================
+            FALLBACK
+        ===================================================== */}
 
         <Route
           path="*"
-          element={
-            <Navigate
-              to="/"
-              replace
-            />
-          }
+          element={<Navigate to="/" replace />}
         />
 
       </Routes>
 
     </BrowserRouter>
-
   );
-
 }
 
 
