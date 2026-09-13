@@ -10,6 +10,7 @@ from app.models.user import User
 from app.models.auction import Auction
 from app.models.auction_image import AuctionImage
 from app.models.contact_message import ContactMessage
+from datetime import datetime
 
 
 class AuctionReject(BaseModel):
@@ -669,6 +670,11 @@ async def approve_auction(
     # =================================================
 
     auction.status = "approved"
+    auction.approved_by = "admin"
+    auction.approved_at = datetime.utcnow()
+
+    auction.rejected_by = None
+    auction.rejected_at = None
     auction.rejection_reason = None
 
     # =================================================
@@ -879,6 +885,11 @@ async def reject_auction(
     # =================================================
 
     auction.status = "rejected"
+    auction.rejected_by = "admin"
+    auction.rejected_at = datetime.utcnow()
+
+    auction.approved_by = None
+    auction.approved_at = None
     auction.rejection_reason = remark
 
     # =================================================
@@ -1866,7 +1877,35 @@ def get_auctions_by_status(
             # STATUS
             # =================================================
 
+            # =================================================
+            # STATUS / APPROVAL / REJECTION
+            # =================================================
+
             "status": auction.status,
+
+            "approved_by": getattr(
+                auction,
+                "approved_by",
+                None
+            ),
+
+            "approved_at": (
+                auction.approved_at.isoformat()
+                if getattr(auction, "approved_at", None)
+                else None
+            ),
+
+            "rejected_by": getattr(
+                auction,
+                "rejected_by",
+                None
+            ),
+
+            "rejected_at": (
+                auction.rejected_at.isoformat()
+                if getattr(auction, "rejected_at", None)
+                else None
+            ),
 
             "rejection_reason": getattr(
                 auction,
@@ -2212,8 +2251,38 @@ def get_all_auctions(
             # STATUS
             # =================================================
 
+            # =================================================
+            # STATUS / APPROVAL / REJECTION
+            # =================================================
+
             "status":
                 auction.status,
+
+            "approved_by":
+                getattr(
+                    auction,
+                    "approved_by",
+                    None
+                ),
+
+            "approved_at": (
+                auction.approved_at.isoformat()
+                if getattr(auction, "approved_at", None)
+                else None
+            ),
+
+            "rejected_by":
+                getattr(
+                    auction,
+                    "rejected_by",
+                    None
+                ),
+
+            "rejected_at": (
+                auction.rejected_at.isoformat()
+                if getattr(auction, "rejected_at", None)
+                else None
+            ),
 
             "rejection_reason":
                 getattr(
@@ -2221,7 +2290,6 @@ def get_all_auctions(
                     "rejection_reason",
                     None
                 ),
-
 
             # =================================================
             # DATES

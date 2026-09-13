@@ -24,6 +24,9 @@ import AdminUsers from "./admin/adminusers";
 import AdminAuctionList from "./admin/AdminAuctionList";
 import ContactMessages from "./admin/ContactMessages";
 import AdminAuctionDetails from "./admin/AdminAuctionDetails";
+import LiveAuctionBidding from "./admin/LiveAuctionBidding";
+
+
 // =========================================================
 // USER DASHBOARD
 // =========================================================
@@ -219,6 +222,10 @@ function App() {
               />
             }
           />
+          <Route
+              path="/admin/dashboard/auctions/:id/live-bidding"
+              element={<LiveAuctionBidding />}
+            />
 
 
           {/* Pending Auctions

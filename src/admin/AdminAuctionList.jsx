@@ -8,6 +8,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaBoxOpen,
+  FaFilter,
+  FaTimes,
 } from "react-icons/fa";
 
 import "../styles/adminauctionlist.css";
@@ -43,6 +45,57 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
 
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
+
+  /* =========================================================
+     FILTERS
+  ========================================================= */
+
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [conditionFilter, setConditionFilter] = useState("all");
+  const [priceFilter, setPriceFilter] = useState("all");
+  const [locationFilter, setLocationFilter] = useState("all");
+
+  const priceRanges = [
+    { label: "All Prices", value: "all" },
+    { label: "Under ₹5,000", value: "0-5000" },
+    { label: "₹5,000 - ₹20,000", value: "5000-20000" },
+    { label: "₹20,000 - ₹50,000", value: "20000-50000" },
+    { label: "Above ₹50,000", value: "50000-999999999" },
+  ];
+
+  const uniqueCategories = [
+    ...new Set(auctions.map((a) => a.category).filter(Boolean)),
+  ];
+
+  const uniqueLocations = [
+    ...new Set(
+      auctions
+        .map((a) => a.location_city || a.city)
+        .filter(Boolean)
+    ),
+  ];
+
+  const uniqueConditions = [
+    ...new Set(auctions.map((a) => a.condition).filter(Boolean)),
+  ];
+
+  const activeFilterCount = [
+    statusFilter !== "all",
+    categoryFilter !== "all",
+    conditionFilter !== "all",
+    priceFilter !== "all",
+    locationFilter !== "all",
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setCategoryFilter("all");
+    setConditionFilter("all");
+    setPriceFilter("all");
+    setLocationFilter("all");
+  };
 
   /* =========================================================
      FETCH AUCTIONS
@@ -88,17 +141,11 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
   };
 
   /* =========================================================
-     SEARCH FILTER
+     SEARCH + FILTERS
   ========================================================= */
 
   useEffect(() => {
     const search = searchTerm.trim().toLowerCase();
-
-    if (!search) {
-      setFilteredAuctions(auctions);
-      setCurrentPage(1);
-      return;
-    }
 
     const filtered = auctions.filter((auction) => {
       const product = auction.product_title || "";
@@ -130,7 +177,8 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
         auction.reject_reason ||
         "";
 
-      return (
+      const matchesSearch =
+        !search ||
         product.toLowerCase().includes(search) ||
         brand.toLowerCase().includes(search) ||
         category.toLowerCase().includes(search) ||
@@ -138,13 +186,54 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
         city.toLowerCase().includes(search) ||
         String(approvedBy).toLowerCase().includes(search) ||
         String(rejectedBy).toLowerCase().includes(search) ||
-        rejectionReason.toLowerCase().includes(search)
+        rejectionReason.toLowerCase().includes(search);
+
+      const matchesStatus =
+        statusFilter === "all" ||
+        (auction.status || "").toLowerCase() ===
+          statusFilter.toLowerCase();
+
+      const matchesCategory =
+        categoryFilter === "all" || category === categoryFilter;
+
+      const matchesCondition =
+        conditionFilter === "all" ||
+        auction.condition === conditionFilter;
+
+      const matchesLocation =
+        locationFilter === "all" || city === locationFilter;
+
+      let matchesPrice = true;
+
+      if (priceFilter !== "all") {
+        const [min, max] = priceFilter.split("-").map(Number);
+        const price = Number(
+          auction.starting_price || auction.price || 0
+        );
+        matchesPrice = price >= min && price <= max;
+      }
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesCategory &&
+        matchesCondition &&
+        matchesLocation &&
+        matchesPrice
       );
     });
 
     setFilteredAuctions(filtered);
     setCurrentPage(1);
-  }, [searchTerm, auctions]);
+  }, [
+    searchTerm,
+    auctions,
+    statusFilter,
+    categoryFilter,
+    conditionFilter,
+    locationFilter,
+    priceFilter,
+  ]);
 
   /* =========================================================
      NAVIGATION
@@ -154,6 +243,96 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
     navigate(`/admin/dashboard/auctions/${auction.id}`, {
       state: { auction },
     });
+  };
+
+  const handleViewLiveBidding = (auction) => {
+  navigate(`/admin/dashboard/auctions/${auction.id}/live-bidding`, {
+    state: { auction },
+  });
+};
+
+
+    /* =========================================================
+     APPROVE AUCTION
+  ========================================================= */
+
+  const handleApprove = async (auction) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to approve "${auction.product_title}"?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/admin/auctions/${auction.id}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to approve auction");
+      }
+
+      alert("Auction approved successfully.");
+
+      fetchAuctions();
+    } catch (err) {
+      console.error("Approve auction error:", err);
+      alert("Unable to approve auction.");
+    }
+  };
+
+
+  /* =========================================================
+     REJECT AUCTION
+  ========================================================= */
+
+  const handleReject = async (auction) => {
+    const reason = window.prompt(
+      `Enter rejection reason for "${auction.product_title}":`
+    );
+
+    if (reason === null) {
+      return;
+    }
+
+    if (!reason.trim()) {
+      alert("Please enter a rejection reason.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/admin/auctions/${auction.id}/reject`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rejection_reason: reason.trim(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to reject auction");
+      }
+
+      alert("Auction rejected successfully.");
+
+      fetchAuctions();
+    } catch (err) {
+      console.error("Reject auction error:", err);
+      alert("Unable to reject auction.");
+    }
   };
 
   /* =========================================================
@@ -302,14 +481,37 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
   ========================================================= */
 
   const getApprovedBy = (auction) => {
-    return (
-      auction.approved_by_name ||
-      auction.approved_by ||
-      auction.approver_name ||
-      auction.approvedBy ||
-      "Automatic"
-    );
-  };
+  const approvedBy =
+    auction.approved_by_name ||
+    auction.approved_by ||
+    auction.approver_name ||
+    auction.approvedBy ||
+    "";
+
+  const value = String(approvedBy).toLowerCase().trim();
+
+  // Admin approval
+  if (
+    value === "admin" ||
+    value === "administrator" ||
+    value.includes("admin")
+  ) {
+    return "Admin";
+  }
+
+  // Automatic/System approval
+  if (
+    value === "automatic" ||
+    value === "auto" ||
+    value === "system" ||
+    value === "automatic approval"
+  ) {
+    return "System";
+  }
+
+  // No approval source received from backend
+  return "N/A";
+};
 
   const getApprovedAt = (auction) => {
     return (
@@ -332,14 +534,17 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
   };
 
   const getRejectedAt = (auction) => {
-    return (
-      auction.rejected_at ||
-      auction.rejection_date ||
-      auction.rejection_datetime ||
-      auction.rejection_date_time ||
-      null
-    );
-  };
+  return (
+    auction.rejected_at ||
+    auction.rejection_date ||
+    auction.rejection_datetime ||
+    auction.rejection_date_time ||
+    auction.rejectedAt ||
+    auction.rejected_date ||
+    auction.rejected_datetime ||
+    null
+  );
+};
 
   const getRejectionReason = (auction) => {
     return (
@@ -491,19 +696,175 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
             Manage and monitor all submitted auctions.
           </p>
         </div>
+      </div>
 
-        <div className="auction-search">
-          <FaSearch />
+      {/* =====================================================
+          FILTER PANEL
+      ===================================================== */}
 
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(e.target.value)
-            }
-          />
+      <div className="auction-filter-panel">
+
+        <div className="filter-panel-header">
+
+          <div className="filter-panel-title">
+            <span className="filter-panel-icon">
+              <FaFilter />
+            </span>
+
+            <div>
+              <h2>Find Your Auction</h2>
+              <p>
+                Refine auctions by status, category, condition,
+                price or location
+              </p>
+            </div>
+          </div>
+
+          <span className="active-filter-badge">
+            <span className="active-filter-dot"></span>
+            {activeFilterCount} Active Filter
+            {activeFilterCount !== 1 ? "s" : ""}
+          </span>
+
         </div>
+
+        <div className="filter-panel-row">
+
+          <div className="filter-field filter-search-field">
+            <label>Search</label>
+
+            <div className="auction-search">
+              <FaSearch />
+
+              <input
+                type="text"
+                placeholder="Search title, brand or seller..."
+                value={searchTerm}
+                onChange={(e) =>
+                  setSearchTerm(e.target.value)
+                }
+              />
+            </div>
+          </div>
+
+          {status.toLowerCase() === "all" && (
+            <div className="filter-field">
+              <label>Auction Status</label>
+
+              <select
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value)
+                }
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="live">Live</option>
+              </select>
+            </div>
+          )}
+
+          <div className="filter-field">
+            <label>Category</label>
+
+            <select
+              value={categoryFilter}
+              onChange={(e) =>
+                setCategoryFilter(e.target.value)
+              }
+            >
+              <option value="all">All Categories</option>
+
+              {uniqueCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+        </div>
+
+        <div className="filter-panel-row">
+
+          <div className="filter-field">
+            <label>Condition</label>
+
+            <select
+              value={conditionFilter}
+              onChange={(e) =>
+                setConditionFilter(e.target.value)
+              }
+            >
+              <option value="all">All Conditions</option>
+
+              {uniqueConditions.map((condition) => (
+                <option key={condition} value={condition}>
+                  {condition}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-field">
+            <label>Price Range</label>
+
+            <select
+              value={priceFilter}
+              onChange={(e) =>
+                setPriceFilter(e.target.value)
+              }
+            >
+              {priceRanges.map((range) => (
+                <option key={range.value} value={range.value}>
+                  {range.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-field">
+            <label>Location</label>
+
+            <select
+              value={locationFilter}
+              onChange={(e) =>
+                setLocationFilter(e.target.value)
+              }
+            >
+              <option value="all">All Locations</option>
+
+              {uniqueLocations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
+
+        </div>
+
+        <div className="filter-panel-footer">
+
+          <span className="filter-showing-count">
+            Showing <strong>{filteredAuctions.length}</strong> of{" "}
+            <strong>{auctions.length}</strong> auctions
+          </span>
+
+          <div className="filter-panel-actions">
+            <button
+              type="button"
+              className="clear-filters-btn"
+              onClick={clearFilters}
+            >
+              <FaTimes /> Clear Filters
+            </button>
+          </div>
+
+        </div>
+
       </div>
 
       {/* =====================================================
@@ -572,7 +933,7 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                 <th className="col-date">
                   Date & Time
                 </th>
-
+                   
                 {/* =============================================
                     APPROVED COLUMNS
                 ============================================= */}
@@ -613,6 +974,18 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                   Actions
                 </th>
 
+                {status.toLowerCase() === "pending" && (
+  <th className="col-approval-actions">
+    Approval
+  </th>
+)}
+
+ {status.toLowerCase() === "live" && (
+  <th className="col-status">
+    Status
+  </th>
+)}
+
               </tr>
             </thead>
 
@@ -627,12 +1000,14 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                 <tr>
                   <td
                     colSpan={
-                      isApprovedPage
-                        ? 10
-                        : isRejectedPage
-                        ? 11
-                        : 8
-                    }
+  isApprovedPage
+    ? 10
+    : isRejectedPage
+    ? 11
+    : status.toLowerCase() === "pending"
+    ? 9
+    : 8
+}
                     className="auction-empty"
                   >
                     <FaBoxOpen />
@@ -784,6 +1159,7 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                             auction.auction_start
                           )}
                         </div>
+                        
 
                       </td>
 
@@ -885,44 +1261,84 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                           ACTIONS
                       ================================================= */}
 
-                      <td>
-                        <div className="auction-action-buttons">
+                      {/* ACTIONS */}
+<td>
+  <div className="auction-action-buttons">
 
-                          <button
-                            className="auction-action-btn auction-view-action"
-                            onClick={() =>
-                              handleView(auction)
-                            }
-                            title="View Auction"
-                            type="button"
-                          >
-                            <FaEye />
-                          </button>
+    <button
+      className="auction-action-btn auction-view-action"
+      onClick={() => handleView(auction)}
+      title="View Auction"
+      type="button"
+    >
+      <FaEye />
+    </button>
 
-                          <button
-                            className="auction-action-btn auction-update-action"
-                            onClick={() =>
-                              handleUpdate(auction)
-                            }
-                            title="Update Auction"
-                            type="button"
-                          >
-                            <FaEdit />
-                          </button>
+    <button
+      className="auction-action-btn auction-update-action"
+      onClick={() => handleUpdate(auction)}
+      title="Update Auction"
+      type="button"
+    >
+      <FaEdit />
+    </button>
 
-                          <button
-                            className="auction-action-btn auction-delete-action"
-                            onClick={() =>
-                              handleDelete(auction)
-                            }
-                            title="Delete Auction"
-                            type="button"
-                          >
-                            <FaTrash />
-                          </button>
+    <button
+      className="auction-action-btn auction-delete-action"
+      onClick={() => handleDelete(auction)}
+      title="Delete Auction"
+      type="button"
+    >
+      <FaTrash />
+    </button>
 
-                        </div>
-                      </td>
+  </div>
+  {/* =================================================
+    LIVE BIDDING ACTION
+================================================= */}
+
+</td>
+{status.toLowerCase() === "live" && (
+  <td className="live-bidding-action-cell">
+    <button
+      type="button"
+      className="view-live-bidding-btn"
+      onClick={() => handleViewLiveBidding(auction)}
+      title="View Live Bidding"
+    >
+      <FaEye />
+      <span>View Live Bidding</span>
+    </button>
+  </td>
+)} 
+
+ 
+
+
+{/* APPROVE / REJECT */}
+{status.toLowerCase() === "pending" && (
+  <td className="approval-actions-cell">
+    <div className="approval-action-buttons">
+
+      <button
+        type="button"
+        className="approve-auction-btn"
+        onClick={() => handleApprove(auction)}
+      >
+        Approve
+      </button>
+
+      <button
+        type="button"
+        className="reject-auction-btn"
+        onClick={() => handleReject(auction)}
+      >
+        Reject
+      </button>
+
+    </div>
+  </td>
+)}
 
                     </tr>
                   );
