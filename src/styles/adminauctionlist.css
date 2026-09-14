@@ -1,0 +1,1919 @@
+/* =========================================================
+   ADMIN AUCTION LIST PAGE
+========================================================= */
+/* =========================================================
+   UPDATED AUCTION TABLE COLUMNS
+   ========================================================= */
+
+.auction-table .col-checkbox {
+  width: 4%;
+}
+
+.auction-table .col-id {
+  width: 6%;
+}
+
+.auction-table .col-image {
+  width: 8%;
+}
+
+.auction-table .col-product {
+  width: 23%;
+}
+
+.auction-table .col-seller {
+  width: 15%;
+}
+
+.auction-table .col-category {
+  width: 11%;
+}
+
+.auction-table .col-date {
+  width: 14%;
+}
+
+.auction-table .col-action {
+  width: 19%;
+}
+
+
+/* =========================================================
+   CHECKBOX
+   ========================================================= */
+
+.auction-checkbox {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+
+/* =========================================================
+   AUCTION ID - CLEAN / NO HIGHLIGHT
+   ========================================================= */
+
+/* =========================================================
+   AUCTION ID - NO CLICK / NO SELECTION HIGHLIGHT
+   ========================================================= */
+
+.auction-table th.col-id {
+  width: 7%;
+  text-align: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.auction-id {
+  width: 7%;
+  padding: 10px 12px !important;
+
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+
+  text-align: center;
+  vertical-align: middle;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  user-select: none;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.auction-id:focus,
+.auction-id:focus-visible,
+.auction-id:active {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.auction-id::selection {
+  background: transparent;
+  color: #6b7280;
+}
+
+
+/* =========================================================
+   REMOVE BORDER FROM ID CELL
+========================================================= */
+
+.auction-table td.auction-id,
+.auction-table th.col-id {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Keep ID cell transparent on hover/click */
+.auction-table tbody tr:hover .auction-id,
+.auction-id:hover,
+.auction-id:focus,
+.auction-id:focus-visible,
+.auction-id:active {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+/* =========================================================
+   AUCTION IMAGE
+   ========================================================= */
+
+.auction-image-cell {
+  text-align: center;
+}
+
+.auction-table-image {
+  width: 48px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 7px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  display: block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auction-table-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.auction-image-placeholder {
+  width: 48px;
+  height: 40px;
+  border-radius: 7px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   DATE & TIME
+   ========================================================= */
+
+.auction-date-time {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.auction-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.auction-time {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+   ========================================================= */
+
+.auction-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.auction-action-btn {
+  height: 31px;
+  min-width: 31px;
+  padding: 0 9px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  border: none;
+  border-radius: 6px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+
+/* View */
+
+.auction-action-view {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.auction-action-view:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+
+/* Update */
+
+.auction-action-update {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.auction-action-update:hover {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+
+/* Delete */
+
+.auction-action-delete {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.auction-action-delete:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.auction-action-btn svg {
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   IMAGE POPUP / MODAL
+   ========================================================= */
+
+.auction-image-modal {
+  position: fixed;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: rgba(0, 0, 0, 0.72);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+
+  padding: 25px;
+  box-sizing: border-box;
+}
+
+.auction-image-modal-content {
+  position: relative;
+
+  max-width: 850px;
+  max-height: 90vh;
+
+  background: #ffffff;
+
+  border-radius: 12px;
+  padding: 12px;
+
+  box-sizing: border-box;
+
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auction-image-modal-img {
+  display: block;
+
+  max-width: 800px;
+  max-height: 82vh;
+
+  width: auto;
+  height: auto;
+
+  object-fit: contain;
+
+  border-radius: 8px;
+}
+
+.auction-image-modal-close {
+  position: absolute;
+
+  top: -12px;
+  right: -12px;
+
+  width: 32px;
+  height: 32px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #ffffff;
+  color: #374151;
+
+  font-size: 22px;
+  line-height: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+
+  z-index: 2;
+
+  transition: all 0.15s ease;
+}
+
+.auction-image-modal-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+  transform: scale(1.05);
+}
+
+
+/* =========================================================
+   SELECTED ROW
+   ========================================================= */
+
+.auction-table tbody tr:has(.auction-checkbox:checked) {
+  background: #f8fbff;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .admin-auction-page {
+    padding: 18px;
+  }
+
+  .auction-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .auction-table {
+    min-width: 1050px;
+  }
+
+  .auction-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .auction-search {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   SMALL SCREEN MODAL
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .auction-image-modal {
+    padding: 15px;
+  }
+
+  .auction-image-modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
+  }
+
+  .auction-image-modal-img {
+    max-width: 88vw;
+    max-height: 75vh;
+  }
+
+  .auction-image-modal-close {
+    top: -10px;
+    right: -8px;
+  }
+}
+/* =========================================================
+   ADMIN AUCTION LIST PAGE - SIDEBAR SPACING
+========================================================= */
+
+.admin-auction-page {
+  flex: 1;
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px 30px 30px 30px;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.auction-page-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.auction-heading h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.3px;
+}
+
+.auction-heading p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.auction-search {
+  width: 220px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 0 10px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.auction-search:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.auction-search svg {
+  color: #9ca3af;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.auction-search input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0 0 0 8px;
+  font-size: 13px;
+  color: #1f2937;
+  font-family: inherit;
+}
+
+.auction-search input::placeholder {
+  color: #9ca3af;
+}
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.auction-table-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.auction-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.auction-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.auction-table thead {
+  background: #f9fafb;
+}
+
+.auction-table thead tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.auction-table th {
+  height: 42px;
+  padding: 0 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   UPDATED TABLE COLUMN WIDTHS
+   ========================================================= */
+
+.auction-table .col-number {
+  width: 5%;
+}
+
+.auction-table .col-product {
+  width: 32%;
+}
+
+.auction-table .col-category {
+  width: 14%;
+}
+
+.auction-table .col-seller {
+  width: 18%;
+}
+
+.auction-table .col-price {
+  width: 13%;
+}
+
+.auction-table .col-status {
+  width: 10%;
+}
+
+.auction-table .col-action {
+  width: 8%;
+}
+
+
+/* =========================================================
+   LIVE BIDDING ACTION
+========================================================= */
+
+.live-bidding-action-cell {
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.view-live-bidding-btn {
+  height: 34px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border: 1px solid #c7d2fe;
+  border-radius: 7px;
+
+  background: #eef2ff;
+  color: #4f46e5;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.view-live-bidding-btn svg {
+  font-size: 12px;
+}
+
+.view-live-bidding-btn:hover {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #4f46e5;
+}
+
+.view-live-bidding-btn:active {
+  transform: scale(0.96);
+}
+
+.view-live-bidding-btn:focus,
+.view-live-bidding-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+/* =========================================================
+   TABLE BODY
+========================================================= */
+
+.auction-table tbody tr {
+  height: 64px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s ease;
+}
+
+.auction-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.auction-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.auction-table td {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #374151;
+  vertical-align: middle;
+}
+
+/* NUMBER */
+.auction-number {
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  font-weight: 500;
+}
+
+/* =========================================================
+   PRODUCT CELL & FIXED ICON BOX
+========================================================= */
+
+.auction-product-cell {
+  overflow: hidden;
+}
+
+.auction-product-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Strict Box Dimensions */
+.auction-product-icon {
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  
+  border-radius: 8px !important;
+  background-color: #f3f4f6 !important;
+  
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  flex-shrink: 0 !important;
+  color: #6b7280 !important;
+  font-size: 16px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.auction-product-icon img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 8px !important;
+}
+
+.auction-product-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.auction-product-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auction-product-brand {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   CATEGORY BADGES
+========================================================= */
+
+.auction-category {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #f0f5ff;
+  color: #3b82f6;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   SELLER & PRICE
+========================================================= */
+
+.auction-seller {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #374151;
+  font-weight: 500;
+}
+
+.auction-price {
+  font-weight: 600;
+  color: #111827 !important;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   STATUS BADGES
+========================================================= */
+
+.auction-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.status-live {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-ended {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.status-approved {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* =========================================================
+   VIEW BUTTON
+========================================================= */
+
+.auction-view-btn {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auction-view-btn svg {
+  font-size: 12px;
+}
+
+.auction-view-btn:hover {
+  background: #1d4ed8;
+}
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.auction-pagination {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.pagination-number,
+.pagination-arrow {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d5db;
+  border-right: none;
+  background: #ffffff;
+  color: #374151;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pagination-number:last-of-type {
+  border-right: 1px solid #d1d5db;
+}
+
+.pagination-arrow:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.pagination-arrow:last-child {
+  border-right: 1px solid #d1d5db;
+  border-radius: 0 4px 4px 0;
+}
+
+.pagination-arrow:hover:not(:disabled),
+.pagination-number:hover {
+  background: #f3f4f6;
+}
+
+.pagination-arrow:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.pagination-number.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  font-weight: 600;
+}
+
+/* =========================================================
+   EMPTY, LOADING & ERROR STATES
+========================================================= */
+
+.auction-empty {
+  height: 180px !important;
+  text-align: center;
+  color: #9ca3af !important;
+}
+
+.auction-empty svg {
+  display: block;
+  margin: 0 auto 8px;
+  font-size: 24px;
+  color: #d1d5db;
+}
+
+.auction-loading,
+.auction-error {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.auction-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: auctionSpin 0.8s linear infinite;
+}
+
+@keyframes auctionSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auction-retry-btn {
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.auction-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Common button style */
+.auction-action-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+
+  outline: none;
+}
+
+/* Small click animation */
+.auction-action-btn:active {
+  transform: scale(0.94);
+}
+
+/* =========================================================
+   VIEW BUTTON
+========================================================= */
+
+.auction-view-action {
+  color: #2563eb;
+  background: #eff6ff;
+  border-color: #dbeafe;
+}
+
+.auction-view-action:hover {
+  color: #ffffff;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+
+/* =========================================================
+   UPDATE BUTTON
+========================================================= */
+
+.auction-update-action {
+  color: #7c3aed;
+  background: #f5f3ff;
+  border-color: #ede9fe;
+}
+
+.auction-update-action:hover {
+  color: #ffffff;
+  background: #7c3aed;
+  border-color: #7c3aed;
+}
+
+
+/* =========================================================
+   DELETE BUTTON
+========================================================= */
+
+.auction-delete-action {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fee2e2;
+}
+
+.auction-delete-action:hover {
+  color: #ffffff;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+
+/* =========================================================
+   REMOVE FOCUS OUTLINE
+========================================================= */
+
+.auction-action-btn:focus,
+.auction-action-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   APPROVED / REJECTED TABLE COLUMNS
+========================================================= */
+
+/* Approved page */
+.approved-auction-table .col-checkbox {
+  width: 4%;
+}
+
+.approved-auction-table .col-id {
+  width: 5%;
+}
+
+.approved-auction-table .col-image {
+  width: 8%;
+}
+
+.approved-auction-table .col-product {
+  width: 19%;
+}
+
+.approved-auction-table .col-seller {
+  width: 12%;
+}
+
+.approved-auction-table .col-category {
+  width: 9%;
+}
+
+.approved-auction-table .col-date {
+  width: 12%;
+}
+
+.approved-auction-table .col-approved-by {
+  width: 10%;
+}
+
+.approved-auction-table .col-approved-date {
+  width: 13%;
+}
+
+.approved-auction-table .col-action {
+  width: 8%;
+}
+
+
+/* =========================================================
+   APPROVED INFO
+========================================================= */
+
+.auction-approval-info {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.approval-by {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 6px;
+
+  background: #ecfdf5;
+  color: #059669;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   APPROVAL DATE
+========================================================= */
+
+.approval-date-time {
+  text-align: center;
+}
+
+
+/* =========================================================
+   REJECTED PAGE - OPTIMIZED COLUMN WIDTHS
+   ========================================================= */
+
+.rejected-auction-table {
+  min-width: 1000px; /* Reduced from 1250px to fit better */
+}
+
+.rejected-auction-table .col-checkbox {
+  width: 3%;
+}
+
+.rejected-auction-table .col-id {
+  width: 4%;
+}
+
+.rejected-auction-table .col-image {
+  width: 6%;
+}
+
+.rejected-auction-table .col-product {
+  width: 18%;
+}
+
+.rejected-auction-table .col-seller {
+  width: 11%;
+}
+
+.rejected-auction-table .col-category {
+  width: 9%;
+}
+
+.rejected-auction-table .col-date {
+  width: 11%;
+}
+
+.rejected-auction-table .col-rejected-by {
+  width: 10%;
+}
+
+.rejected-auction-table .col-rejected-date {
+  width: 12%;
+}
+
+.rejected-auction-table .col-rejection-reason {
+  width: 10%;
+}
+
+.rejected-auction-table .col-action {
+  width: 12%; /* Increased from 6% to give buttons space */
+}
+
+/* Ensure table header text doesn't overlap or overflow */
+.rejected-auction-table th {
+  padding: 0 8px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* =========================================================
+   PENDING AUCTION APPROVAL ACTIONS
+========================================================= */
+
+.approval-actions-cell {
+  white-space: nowrap;
+}
+
+.approval-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.approve-auction-btn,
+.reject-auction-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.approve-auction-btn {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.approve-auction-btn:hover {
+  background: #15803d;
+}
+
+.reject-auction-btn {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.reject-auction-btn:hover {
+  background: #b91c1c;
+}
+
+
+/* =========================================================
+   REJECTED BY
+========================================================= */
+
+.auction-rejection-info {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.rejection-by {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 6px;
+
+  background: #fff1f2;
+  color: #dc2626;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   REJECTION DATE
+========================================================= */
+
+.rejection-date-time {
+  text-align: center;
+}
+
+
+/* =========================================================
+   REJECTION REASON
+========================================================= */
+
+.auction-rejection-reason {
+  max-width: 180px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.auction-rejection-reason span {
+  display: block;
+
+  max-width: 180px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 12px;
+  color: #6b7280;
+}
+
+
+/* =========================================================
+   APPROVED / REJECTED TABLE RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+  .auction-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .approved-auction-table,
+  .rejected-auction-table {
+    min-width: 1250px;
+  }
+}
+
+
+/* =========================================================
+   VIEW REJECTION REASON BUTTON
+========================================================= */
+
+.view-rejection-reason-btn {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #dc2626;
+
+  padding: 6px 10px;
+  border-radius: 6px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.view-rejection-reason-btn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.view-rejection-reason-btn:active {
+  transform: scale(0.96);
+}
+
+.view-rejection-reason-btn:focus,
+.view-rejection-reason-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   REJECTION REASON MODAL
+========================================================= */
+
+.rejection-reason-modal {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(15, 23, 42, 0.55);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+
+  padding: 20px;
+}
+
+
+/* =========================================================
+   MODAL CONTENT
+========================================================= */
+
+.rejection-reason-modal-content {
+  position: relative;
+
+  width: 100%;
+  max-width: 500px;
+
+  background: #ffffff;
+  border-radius: 12px;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+
+  overflow: hidden;
+
+  animation: rejectionReasonModalIn 0.2s ease;
+}
+
+@keyframes rejectionReasonModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.rejection-reason-modal-header {
+  padding: 18px 20px;
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.rejection-reason-modal-header h3 {
+  margin: 0;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  color: #1f2937;
+}
+
+
+/* =========================================================
+   CLOSE ICON
+========================================================= */
+
+.rejection-reason-modal-close {
+  position: absolute;
+
+  top: 12px;
+  right: 14px;
+
+  width: 30px;
+  height: 30px;
+
+  border: none;
+  background: transparent;
+
+  color: #6b7280;
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  border-radius: 6px;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.rejection-reason-modal-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.rejection-reason-modal-close:focus,
+.rejection-reason-modal-close:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   MODAL BODY
+========================================================= */
+
+.rejection-reason-modal-body {
+  padding: 22px 20px;
+}
+
+.rejection-reason-modal-body p {
+  margin: 0;
+
+  color: #4b5563;
+
+  font-size: 14px;
+  line-height: 1.7;
+
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.rejection-reason-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+
+  padding: 14px 20px;
+
+  border-top: 1px solid #f1f5f9;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.rejection-reason-modal-btn {
+  border: none;
+
+  background: #dc2626;
+  color: #ffffff;
+
+  padding: 8px 18px;
+
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+
+.rejection-reason-modal-btn:hover {
+  background: #b91c1c;
+}
+
+.rejection-reason-modal-btn:focus,
+.rejection-reason-modal-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+
+.auction-filter-panel {
+  background: linear-gradient(135deg, #1e2a5e, #16204a);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  color: #fff;
+}
+.filter-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.filter-panel-title { display: flex; gap: 12px; align-items: center; }
+.filter-panel-title h2 { margin: 0; font-size: 18px; }
+.filter-panel-title p { margin: 2px 0 0; font-size: 13px; color: #b9c2e0; }
+.active-filter-badge {
+  background: rgba(255,255,255,0.1);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.filter-panel-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.filter-field { min-width: 0; }
+.filter-field label {
+  display: block;
+  font-size: 12px;
+  color: #b9c2e0;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   FILTER DROPDOWN
+========================================================= */
+
+.filter-field select {
+  width: 100%;
+  height: 42px;
+  box-sizing: border-box;
+
+  padding: 0 40px 0 12px;
+
+  background-color: rgba(255, 255, 255, 0.08);
+
+  /* Custom arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c2e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+
+  outline: none;
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Hover */
+.filter-field select:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.30);
+}
+
+/* Focus */
+.filter-field select:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+/* Dropdown options */
+.filter-field select option {
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 13px;
+  padding: 10px;
+}
+
+/* Selected option */
+.filter-field select option:checked {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* Disabled option */
+.filter-field select option:disabled {
+  color: #9ca3af;
+}
+
+/* Remove browser focus outline */
+.filter-field select:focus-visible {
+  outline: none;
+}
+
+
+
+
+/* =========================================================
+   CUSTOM SELECT (replaces native <select> for styled popup)
+========================================================= */
+
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  height: 42px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: #ffffff;
+  border-radius: 10px;
+  color: #1e2a5e;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.custom-select.open .custom-select-trigger {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+}
+
+.custom-select-trigger .chevron {
+  color: #9ca3af;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.custom-select.open .custom-select-trigger .chevron {
+  transform: rotate(180deg);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  padding: 6px;
+  box-sizing: border-box;
+  z-index: 50;
+}
+
+.custom-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-option:hover {
+  background: #f3f4f6;
+}
+
+.custom-select-option.selected {
+  background: #eef2ff;
+  color: #4338ca;
+  font-weight: 700;
+}
+
+.custom-select-option .check-icon {
+  color: #4338ca;
+  font-size: 12px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.custom-select-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-select-dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 8px;
+}
+
+/* --- Search field fix --- */
+/* Scoped override so it doesn't fight the old .auction-search rules
+   used elsewhere (e.g. table header search box) */
+.filter-search-field .auction-search {
+  position: relative;
+  width: 100%;
+  height: auto;
+  display: block;
+  border: none;
+  padding: 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.filter-search-field .auction-search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7c86ad;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.filter-search-field .auction-search input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #1e2a5e;
+  border-radius: 8px;
+  padding: 10px 12px 10px 36px;
+  font-size: 14px;
+  line-height: 20px;
+  height: auto;
+  margin: 0;
+}
+
+.filter-search-field .auction-search input::placeholder {
+  color: #8c93b0;
+}
+.filter-panel-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-range-inputs span {
+  color: #b9c2e0;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.filter-range-inputs .filter-date-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.auction-table .col-highest-bid {
+  width: 12%;
+}
+
+
+.auction-table .col-winner-name {
+  width: 12%;
+}
+
+.auction-table .col-bidder-name {
+  width: 12%;
+}
+
+
+.auction-table .col-payment-status {
+  width: 12%;
+}
+
+.auction-table .col-payment-type {
+  width: 10%;
+}
+
+.payment-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+.payment-status-paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.payment-status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.payment-status-failed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.payment-status-refunded {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+
+/* =========================================================
+   COMPLETED AUCTION - PAYMENT COLUMNS
+   ========================================================= */
+
+.auction-table .col-payment-status {
+  min-width: 140px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.auction-table .col-payment-type {
+  min-width: 130px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.auction-table .col-date {
+  min-width: 150px;
+  padding-left: 35px;
+}
+
+.filter-showing-count { font-size: 14px; color: #dfe3f5; }
+
+.clear-filters-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.clear-filters-btn:hover {
+  background: rgba(255,255,255,0.08);
+}

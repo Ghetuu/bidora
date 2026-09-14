@@ -277,6 +277,8 @@ async def process_pending_auctions(db):
 
                 auction.status = "rejected"
 
+                auction.rejected_by = "Automatic"
+                auction.rejected_at = datetime.now()
                 auction.rejection_reason = result["reason"]
 
                 # ---------------------------------------------
@@ -325,7 +327,18 @@ async def process_pending_auctions(db):
 
                 auction.status = "approved"
 
+                # ---------------------------------------------
+                # APPROVAL TRACKING
+                # ---------------------------------------------
+
+                auction.approved_by = "system"
+                auction.approved_at = datetime.now()
+
+                # Clear any previous rejection information
+                auction.rejected_by = None
+                auction.rejected_at = None
                 auction.rejection_reason = None
+
 
                 # ---------------------------------------------
                 # WEB / IN-APP SELLER NOTIFICATION

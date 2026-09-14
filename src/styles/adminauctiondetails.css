@@ -1,0 +1,577 @@
+/* =========================================================
+   ADMIN AUCTION DETAILS PAGE
+========================================================= */
+
+.admin-auction-details-page {
+  min-height: 100vh;
+  padding: 28px;
+  background: #f7f8fc;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.admin-details-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.admin-details-header > div {
+  flex: 1;
+}
+
+.admin-details-header h1 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 700;
+  color: #20232a;
+}
+
+.admin-details-header p {
+  margin: 6px 0 0;
+  color: #777;
+  font-size: 14px;
+}
+
+.admin-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  border: none;
+  background: #ffffff;
+
+  padding: 10px 16px;
+
+  border-radius: 9px;
+
+  cursor: pointer;
+
+  color: #444;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
+  transition: 0.2s;
+}
+
+.admin-back-btn:hover {
+  transform: translateX(-2px);
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.admin-detail-status {
+  padding: 8px 15px;
+
+  border-radius: 20px;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.status-pending {
+  background: #fff4d6;
+  color: #a66a00;
+}
+
+.status-approved {
+  background: #e3f8ec;
+  color: #168044;
+}
+
+.status-rejected {
+  background: #ffe4e4;
+  color: #c62828;
+}
+
+.status-live {
+  background: #e2f0ff;
+  color: #1464b4;
+}
+
+.status-ended {
+  background: #eeeeee;
+  color: #666;
+}
+
+.status-draft {
+  background: #f0eaff;
+  color: #7045b5;
+}
+
+
+/* =========================================================
+   MAIN PRODUCT CARD
+========================================================= */
+
+.admin-details-main-card {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 28px;
+
+  background: #ffffff;
+
+  border-radius: 16px;
+
+  padding: 25px;
+
+  margin-bottom: 20px;
+
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+}
+
+
+/* =========================================================
+   GALLERY
+========================================================= */
+
+.admin-gallery-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 10px;
+}
+
+.admin-gallery-image {
+  height: 170px;
+
+  overflow: hidden;
+
+  border-radius: 11px;
+
+  background: #f2f3f7;
+}
+
+.admin-gallery-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition: transform 0.25s ease;
+}
+
+.admin-gallery-image:hover img {
+  transform: scale(1.05);
+}
+
+.admin-no-image {
+  height: 250px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  color: #999;
+
+  background: #f5f6fa;
+
+  border-radius: 12px;
+}
+
+.admin-no-image svg {
+  font-size: 35px;
+}
+
+
+/* =========================================================
+   PRODUCT SUMMARY
+========================================================= */
+
+.admin-product-summary {
+  padding: 10px;
+}
+
+.admin-product-category {
+  display: inline-block;
+
+  padding: 6px 12px;
+
+  border-radius: 20px;
+
+  background: #f0eaff;
+
+  color: #6d43b5;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-product-summary h2 {
+  margin: 15px 0 5px;
+
+  font-size: 27px;
+
+  color: #20232a;
+}
+
+.admin-product-brand {
+  margin: 0;
+
+  color: #777;
+
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   PRICE
+========================================================= */
+
+.admin-price-box {
+  display: flex;
+
+  gap: 30px;
+
+  margin-top: 30px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #eee;
+}
+
+.admin-price-box div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.admin-price-box small {
+  color: #888;
+
+  font-size: 12px;
+}
+
+.admin-price-box strong {
+  color: #5d35a5;
+
+  font-size: 21px;
+}
+
+
+/* =========================================================
+   DETAIL CARDS
+========================================================= */
+
+.admin-detail-card {
+  background: #ffffff;
+
+  border-radius: 15px;
+
+  padding: 24px;
+
+  margin-bottom: 20px;
+
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.04);
+}
+
+.admin-card-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding-bottom: 16px;
+
+  margin-bottom: 20px;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.admin-card-title svg {
+  color: #6d43b5;
+
+  font-size: 17px;
+}
+
+.admin-card-title h3 {
+  margin: 0;
+
+  font-size: 17px;
+
+  color: #282828;
+}
+
+
+/* =========================================================
+   DETAILS GRID
+========================================================= */
+
+.admin-details-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 20px;
+}
+
+.admin-detail-item {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+
+  padding: 13px 15px;
+
+  background: #f8f8fb;
+
+  border-radius: 9px;
+}
+
+.admin-detail-label {
+  font-size: 11px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.5px;
+
+  color: #888;
+
+  font-weight: 600;
+}
+
+.admin-detail-value {
+  color: #292929;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.admin-description {
+  margin: 0;
+
+  line-height: 1.7;
+
+  color: #555;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   TERMS
+========================================================= */
+
+.admin-terms-box {
+  background: #f8f8fb;
+
+  border-radius: 10px;
+
+  padding: 17px;
+
+  color: #555;
+
+  line-height: 1.6;
+
+  font-size: 14px;
+
+  white-space: pre-wrap;
+}
+
+.admin-terms-status {
+  display: flex;
+
+  gap: 8px;
+
+  margin-top: 15px;
+
+  font-size: 14px;
+}
+
+.admin-terms-status span {
+  color: #168044;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   DOCUMENTS
+========================================================= */
+
+.admin-document-grid {
+  display: flex;
+
+  gap: 15px;
+
+  flex-wrap: wrap;
+}
+
+.admin-document-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 11px 18px;
+
+  border-radius: 8px;
+
+  background: #6d43b5;
+
+  color: white;
+
+  text-decoration: none;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  transition: 0.2s;
+}
+
+.admin-document-btn:hover {
+  background: #583394;
+
+}
+
+.admin-document-missing {
+  padding: 11px 18px;
+
+  border-radius: 8px;
+
+  background: #f1f1f1;
+
+  color: #999;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   NOT FOUND
+========================================================= */
+
+.admin-auction-not-found {
+  min-height: 70vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.admin-auction-not-found svg {
+  font-size: 50px;
+
+  color: #aaa;
+
+  margin-bottom: 15px;
+}
+
+.admin-auction-not-found h2 {
+  margin: 0 0 8px;
+
+  color: #333;
+}
+
+.admin-auction-not-found p {
+  color: #888;
+
+  margin-bottom: 20px;
+}
+
+.admin-auction-not-found button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  border: none;
+
+  background: #6d43b5;
+
+  color: white;
+
+  padding: 11px 18px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+  .admin-details-main-card {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .admin-auction-details-page {
+    padding: 15px;
+  }
+
+  .admin-details-header {
+    flex-wrap: wrap;
+  }
+
+  .admin-details-header > div {
+    min-width: 200px;
+  }
+
+  .admin-details-header h1 {
+    font-size: 22px;
+  }
+
+  .admin-details-main-card {
+    padding: 16px;
+  }
+
+  .admin-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-gallery-image {
+    height: 130px;
+  }
+
+  .admin-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-price-box {
+    flex-direction: column;
+    gap: 15px;
+  }
+}

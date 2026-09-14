@@ -368,70 +368,112 @@ function AdminDashboard() {
 
             {auctionMenu && (
 
-              <ul className="submenu">
+  <ul className="submenu">
 
-                <li
-                  onClick={(e) => {
+    {/* ALL */}
 
-                    e.stopPropagation();
+    <li
+      onClick={(e) => {
 
-                    goTo(
-                      "/admin/dashboard/auctions"
-                    );
+        e.stopPropagation();
 
-                  }}
-                >
-                  All Auctions
-                </li>
+        goTo(
+          "/admin/dashboard/auctions"
+        );
 
-
-                <li
-                  onClick={(e) => {
-
-                    e.stopPropagation();
-
-                    goTo(
-                      "/admin/dashboard/auctions/live"
-                    );
-
-                  }}
-                >
-                  Live Auctions
-                </li>
+      }}
+    >
+      All Auctions
+    </li>
 
 
-                <li
-                  onClick={(e) => {
+    {/* APPROVED */}
 
-                    e.stopPropagation();
+    <li
+      onClick={(e) => {
 
-                    goTo(
-                      "/admin/dashboard/auctions/pending"
-                    );
+        e.stopPropagation();
 
-                  }}
-                >
-                  Pending Auctions
-                </li>
+        goTo(
+          "/admin/dashboard/auctions/approved"
+        );
+
+      }}
+    >
+      Approved Auctions
+    </li>
 
 
-                <li
-                  onClick={(e) => {
+    {/* REJECTED */}
 
-                    e.stopPropagation();
+    <li
+      onClick={(e) => {
 
-                    goTo(
-                      "/admin/dashboard/auctions/completed"
-                    );
+        e.stopPropagation();
 
-                  }}
-                >
-                  Completed Auctions
-                </li>
+        goTo(
+          "/admin/dashboard/auctions/rejected"
+        );
 
-              </ul>
+      }}
+    >
+      Rejected Auctions
+    </li>
 
-            )}
+
+    {/* LIVE */}
+
+    <li
+      onClick={(e) => {
+
+        e.stopPropagation();
+
+        goTo(
+          "/admin/dashboard/auctions/live"
+        );
+
+      }}
+    >
+      Live Auctions
+    </li>
+
+
+    {/* PENDING */}
+
+    <li
+      onClick={(e) => {
+
+        e.stopPropagation();
+
+        goTo(
+          "/admin/dashboard/auctions/pending"
+        );
+
+      }}
+    >
+      Pending Auctions
+    </li>
+
+
+    {/* COMPLETED */}
+
+    <li
+      onClick={(e) => {
+
+        e.stopPropagation();
+
+        goTo(
+          "/admin/dashboard/auctions/completed"
+        );
+
+      }}
+    >
+      Completed Auctions
+    </li>
+
+  </ul>
+
+)}
 
           </li>
 

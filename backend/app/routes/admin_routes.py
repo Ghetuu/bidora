@@ -10,6 +10,7 @@ from app.models.user import User
 from app.models.auction import Auction
 from app.models.auction_image import AuctionImage
 from app.models.contact_message import ContactMessage
+from datetime import datetime
 
 
 class AuctionReject(BaseModel):
@@ -669,6 +670,11 @@ async def approve_auction(
     # =================================================
 
     auction.status = "approved"
+    auction.approved_by = "admin"
+    auction.approved_at = datetime.utcnow()
+
+    auction.rejected_by = None
+    auction.rejected_at = None
     auction.rejection_reason = None
 
     # =================================================
@@ -879,6 +885,11 @@ async def reject_auction(
     # =================================================
 
     auction.status = "rejected"
+    auction.rejected_by = "admin"
+    auction.rejected_at = datetime.utcnow()
+
+    auction.approved_by = None
+    auction.approved_at = None
     auction.rejection_reason = remark
 
     # =================================================
@@ -1575,3 +1586,727 @@ Bidora
             status_code=500,
             detail="Failed to send reply."
         )
+
+# =====================================================
+# GET AUCTIONS BY STATUS
+# =====================================================
+
+@router.get("/auctions/status/{status}")
+def get_auctions_by_status(
+    status: str,
+    db: Session = Depends(get_db)
+):
+
+    allowed_statuses = [
+        "pending",
+        "approved",
+        "rejected",
+        "live",
+        "ended"
+    ]
+
+    status = status.strip().lower()
+
+    if status not in allowed_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid auction status."
+        )
+
+    auctions = (
+        db.query(Auction)
+        .filter(
+            Auction.status == status
+        )
+        .order_by(
+            Auction.created_at.desc()
+        )
+        .all()
+    )
+
+    result = []
+
+    for auction in auctions:
+
+        # =================================================
+        # USER
+        # =================================================
+
+        user = (
+            db.query(User)
+            .filter(
+                User.id == auction.user_id
+            )
+            .first()
+        )
+
+        # =================================================
+        # IMAGES
+        # =================================================
+
+        images = (
+            db.query(AuctionImage)
+            .filter(
+                AuctionImage.auction_id == auction.id
+            )
+            .order_by(
+                AuctionImage.display_order.asc()
+            )
+            .all()
+        )
+
+        # =================================================
+        # AUCTION DATA
+        # =================================================
+
+        result.append({
+
+            "id": auction.id,
+
+            "user_id": auction.user_id,
+
+            # =================================================
+            # CREATED BY USER
+            # =================================================
+
+            "created_by_user": {
+
+                "id": user.id if user else None,
+
+                "fullname": (
+                    user.fullname
+                    if user
+                    else None
+                ),
+
+                "username": (
+                    user.username
+                    if user
+                    else None
+                ),
+
+                "email": (
+                    user.email
+                    if user
+                    else None
+                ),
+
+                "mobile": (
+                    user.mobile
+                    if user
+                    else None
+                ),
+
+                "address": (
+                    user.address
+                    if user
+                    else None
+                ),
+
+                "email_verified": (
+                    user.email_verified
+                    if user
+                    else None
+                ),
+
+                "account_status": (
+                    user.account_status
+                    if user
+                    else None
+                ),
+
+                "admin_remark": (
+                    user.admin_remark
+                    if user
+                    else None
+                ),
+
+                "registration_date": (
+                    user.registration_date.isoformat()
+                    if user and user.registration_date
+                    else None
+                ),
+            },
+
+            # =================================================
+            # PRODUCT
+            # =================================================
+
+            "product_title": auction.product_title,
+
+            "brand_model": auction.brand_model,
+
+            "category": auction.category,
+
+            "description": auction.description,
+
+            "product_condition": auction.product_condition,
+
+            # =================================================
+            # PURCHASE
+            # =================================================
+
+            "purchase_date": (
+                auction.purchase_date.isoformat()
+                if auction.purchase_date
+                else None
+            ),
+
+            "purchased_by": auction.purchased_by,
+
+            "purchase_price": (
+                float(auction.purchase_price)
+                if auction.purchase_price is not None
+                else 0
+            ),
+
+            # =================================================
+            # AUCTION
+            # =================================================
+
+            "starting_price": (
+                float(auction.starting_price)
+                if auction.starting_price is not None
+                else 0
+            ),
+
+            "auction_start": (
+                auction.auction_start.isoformat()
+                if auction.auction_start
+                else None
+            ),
+
+            "auction_end": (
+                auction.auction_end.isoformat()
+                if auction.auction_end
+                else None
+            ),
+
+            # =================================================
+            # LOCATION
+            # =================================================
+
+            "location_area": auction.location_area,
+
+            "location_city": auction.location_city,
+
+            "location_state": auction.location_state,
+
+            "location_country": auction.location_country,
+
+            "location_pincode": auction.location_pincode,
+
+            # =================================================
+            # DELIVERY
+            # =================================================
+
+            "delivery_type": auction.delivery_type,
+
+            "shipping_type": auction.shipping_type,
+
+            "shipping_charges": (
+                float(auction.shipping_charges)
+                if auction.shipping_charges is not None
+                else 0
+            ),
+
+            "shipping_paid_by": auction.shipping_paid_by,
+
+            # =================================================
+            # WARRANTY
+            # =================================================
+
+            "warranty_status": auction.warranty_status,
+
+            # =================================================
+            # PAYMENT
+            # =================================================
+
+            "payment_method": auction.payment_method,
+
+            # =================================================
+            # TERMS
+            # =================================================
+
+            "product_terms": auction.product_terms,
+
+            "terms_accepted": auction.terms_accepted,
+
+            # =================================================
+            # SELLER
+            # =================================================
+
+            "seller_name": auction.seller_name,
+
+            "seller_email": auction.seller_email,
+
+            "seller_contact": auction.seller_contact,
+
+            # =================================================
+            # FILES
+            # =================================================
+
+            "purchase_proof_path": (
+                auction.purchase_proof_path
+            ),
+
+            "seller_proof_path": (
+                auction.seller_proof_path
+            ),
+
+            # =================================================
+            # IMAGES
+            # =================================================
+
+            "images": [
+
+                {
+                    "id": image.id,
+
+                    "image_path": image.image_path,
+
+                    "display_order": image.display_order
+
+                }
+
+                for image in images
+
+            ],
+
+            # =================================================
+            # STATUS
+            # =================================================
+
+            # =================================================
+            # STATUS / APPROVAL / REJECTION
+            # =================================================
+
+            "status": auction.status,
+
+            "approved_by": getattr(
+                auction,
+                "approved_by",
+                None
+            ),
+
+            "approved_at": (
+                auction.approved_at.isoformat()
+                if getattr(auction, "approved_at", None)
+                else None
+            ),
+
+            "rejected_by": getattr(
+                auction,
+                "rejected_by",
+                None
+            ),
+
+            "rejected_at": (
+                auction.rejected_at.isoformat()
+                if getattr(auction, "rejected_at", None)
+                else None
+            ),
+
+            "rejection_reason": getattr(
+                auction,
+                "rejection_reason",
+                None
+            ),
+
+            # =================================================
+            # DATES
+            # =================================================
+
+            "created_at": (
+                auction.created_at.isoformat()
+                if auction.created_at
+                else None
+            ),
+
+            "updated_at": (
+                auction.updated_at.isoformat()
+                if auction.updated_at
+                else None
+            )
+
+        })
+
+    return result
+
+# =========================================================
+# GET ALL AUCTIONS
+# =========================================================
+
+# =========================================================
+# GET ALL AUCTIONS
+# =========================================================
+
+@router.get("/auctions/all")
+def get_all_auctions(
+    db: Session = Depends(get_db)
+):
+
+    # =====================================================
+    # GET ALL AUCTIONS
+    # =====================================================
+
+    auctions = (
+        db.query(Auction)
+        .order_by(
+            Auction.created_at.desc()
+        )
+        .all()
+    )
+
+    result = []
+
+    for auction in auctions:
+
+        # =================================================
+        # GET USER
+        # =================================================
+
+        user = (
+            db.query(User)
+            .filter(
+                User.id == auction.user_id
+            )
+            .first()
+        )
+
+        # =================================================
+        # GET IMAGES
+        # =================================================
+
+        images = (
+            db.query(AuctionImage)
+            .filter(
+                AuctionImage.auction_id == auction.id
+            )
+            .order_by(
+                AuctionImage.display_order.asc()
+            )
+            .all()
+        )
+
+        # =================================================
+        # AUCTION DATA
+        # =================================================
+
+        result.append({
+
+            # =================================================
+            # BASIC
+            # =================================================
+
+            "id": auction.id,
+
+            "user_id": auction.user_id,
+
+
+            # =================================================
+            # CREATED BY USER
+            # =================================================
+
+            "created_by_user": {
+
+                "id": user.id if user else None,
+
+                "fullname": (
+                    user.fullname
+                    if user
+                    else None
+                ),
+
+                "username": (
+                    user.username
+                    if user
+                    else None
+                ),
+
+                "email": (
+                    user.email
+                    if user
+                    else None
+                ),
+
+                "mobile": (
+                    user.mobile
+                    if user
+                    else None
+                ),
+
+                "address": (
+                    user.address
+                    if user
+                    else None
+                ),
+
+                "email_verified": (
+                    user.email_verified
+                    if user
+                    else None
+                ),
+
+                "account_status": (
+                    user.account_status
+                    if user
+                    else None
+                ),
+
+                "admin_remark": (
+                    user.admin_remark
+                    if user
+                    else None
+                ),
+
+                "registration_date": (
+                    user.registration_date.isoformat()
+                    if user and user.registration_date
+                    else None
+                ),
+
+            },
+
+
+            # =================================================
+            # PRODUCT
+            # =================================================
+
+            "product_title":
+                auction.product_title,
+
+            "brand_model":
+                auction.brand_model,
+
+            "category":
+                auction.category,
+
+            "description":
+                auction.description,
+
+            "product_condition":
+                auction.product_condition,
+
+
+            # =================================================
+            # PURCHASE
+            # =================================================
+
+            "purchase_date": (
+                auction.purchase_date.isoformat()
+                if auction.purchase_date
+                else None
+            ),
+
+            "purchased_by":
+                auction.purchased_by,
+
+            "purchase_price": (
+                float(auction.purchase_price)
+                if auction.purchase_price is not None
+                else 0
+            ),
+
+
+            # =================================================
+            # AUCTION
+            # =================================================
+
+            "starting_price": (
+                float(auction.starting_price)
+                if auction.starting_price is not None
+                else 0
+            ),
+
+            "auction_start": (
+                auction.auction_start.isoformat()
+                if auction.auction_start
+                else None
+            ),
+
+            "auction_end": (
+                auction.auction_end.isoformat()
+                if auction.auction_end
+                else None
+            ),
+
+
+            # =================================================
+            # LOCATION
+            # =================================================
+
+            "location_area":
+                auction.location_area,
+
+            "location_city":
+                auction.location_city,
+
+            "location_state":
+                auction.location_state,
+
+            "location_country":
+                auction.location_country,
+
+            "location_pincode":
+                auction.location_pincode,
+
+
+            # =================================================
+            # DELIVERY
+            # =================================================
+
+            "delivery_type":
+                auction.delivery_type,
+
+            "shipping_type":
+                auction.shipping_type,
+
+            "shipping_charges": (
+                float(auction.shipping_charges)
+                if auction.shipping_charges is not None
+                else 0
+            ),
+
+            "shipping_paid_by":
+                auction.shipping_paid_by,
+
+
+            # =================================================
+            # WARRANTY
+            # =================================================
+
+            "warranty_status":
+                auction.warranty_status,
+
+
+            # =================================================
+            # PAYMENT
+            # =================================================
+
+            "payment_method":
+                auction.payment_method,
+
+
+            # =================================================
+            # TERMS
+            # =================================================
+
+            "product_terms":
+                auction.product_terms,
+
+            "terms_accepted":
+                auction.terms_accepted,
+
+
+            # =================================================
+            # SELLER
+            # =================================================
+
+            "seller_name":
+                auction.seller_name,
+
+            "seller_email":
+                auction.seller_email,
+
+            "seller_contact":
+                auction.seller_contact,
+
+
+            # =================================================
+            # FILES
+            # =================================================
+
+            "purchase_proof_path":
+                auction.purchase_proof_path,
+
+            "seller_proof_path":
+                auction.seller_proof_path,
+
+
+            # =================================================
+            # PRODUCT IMAGES
+            # =================================================
+
+            "images": [
+
+                {
+                    "id":
+                        image.id,
+
+                    "image_path":
+                        image.image_path,
+
+                    "display_order":
+                        image.display_order
+
+                }
+
+                for image in images
+
+            ],
+
+
+            # =================================================
+            # STATUS
+            # =================================================
+
+            # =================================================
+            # STATUS / APPROVAL / REJECTION
+            # =================================================
+
+            "status":
+                auction.status,
+
+            "approved_by":
+                getattr(
+                    auction,
+                    "approved_by",
+                    None
+                ),
+
+            "approved_at": (
+                auction.approved_at.isoformat()
+                if getattr(auction, "approved_at", None)
+                else None
+            ),
+
+            "rejected_by":
+                getattr(
+                    auction,
+                    "rejected_by",
+                    None
+                ),
+
+            "rejected_at": (
+                auction.rejected_at.isoformat()
+                if getattr(auction, "rejected_at", None)
+                else None
+            ),
+
+            "rejection_reason":
+                getattr(
+                    auction,
+                    "rejection_reason",
+                    None
+                ),
+
+            # =================================================
+            # DATES
+            # =================================================
+
+            "created_at": (
+                auction.created_at.isoformat()
+                if auction.created_at
+                else None
+            ),
+
+            "updated_at": (
+                auction.updated_at.isoformat()
+                if auction.updated_at
+                else None
+            )
+
+        })
+
+    return result

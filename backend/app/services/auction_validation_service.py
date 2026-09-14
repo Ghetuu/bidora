@@ -222,16 +222,22 @@ def validate_auction(
             user.fullname
         )
 
+        registered_username = normalize_text(
+            user.username
+        )
+
         if not auction_seller_name:
             errors.append(
                 "Seller name is missing."
             )
 
-        elif auction_seller_name != registered_name:
+        elif auction_seller_name not in {
+            registered_name,
+            registered_username
+        }:
             errors.append(
                 "Seller name does not match the registered user name."
             )
-
         # -------------------------------------------------
         # SELLER EMAIL MATCH
         # -------------------------------------------------
