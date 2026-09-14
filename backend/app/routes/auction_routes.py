@@ -392,6 +392,89 @@ def get_my_auctions(
 
 
 # =========================================================
+# DELETE MY AUCTION
+# =========================================================
+
+@router.delete("/{auction_id}")
+def delete_my_auction(
+    auction_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+
+        # =====================================================
+        # FIND AUCTION
+        # Only allow the logged-in user to delete their own
+        # auction.
+        # =====================================================
+
+        auction = (
+            db.query(Auction)
+            .filter(
+                Auction.id == auction_id,
+                Auction.user_id == current_user.id
+            )
+            .first()
+        )
+
+        if not auction:
+
+            raise HTTPException(
+                status_code=404,
+                detail="Auction not found or you do not have permission to delete it."
+            )
+
+
+        # =====================================================
+        # DELETE AUCTION IMAGES FIRST
+        # =====================================================
+
+        db.query(AuctionImage).filter(
+            AuctionImage.auction_id == auction.id
+        ).delete(
+            synchronize_session=False
+        )
+
+
+        # =====================================================
+        # DELETE AUCTION
+        # =====================================================
+
+        db.delete(auction)
+
+        db.commit()
+
+
+        # =====================================================
+        # RESPONSE
+        # =====================================================
+
+        return {
+            "success": True,
+            "message": "Auction deleted successfully.",
+            "auction_id": auction_id
+        }
+
+
+    except HTTPException:
+        raise
+
+
+    except Exception as e:
+
+        db.rollback()
+
+        print(
+            "DELETE AUCTION ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to delete auction."
+        )
+#=========================================================
 # GET ALL APPROVED AUCTIONS
 # Shows approved auctions from ALL USERS
 # =========================================================

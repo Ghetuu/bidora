@@ -6,9 +6,13 @@ from datetime import datetime, timedelta
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException
+    HTTPException,
+    UploadFile,
+    File,
+    Form
 )
-
+import os
+import shutil
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -29,7 +33,10 @@ from app.models.user import User
 from app.models.email_otp import EmailOTP
 from app.models.notification import Notification
 from app.core.auth import get_current_user
-from app.schemas.user import UserCreate
+from app.schemas.user import (
+    UserCreate,
+    UserProfileUpdate
+)
 
 from app.schemas.login import (
     LoginRequest,
@@ -781,6 +788,288 @@ async def verify_login_otp(
         "token_type": "bearer",
 
         "user": {
+            "id": user.id,
+            "fullname": user.fullname,
+            "username": user.username,
+            "email": user.email,
+            "mobile": user.mobile,
+            "address": user.address,
+            "profile_image": user.profile_image,
+            "email_verified": user.email_verified,
+            "account_status": user.account_status,
+            "admin_remark": user.admin_remark,
+            "registration_date": (
+                user.registration_date.isoformat()
+                if user.registration_date
+                else None
+            )
+        }
+    }
+
+# =========================================================
+# UPDATE USER PROFILE
+# =========================================================
+
+@router.put("/profile")
+async def update_user_profile(
+    fullname: str = Form(...),
+    username: str = Form(...),
+    email: EmailStr = Form(...),
+    mobile: str = Form(...),
+    address: str = Form(...),
+    profile_image: UploadFile | None = File(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    # =====================================================
+    # GET USER FROM CURRENT DB SESSION
+    # =====================================================
+
+    user = (
+        db.query(User)
+        .filter(User.id == current_user.id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    # =====================================================
+    # CLEAN VALUES
+    # =====================================================
+
+    fullname = fullname.strip()
+    username = username.strip()
+    email = str(email).lower().strip()
+    mobile = mobile.strip()
+    address = address.strip()
+
+    # =====================================================
+    # VALIDATE PROFILE DATA
+    # =====================================================
+
+    try:
+
+        validated_data = UserProfileUpdate(
+            fullname=fullname,
+            username=username,
+            email=email,
+            mobile=mobile,
+            address=address
+        )
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    # =====================================================
+    # CHECK USERNAME
+    # =====================================================
+
+    existing_username = (
+        db.query(User)
+        .filter(
+            User.username == username,
+            User.id != user.id
+        )
+        .first()
+    )
+
+    if existing_username:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Username is already taken."
+        )
+
+    # =====================================================
+    # CHECK EMAIL
+    # =====================================================
+
+    existing_email = (
+        db.query(User)
+        .filter(
+            User.email == email,
+            User.id != user.id
+        )
+        .first()
+    )
+
+    if existing_email:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Email address is already registered."
+        )
+
+    # =====================================================
+    # CHECK MOBILE
+    # =====================================================
+
+    existing_mobile = (
+        db.query(User)
+        .filter(
+            User.mobile == mobile,
+            User.id != user.id
+        )
+        .first()
+    )
+
+    if existing_mobile:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Mobile number is already registered."
+        )
+
+    # =====================================================
+    # UPDATE USER DETAILS
+    # =====================================================
+
+    user.fullname = validated_data.fullname
+    user.username = validated_data.username
+    user.email = validated_data.email
+    user.mobile = validated_data.mobile
+    user.address = validated_data.address
+
+    # =====================================================
+    # PROFILE IMAGE
+    # =====================================================
+
+    if profile_image is not None:
+
+        # ---------------------------------------------
+        # VALIDATE IMAGE
+        # ---------------------------------------------
+
+        allowed_types = {
+            "image/jpeg",
+            "image/png",
+            "image/jpg",
+            "image/webp"
+        }
+
+        if profile_image.content_type not in allowed_types:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Only JPG, JPEG, PNG and WEBP images are allowed."
+            )
+
+        # ---------------------------------------------
+        # CREATE UPLOAD DIRECTORY
+        # ---------------------------------------------
+
+        upload_directory = "uploads/profile_images"
+
+        os.makedirs(
+            upload_directory,
+            exist_ok=True
+        )
+
+        # ---------------------------------------------
+        # DELETE OLD IMAGE
+        # ---------------------------------------------
+
+        if user.profile_image:
+
+            old_image_path = user.profile_image.lstrip("/")
+
+            if os.path.exists(old_image_path):
+
+                try:
+
+                    os.remove(old_image_path)
+
+                except Exception as e:
+
+                    print(
+                        "Unable to delete old profile image:",
+                        str(e)
+                    )
+
+        # ---------------------------------------------
+        # CREATE NEW IMAGE NAME
+        # ---------------------------------------------
+
+        file_extension = os.path.splitext(
+            profile_image.filename
+        )[1].lower()
+
+        file_name = (
+            f"user_{user.id}"
+            f"{file_extension}"
+        )
+
+        file_path = os.path.join(
+            upload_directory,
+            file_name
+        )
+
+        # ---------------------------------------------
+        # SAVE IMAGE
+        # ---------------------------------------------
+
+        with open(
+            file_path,
+            "wb"
+        ) as buffer:
+
+            shutil.copyfileobj(
+                profile_image.file,
+                buffer
+            )
+
+        # ---------------------------------------------
+        # SAVE URL PATH IN DATABASE
+        # ---------------------------------------------
+
+        user.profile_image = (
+            f"/uploads/profile_images/{file_name}"
+        )
+
+    # =====================================================
+    # SAVE DATABASE CHANGES
+    # =====================================================
+
+    try:
+
+        db.commit()
+
+        db.refresh(user)
+
+    except Exception as e:
+
+        db.rollback()
+
+        print(
+            "PROFILE UPDATE ERROR:",
+            str(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to update profile."
+        )
+
+    # =====================================================
+    # RETURN UPDATED USER
+    # =====================================================
+
+    return {
+
+        "success": True,
+
+        "message": "Profile updated successfully.",
+
+        "user": {
 
             "id": user.id,
 
@@ -790,11 +1079,25 @@ async def verify_login_otp(
 
             "email": user.email,
 
-            "account_status": user.account_status
+            "mobile": user.mobile,
+
+            "address": user.address,
+
+            "profile_image": user.profile_image,
+
+            "email_verified": user.email_verified,
+
+            "account_status": user.account_status,
+
+            "admin_remark": user.admin_remark,
+
+            "registration_date": (
+                user.registration_date.isoformat()
+                if user.registration_date
+                else None
+            )
         }
     }
-
-
 # =========================================================
 # USER NOTIFICATIONS
 # =========================================================

@@ -56,6 +56,15 @@ class User(Base):
     )
 
     # ==========================================
+    # PROFILE IMAGE
+    # ==========================================
+
+    profile_image = Column(
+        String(255),
+        nullable=True
+    )
+
+    # ==========================================
     # EMAIL VERIFICATION
     # ==========================================
 
@@ -92,3 +101,4 @@ class User(Base):
         DateTime,
         server_default=func.now()
     )
+

@@ -10,11 +10,57 @@ import {
   FaBoxOpen,
   FaFilter,
   FaTimes,
+  FaChevronDown,   // add
+  FaCheck,
 } from "react-icons/fa";
 
 import "../styles/adminauctionlist.css";
 
 const API_URL = "http://127.0.0.1:8000";
+
+function CustomSelect({ label, value, options, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selected = options.find((opt) => opt.value === value);
+
+  return (
+    <div className="filter-field">
+      {label && <label>{label}</label>}
+      <div className={`custom-select ${open ? "open" : ""}`} ref={ref}>
+        <div className="custom-select-trigger" onClick={() => setOpen((p) => !p)}>
+          <span>{selected ? selected.label : "Select"}</span>
+          <FaChevronDown className="chevron" />
+        </div>
+        {open && (
+          <div className="custom-select-dropdown">
+            {options.map((opt) => (
+              <div
+                key={opt.value}
+                className={`custom-select-option ${opt.value === value ? "selected" : ""}`}
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+              >
+                <span>{opt.label}</span>
+                {opt.value === value && <FaCheck className="check-icon" />}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function AdminAuctionList({ status = "all", title = "All Auctions" }) {
   const navigate = useNavigate();
@@ -55,6 +101,30 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
   const [conditionFilter, setConditionFilter] = useState("all");
   const [priceFilter, setPriceFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
+  const [sellerFilter, setSellerFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
+  // Pending page: date range instead of Condition
+  const [dateFromFilter, setDateFromFilter] = useState("");
+  const [dateToFilter, setDateToFilter] = useState("");
+
+  // Bid amount search (row 1)
+  const [bidMinFilter, setBidMinFilter] = useState("");
+  const [bidMaxFilter, setBidMaxFilter] = useState("");
+
+  // Name searches (row 3)
+  const [sellerBidderFilter, setSellerBidderFilter] = useState("");
+  const [winnerFilter, setWinnerFilter] = useState("");
+   const isApprovedPage = status.toLowerCase() === "approved";
+  const isRejectedPage = status.toLowerCase() === "rejected";
+  const isLivePage = status.toLowerCase() === "live";
+  const isPendingPage = status.toLowerCase() === "pending";
+  const isCompletedPage =
+  ["completed", "ended"].includes(status.toLowerCase());
+  // Approved / Rejected / Live pages use "Seller Name" + "Date" filters
+  // instead of "Condition" + "Location"
+  const usesUserNameAndDateFilters =
+    isApprovedPage || isRejectedPage || isLivePage;
+
 
   const priceRanges = [
     { label: "All Prices", value: "all" },
@@ -76,25 +146,42 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
     ),
   ];
 
-  const uniqueConditions = [
+  const uniqueSellers = [
+    ...new Set(
+      auctions
+        .map((a) => a.created_by_user?.fullname || a.seller_name)
+        .filter(Boolean)
+    ),
+  ];
+    const uniqueConditions = [
     ...new Set(auctions.map((a) => a.condition).filter(Boolean)),
   ];
 
   const activeFilterCount = [
     statusFilter !== "all",
     categoryFilter !== "all",
-    conditionFilter !== "all",
+    usesUserNameAndDateFilters
+      ? sellerFilter !== "all"
+      : conditionFilter !== "all",
     priceFilter !== "all",
-    locationFilter !== "all",
+    usesUserNameAndDateFilters ? dateFilter !== "" : locationFilter !== "all",
   ].filter(Boolean).length;
 
-  const clearFilters = () => {
+ const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
     setCategoryFilter("all");
     setConditionFilter("all");
     setPriceFilter("all");
     setLocationFilter("all");
+    setSellerFilter("all");
+    setDateFilter("");
+    setDateFromFilter("");
+    setDateToFilter("");
+    setBidMinFilter("");
+    setBidMaxFilter("");
+    setSellerBidderFilter("");
+    setWinnerFilter("");
   };
 
   /* =========================================================
@@ -106,39 +193,64 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
   }, [status]);
 
   const fetchAuctions = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  try {
+    setLoading(true);
+    setError("");
 
-      let url = `${API_URL}/admin/auctions/all`;
+    let url = `${API_URL}/admin/auctions/all`;
 
-      if (status !== "all") {
-        url = `${API_URL}/admin/auctions/status/${status}`;
-      }
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch auctions");
-      }
-
-      const data = await response.json();
-
-      const auctionData = Array.isArray(data)
-        ? data
-        : data.auctions || [];
-
-      setAuctions(auctionData);
-      setFilteredAuctions(auctionData);
-      setSelectedAuctions([]);
-      setCurrentPage(1);
-    } catch (err) {
-      console.error("Auction fetch error:", err);
-      setError("Unable to load auctions.");
-    } finally {
-      setLoading(false);
+    // For "approved", fetch everything and filter client-side below,
+    // instead of relying on a strict status="approved" match from backend
+    if (status !== "all" && status.toLowerCase() !== "approved") {
+      url = `${API_URL}/admin/auctions/status/${status}`;
     }
-  };
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch auctions");
+    }
+
+    const data = await response.json();
+
+    let auctionData = Array.isArray(data) ? data : data.auctions || [];
+
+    if (status.toLowerCase() === "approved") {
+      auctionData = auctionData.filter((auction) => {
+        const currentStatus = (auction.status || "").toLowerCase();
+
+        const hasApprovalInfo =
+          auction.approved_by_name ||
+          auction.approved_by ||
+          auction.approver_name ||
+          auction.approvedBy ||
+          auction.approved_at ||
+          auction.approval_date ||
+          auction.approval_datetime ||
+          auction.approval_date_time;
+
+        // Keep it if it has any approval trace, OR its current status
+        // is one that only happens after approval
+        return (
+          hasApprovalInfo ||
+          ["approved", "live", "ended", "completed", "closed"].includes(
+            currentStatus
+          )
+        );
+      });
+    }
+
+    setAuctions(auctionData);
+    setFilteredAuctions(auctionData);
+    setSelectedAuctions([]);
+    setCurrentPage(1);
+  } catch (err) {
+    console.error("Auction fetch error:", err);
+    setError("Unable to load auctions.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* =========================================================
      SEARCH + FILTERS
@@ -196,12 +308,83 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
       const matchesCategory =
         categoryFilter === "all" || category === categoryFilter;
 
-      const matchesCondition =
-        conditionFilter === "all" ||
-        auction.condition === conditionFilter;
+      const bidderName =
+        auction.highest_bidder_name ||
+        auction.bidder_name ||
+        auction.current_bidder_name ||
+        "";
 
-      const matchesLocation =
-        locationFilter === "all" || city === locationFilter;
+      const winnerName =
+        auction.winner_name || auction.winning_bidder_name || "";
+
+      const highestBid = Number(
+        auction.highest_bid ||
+        auction.current_bid ||
+        auction.current_highest_bid ||
+        0
+      );
+
+      const matchesCondition = usesUserNameAndDateFilters
+        ? sellerFilter === "all" || seller === sellerFilter
+        : isPendingPage
+        ? true // Condition dropdown is replaced by date range on Pending
+        : conditionFilter === "all" || auction.condition === conditionFilter;
+
+      let matchesDateRange = true;
+
+      if (isPendingPage && (dateFromFilter || dateToFilter)) {
+        const auctionDate = auction.auction_start
+          ? new Date(auction.auction_start)
+          : null;
+
+        if (!auctionDate || isNaN(auctionDate.getTime())) {
+          matchesDateRange = false;
+        } else {
+          const dateOnly = auctionDate.toISOString().split("T")[0];
+          if (dateFromFilter && dateOnly < dateFromFilter) matchesDateRange = false;
+          if (dateToFilter && dateOnly > dateToFilter) matchesDateRange = false;
+        }
+      }
+
+      let matchesBid = true;
+
+      if (bidMinFilter || bidMaxFilter) {
+        const min = bidMinFilter ? Number(bidMinFilter) : -Infinity;
+        const max = bidMaxFilter ? Number(bidMaxFilter) : Infinity;
+        matchesBid = highestBid >= min && highestBid <= max;
+      }
+
+      const nameQuery = sellerBidderFilter.trim().toLowerCase();
+      const matchesSellerBidder =
+        !nameQuery ||
+        seller.toLowerCase().includes(nameQuery) ||
+        bidderName.toLowerCase().includes(nameQuery);
+
+      const winnerQuery = winnerFilter.trim().toLowerCase();
+      const matchesWinner =
+        !winnerQuery || winnerName.toLowerCase().includes(winnerQuery);
+
+      let matchesLocation = true;
+
+      if (usesUserNameAndDateFilters) {
+        if (dateFilter) {
+          const relevantRawDate = isRejectedPage
+            ? getRejectedAt(auction)
+            : getApprovedAt(auction);
+
+          const parsedDate = relevantRawDate
+            ? new Date(relevantRawDate)
+            : null;
+
+          matchesLocation =
+            !!parsedDate &&
+            !isNaN(parsedDate.getTime()) &&
+            parsedDate.toISOString().split("T")[0] === dateFilter;
+        }
+      } else {
+        matchesLocation =
+          locationFilter === "all" || city === locationFilter;
+      }
 
       let matchesPrice = true;
 
@@ -219,7 +402,11 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
         matchesCategory &&
         matchesCondition &&
         matchesLocation &&
-        matchesPrice
+        matchesPrice &&
+        matchesDateRange &&
+        matchesBid &&
+        matchesSellerBidder &&
+        matchesWinner
       );
     });
 
@@ -233,6 +420,17 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
     conditionFilter,
     locationFilter,
     priceFilter,
+    sellerFilter,
+    dateFilter,
+    usesUserNameAndDateFilters,
+    isRejectedPage,
+     isPendingPage,
+    dateFromFilter,
+    dateToFilter,
+    bidMinFilter,
+    bidMaxFilter,
+    sellerBidderFilter,
+    winnerFilter,
   ]);
 
   /* =========================================================
@@ -555,6 +753,50 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
     );
   };
 
+  const getHighestBid = (auction) => {
+    const bid =
+      auction.highest_bid ||
+      auction.current_bid ||
+      auction.current_highest_bid ||
+      0;
+
+    return `₹${Number(bid).toLocaleString("en-IN")}`;
+  };
+
+  const getBidderName = (auction) => {
+    return (
+      auction.highest_bidder_name ||
+      auction.bidder_name ||
+      auction.current_bidder_name ||
+      "No bids yet"
+    );
+  };
+
+  const getWinnerName = (auction) => {
+    return (
+      auction.winner_name ||
+      auction.winning_bidder_name ||
+      "Not decided yet"
+    );
+  }
+
+  const getPaymentStatus = (auction) => {
+    return (
+      auction.payment_status ||
+      auction.paymentStatus ||
+      "Pending"
+    );
+  };
+
+  const getPaymentType = (auction) => {
+    return (
+      auction.payment_type ||
+      auction.paymentType ||
+      auction.payment_method ||
+      "N/A"
+    );
+  };
+
   /* =========================================================
      AUCTION IMAGE
   ========================================================= */
@@ -609,11 +851,6 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
      STATUS CHECKS
   ========================================================= */
 
-  const isApprovedPage =
-    status.toLowerCase() === "approved";
-
-  const isRejectedPage =
-    status.toLowerCase() === "rejected";
 
   /* =========================================================
      LOADING
@@ -748,101 +985,156 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
           </div>
 
           {status.toLowerCase() === "all" && (
-            <div className="filter-field">
-              <label>Auction Status</label>
+            <CustomSelect
+              label="Auction Status"
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { label: "All Status", value: "all" },
+                { label: "Pending", value: "pending" },
+                { label: "Approved", value: "approved" },
+                { label: "Rejected", value: "rejected" },
+                { label: "Live", value: "live" },
+              ]}
+            />
+          )}
 
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value)
-                }
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="live">Live</option>
-              </select>
+          <CustomSelect
+            label="Category"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={[
+              { label: "All Categories", value: "all" },
+              ...uniqueCategories.map((c) => ({ label: c, value: c })),
+            ]}
+          />
+
+          {isLivePage && (
+            <div className="filter-field">
+              <label>Bid Amount</label>
+              <div className="filter-range-inputs">
+                <input
+                  type="number"
+                  className="filter-date-input"
+                  placeholder="Min"
+                  value={bidMinFilter}
+                  onChange={(e) => setBidMinFilter(e.target.value)}
+                />
+                <span>to</span>
+                <input
+                  type="number"
+                  className="filter-date-input"
+                  placeholder="Max"
+                  value={bidMaxFilter}
+                  onChange={(e) => setBidMaxFilter(e.target.value)}
+                />
+              </div>
             </div>
           )}
 
-          <div className="filter-field">
-            <label>Category</label>
-
-            <select
-              value={categoryFilter}
-              onChange={(e) =>
-                setCategoryFilter(e.target.value)
-              }
-            >
-              <option value="all">All Categories</option>
-
-              {uniqueCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
         </div>
+
+        {isLivePage && (
+          <div className="filter-panel-row">
+
+            <div className="filter-field">
+              <label>Seller / Bidder Name</label>
+              <input
+                type="text"
+                className="filter-date-input"
+                placeholder="Search seller or bidder..."
+                value={sellerBidderFilter}
+                onChange={(e) => setSellerBidderFilter(e.target.value)}
+              />
+            </div>
+
+            <div className="filter-field">
+              <label>Winner Name</label>
+              <input
+                type="text"
+                className="filter-date-input"
+                placeholder="Search winner..."
+                value={winnerFilter}
+                onChange={(e) => setWinnerFilter(e.target.value)}
+              />
+            </div>
+
+          </div>
+        )}
 
         <div className="filter-panel-row">
 
-          <div className="filter-field">
-            <label>Condition</label>
+          {usesUserNameAndDateFilters ? (
+              <CustomSelect
+                label="Seller Name"
+                value={sellerFilter}
+                onChange={setSellerFilter}
+                options={[
+                  { label: "All Sellers", value: "all" },
+                  ...uniqueSellers.map((s) => ({ label: s, value: s })),
+                ]}
+              />
+            ) : isPendingPage ? (
+              <div className="filter-field">
+                <label>Auction Date Range</label>
+                <div className="filter-range-inputs">
+                  <input
+                    type="date"
+                    className="filter-date-input"
+                    value={dateFromFilter}
+                    onChange={(e) => setDateFromFilter(e.target.value)}
+                  />
+                  <span>to</span>
+                  <input
+                    type="date"
+                    className="filter-date-input"
+                    value={dateToFilter}
+                    onChange={(e) => setDateToFilter(e.target.value)}
+                  />
+                </div>
+              </div>
+            ) : (
+              <CustomSelect
+                label="Condition"
+                value={conditionFilter}
+                onChange={setConditionFilter}
+                options={[
+                  { label: "All Conditions", value: "all" },
+                  ...uniqueConditions.map((c) => ({ label: c, value: c })),
+                ]}
+              />
+            )}
 
-            <select
-              value={conditionFilter}
-              onChange={(e) =>
-                setConditionFilter(e.target.value)
-              }
-            >
-              <option value="all">All Conditions</option>
+          <CustomSelect
+            label="Price Range"
+            value={priceFilter}
+            onChange={setPriceFilter}
+            options={priceRanges}
+          />
 
-              {uniqueConditions.map((condition) => (
-                <option key={condition} value={condition}>
-                  {condition}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-field">
-            <label>Price Range</label>
-
-            <select
-              value={priceFilter}
-              onChange={(e) =>
-                setPriceFilter(e.target.value)
-              }
-            >
-              {priceRanges.map((range) => (
-                <option key={range.value} value={range.value}>
-                  {range.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-field">
-            <label>Location</label>
-
-            <select
-              value={locationFilter}
-              onChange={(e) =>
-                setLocationFilter(e.target.value)
-              }
-            >
-              <option value="all">All Locations</option>
-
-              {uniqueLocations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-          </div>
+          {usesUserNameAndDateFilters ? (
+              <div className="filter-field">
+                <label>
+                  {isRejectedPage ? "Rejection Date" : "Approval Date"}
+                </label>
+                <input
+                  type="date"
+                  className="filter-date-input"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                />
+              </div>
+            ) : (
+              <CustomSelect
+                label="Location"
+                value={locationFilter}
+                onChange={setLocationFilter}
+                options={[
+                  { label: "All Locations", value: "all" },
+                  ...uniqueLocations.map((l) => ({ label: l, value: l })),
+                ]}
+              />
+            )}
 
         </div>
 
@@ -930,6 +1222,21 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                   Category
                 </th>
 
+                {isLivePage && (
+                  <>
+                    <th className="col-highest-bid">Highest Bid</th>
+                    <th className="col-bidder-name">Bidder Name</th>
+                    <th className="col-winner-name">Winner Name</th>
+                  </>
+                )}
+
+                {isCompletedPage && (
+  <>
+    <th className="col-winner-name">Winner Name</th>
+    <th className="col-payment-status">Payment Status</th>
+    <th className="col-payment-type">Payment Type</th>
+  </>
+)}
                 <th className="col-date">
                   Date & Time
                 </th>
@@ -975,16 +1282,12 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                 </th>
 
                 {status.toLowerCase() === "pending" && (
-  <th className="col-approval-actions">
-    Approval
-  </th>
-)}
+                  <th className="col-approval-actions">
+                    Approval
+                  </th>
+                )}
 
- {status.toLowerCase() === "live" && (
-  <th className="col-status">
-    Status
-  </th>
-)}
+                
 
               </tr>
             </thead>
@@ -1004,8 +1307,12 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
     ? 10
     : isRejectedPage
     ? 11
-    : status.toLowerCase() === "pending"
+    : isPendingPage
     ? 9
+    : isLivePage
+    ? 12
+    : isCompletedPage
+    ? 11
     : 8
 }
                     className="auction-empty"
@@ -1144,6 +1451,36 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                         </span>
                       </td>
 
+                      {/* HIGHEST BID / BIDDER NAME (Live page only) */}
+
+                      {isLivePage && (
+                        <>
+                          <td className="auction-price">
+                            {getHighestBid(auction)}
+                          </td>
+                          <td>{getBidderName(auction)}</td>
+                          <td>{getWinnerName(auction)}</td>
+                        </>
+                      )}
+
+                      {isCompletedPage && (
+                        <>
+                          <td>{getWinnerName(auction)}</td>
+                          <td>
+                            <span
+                              className={`payment-status-badge payment-status-${getPaymentStatus(
+                                auction
+                              )
+                                .toLowerCase()
+                                .replace(/\s+/g, "-")}`}
+                            >
+                              {getPaymentStatus(auction)}
+                            </span>
+                          </td>
+                          <td>{getPaymentType(auction)}</td>
+                        </>
+                      )}
+
                       {/* AUCTION START DATE */}
 
                       <td className="auction-date-time">
@@ -1159,7 +1496,6 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                             auction.auction_start
                           )}
                         </div>
-                        
 
                       </td>
 

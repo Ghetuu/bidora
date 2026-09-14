@@ -30,11 +30,60 @@ function Dashboard() {
   const [notifications, setNotifications] = useState([]);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationPopup, setNotificationPopup] = useState(false);
+  const [allNotificationsPopup, setAllNotificationsPopup] = useState(false);
 
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
+
+  // =========================================================
+// REFRESH USER AFTER PROFILE UPDATE
+// =========================================================
+
+useEffect(() => {
+
+  const handleProfileUpdated = () => {
+
+    try {
+
+      const storedUser =
+        localStorage.getItem("user");
+
+      if (storedUser) {
+
+        setUser(
+          JSON.parse(storedUser)
+        );
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Unable to refresh user profile:",
+        error
+      );
+
+    }
+
+  };
+
+  window.addEventListener(
+    "profileUpdated",
+    handleProfileUpdated
+  );
+
+  return () => {
+
+    window.removeEventListener(
+      "profileUpdated",
+      handleProfileUpdated
+    );
+
+  };
+
+}, []);
 
   // =========================================================
   // FETCH USER NOTIFICATIONS
@@ -76,6 +125,48 @@ function Dashboard() {
     }
   };
 
+  // =========================================================
+// MARK ALL NOTIFICATIONS AS READ
+// =========================================================
+
+const handleMarkAllAsRead = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+
+    if (!token || notificationCount === 0) {
+      return;
+    }
+
+    const unreadNotifications = notifications.filter(
+      (notification) => !notification.is_read
+    );
+
+    await Promise.all(
+      unreadNotifications.map((notification) =>
+        fetch(
+          `http://127.0.0.1:8000/api/users/notifications/${notification.id}/read`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+      )
+    );
+
+    setNotifications((previousNotifications) =>
+      previousNotifications.map((notification) => ({
+        ...notification,
+        is_read: true,
+      }))
+    );
+
+    setNotificationCount(0);
+  } catch (error) {
+    console.error("Mark all notifications error:", error);
+  }
+};
   // =========================================================
   // LOAD NOTIFICATIONS
   // =========================================================
@@ -288,8 +379,25 @@ if (notification.notif_type === "auction_approved") {
           <div className="sidebar-user-profile">
 
             <div className="sidebar-user-avatar">
-              <FaUserCircle />
-            </div>
+
+  {user?.profile_image ? (
+
+    <img
+      src={
+        user.profile_image.startsWith("http")
+          ? user.profile_image
+          : `http://127.0.0.1:8000${user.profile_image}`
+      }
+      alt="Profile"
+    />
+
+  ) : (
+
+    <FaUserCircle />
+
+  )}
+
+</div>
 
             <div className="sidebar-user-info">
               <strong>{user?.fullname || "User"}</strong>
@@ -433,13 +541,12 @@ if (notification.notif_type === "auction_approved") {
             <div className="history-submenu">
 
               <NavLink
-                to="/dashboard/history/auction"
-                className={navClass}
-              >
-                <FaHistory />
-                <span>Auction History</span>
-              </NavLink>
-
+  to="/dashboard/history/auction"
+  className={navClass}
+>
+  <FaHistory />
+  <span>Auction History</span>
+</NavLink>
               <NavLink
                 to="/dashboard/history/bid"
                 className={navClass}
@@ -461,17 +568,19 @@ if (notification.notif_type === "auction_approved") {
 
           {/* MANAGE PROFILE */}
 
-          <NavLink
-            to="/dashboard/profile"
-            className={navClass}
-            title="Manage Profile"
-          >
-            <FaUserCircle />
+          {/* MANAGE PROFILE */}
 
-            {sidebarOpen && (
-              <span>Manage Profile</span>
-            )}
-          </NavLink>
+<NavLink
+  to="/dashboard/manage-profile"
+  className={navClass}
+  title="Manage Profile"
+>
+  <FaUserCircle />
+
+  {sidebarOpen && (
+    <span>Manage Profile</span>
+  )}
+</NavLink>
 
         </div>
 
@@ -548,10 +657,12 @@ if (notification.notif_type === "auction_approved") {
                 <FaBell />
 
                 {notificationCount > 0 && (
-                  <span className="notification-badge">
-                    {notificationCount}
-                  </span>
-                )}
+  <span className="notification-badge">
+    {notificationCount > 5
+      ? "5+"
+      : notificationCount}
+  </span>
+)}
 
               </button>
 
@@ -561,101 +672,142 @@ if (notification.notif_type === "auction_approved") {
 
               {notificationPopup && (
 
-                <div className="user-notification-popup">
+  <div className="user-notification-popup">
 
-                  {/* HEADER */}
+    {/* ===================================================
+        NOTIFICATION HEADER
+    =================================================== */}
 
-                  <div className="user-notification-header">
+    <div className="user-notification-header">
 
-                    <h3>
-                      Notifications
-                    </h3>
+      <div className="notification-header-title">
 
-                    {notificationCount > 0 && (
-                      <span>
-                        {notificationCount} unread
-                      </span>
-                    )}
+        <h3>
+          Notifications
+        </h3>
 
-                  </div>
+        {notificationCount > 0 && (
+          <span>
+            {notificationCount > 5
+              ? "5+ unread"
+              : `${notificationCount} unread`}
+          </span>
+        )}
 
-                  {/* LIST */}
+      </div>
 
-                  <div className="user-notification-list">
+      {notificationCount > 0 && (
+        <button
+          type="button"
+          className="mark-all-notifications-btn"
+          onClick={handleMarkAllAsRead}
+        >
+          Mark all
+        </button>
+      )}
 
-                    {notifications.length === 0 ? (
+    </div>
 
-                      <div className="user-no-notifications">
 
-                        <FaBell />
+    {/* ===================================================
+        LATEST 5 NOTIFICATIONS
+    =================================================== */}
 
-                        <p>
-                          No notifications
-                        </p>
+    <div className="user-notification-list">
 
-                      </div>
+      {notifications.length === 0 ? (
 
-                    ) : (
+        <div className="user-no-notifications">
 
-                      notifications.map(
-                        (notification) => (
+          <FaBell />
 
-                          <div
-                            key={notification.id}
-                            className={
-                              `user-notification-item ${
-                                !notification.is_read
-                                  ? "unread"
-                                  : ""
-                              }`
-                            }
-                            onClick={() =>
-                              handleNotificationClick(
-                                notification
-                              )
-                            }
-                          >
+          <p>
+            No notifications
+          </p>
 
-                            <div className="user-notification-icon">
+        </div>
 
-                              <FaGavel />
+      ) : (
 
-                            </div>
+        notifications
+          .slice(0, 5)
+          .map((notification) => (
 
-                            <div className="user-notification-content">
+            <div
+              key={notification.id}
+              className={
+                `user-notification-item ${
+                  !notification.is_read
+                    ? "unread"
+                    : ""
+                }`
+              }
+              onClick={() =>
+                handleNotificationClick(notification)
+              }
+            >
 
-                              <h4>
-                                {notification.title}
-                              </h4>
+              <div className="user-notification-icon">
 
-                              <p>
-                                {notification.message}
-                              </p>
+                <FaGavel />
 
-                              <small>
-                                {notification.created_at
-                                  ? new Date(
-                                      notification.created_at
-                                    ).toLocaleString(
-                                      "en-IN"
-                                    )
-                                  : ""}
-                              </small>
+              </div>
 
-                            </div>
+              <div className="user-notification-content">
 
-                          </div>
+                <h4>
+                  {notification.title}
+                </h4>
 
-                        )
-                      )
+                <p>
+                  {notification.message}
+                </p>
 
-                    )}
+                <small>
+                  {notification.created_at
+                    ? new Date(
+                        notification.created_at
+                      ).toLocaleString("en-IN")
+                    : ""}
+                </small>
 
-                  </div>
+              </div>
 
-                </div>
+            </div>
 
-              )}
+          ))
+
+      )}
+
+    </div>
+
+
+    {/* ===================================================
+        VIEW ALL
+    =================================================== */}
+
+    {notifications.length > 5 && (
+
+  <div className="view-all-notifications-wrapper">
+    <button
+      type="button"
+      className="view-all-notifications-btn"
+      onClick={() => {
+        setNotificationPopup(false);
+        setAllNotificationsPopup(true);
+      }}
+    >
+      View All Notifications
+    </button>
+  </div>
+
+    )}
+
+  </div>
+
+)}
+
+                
 
             </div>
 
@@ -664,8 +816,25 @@ if (notification.notif_type === "auction_approved") {
             <div className="navbar-profile">
 
               <div className="profile-avatar">
-                <FaUserCircle />
-              </div>
+
+  {user?.profile_image ? (
+
+    <img
+      src={
+        user.profile_image.startsWith("http")
+          ? user.profile_image
+          : `http://127.0.0.1:8000${user.profile_image}`
+      }
+      alt="Profile"
+    />
+
+  ) : (
+
+    <FaUserCircle />
+
+  )}
+
+</div>
 
               <div className="profile-info">
 
@@ -686,6 +855,156 @@ if (notification.notif_type === "auction_approved") {
           </div>
 
         </header>
+
+        {/* =====================================================
+    ALL NOTIFICATIONS MODAL
+===================================================== */}
+
+{allNotificationsPopup && (
+
+  <div
+    className="all-notifications-overlay"
+    onClick={() =>
+      setAllNotificationsPopup(false)
+    }
+  >
+
+    <div
+      className="all-notifications-modal"
+      onClick={(event) =>
+        event.stopPropagation()
+      }
+    >
+
+      {/* =================================================
+          MODAL HEADER
+      ================================================= */}
+
+      <div className="all-notifications-modal-header">
+
+        <div>
+
+          <h2>
+            Notifications
+          </h2>
+
+          <p>
+            {notifications.length} total notifications
+          </p>
+
+        </div>
+
+        <div className="all-notifications-header-actions">
+
+          {notificationCount > 0 && (
+            <button
+              type="button"
+              className="modal-mark-all-btn"
+              onClick={handleMarkAllAsRead}
+            >
+              Mark all as read
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="notification-modal-close"
+            onClick={() =>
+              setAllNotificationsPopup(false)
+            }
+            aria-label="Close notifications"
+          >
+            <FaTimes />
+          </button>
+
+        </div>
+
+      </div>
+
+
+      {/* =================================================
+          MODAL BODY
+      ================================================= */}
+
+      <div className="all-notifications-modal-body">
+
+        {notifications.length === 0 ? (
+
+          <div className="user-no-notifications modal-empty">
+
+            <FaBell />
+
+            <p>
+              No notifications
+            </p>
+
+          </div>
+
+        ) : (
+
+          notifications.map((notification) => (
+
+            <div
+              key={notification.id}
+              className={
+                `all-notification-item ${
+                  !notification.is_read
+                    ? "unread"
+                    : ""
+                }`
+              }
+              onClick={() =>
+                handleNotificationClick(notification)
+              }
+            >
+
+              <div className="all-notification-icon">
+
+                <FaGavel />
+
+              </div>
+
+              <div className="all-notification-content">
+
+                <div className="all-notification-title-row">
+
+                  <h4>
+                    {notification.title}
+                  </h4>
+
+                  {!notification.is_read && (
+                    <span className="unread-dot"></span>
+                  )}
+
+                </div>
+
+                <p>
+                  {notification.message}
+                </p>
+
+                <small>
+                  {notification.created_at
+                    ? new Date(
+                        notification.created_at
+                      ).toLocaleString("en-IN")
+                    : ""}
+                </small>
+
+              </div>
+
+            </div>
+
+          ))
+
+        )}
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
 
         {/* ================= PAGE CONTENT ================= */}
 

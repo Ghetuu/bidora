@@ -209,3 +209,101 @@ class UserCreate(BaseModel):
             )
 
         return self
+
+# ==========================================
+# UPDATE PROFILE
+# ==========================================
+
+class UserProfileUpdate(BaseModel):
+
+    fullname: str
+    username: str
+    email: EmailStr
+    mobile: str
+    address: str
+
+    @field_validator("fullname")
+    @classmethod
+    def validate_profile_fullname(cls, value: str) -> str:
+
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Full name is required."
+            )
+
+        if not re.fullmatch(
+            FULLNAME_REGEX,
+            value
+        ):
+            raise ValueError(
+                "Full name can only contain letters and spaces."
+            )
+
+        return value
+
+    @field_validator("username")
+    @classmethod
+    def validate_profile_username(cls, value: str) -> str:
+
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Username is required."
+            )
+
+        if not re.fullmatch(
+            USERNAME_REGEX,
+            value
+        ):
+            raise ValueError(
+                "Username can only contain letters, '@', '_' and '#'."
+            )
+
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def validate_profile_email(
+        cls,
+        value: EmailStr
+    ) -> str:
+
+        return str(value).strip().lower()
+
+    @field_validator("mobile")
+    @classmethod
+    def validate_profile_mobile(
+        cls,
+        value: str
+    ) -> str:
+
+        value = value.strip()
+
+        if not re.fullmatch(
+            MOBILE_REGEX,
+            value
+        ):
+            raise ValueError(
+                "Mobile number must be a valid 10-digit number."
+            )
+
+        return value
+
+    @field_validator("address")
+    @classmethod
+    def validate_profile_address(
+        cls,
+        value: str
+    ) -> str:
+
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Address is required."
+            )
+
+        return value
