@@ -792,6 +792,7 @@ async def verify_login_otp(
             "fullname": user.fullname,
             "username": user.username,
             "email": user.email,
+            "role_id": user.role_id,
             "mobile": user.mobile,
             "address": user.address,
             "profile_image": user.profile_image,
@@ -1078,6 +1079,7 @@ async def update_user_profile(
             "username": user.username,
 
             "email": user.email,
+            "role_id": user.role_id,
 
             "mobile": user.mobile,
 

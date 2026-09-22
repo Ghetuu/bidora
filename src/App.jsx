@@ -40,6 +40,7 @@ import LiveAuctions from "./pages/LiveAuctions";
 import LiveAuctionDetails from "./pages/LiveAuctionDetails";
 import ManageProfile from "./pages/ManageProfile";
 import AuctionHistory from "./pages/AuctionHistory";
+import BidHistory from "./pages/bidhistory";
 
 
 function App() {
@@ -133,9 +134,13 @@ function App() {
           />
           <Route path="manage-profile" element={<ManageProfile />} />
           <Route
-    path="history/auction"
-    element={<AuctionHistory />}
-  />
+            path="history/auction"
+            element={<AuctionHistory />}
+          />
+          <Route 
+            path="history/bid" 
+            element={<BidHistory />} 
+          />
 
         </Route>
 
