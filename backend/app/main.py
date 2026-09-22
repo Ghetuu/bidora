@@ -1,14 +1,19 @@
 import asyncio
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+# =========================================================
+# MODELS
+# =========================================================
 # IMPORTANT:
 # Import models before starting the application
 # so SQLAlchemy knows about all tables.
+# =========================================================
+
 from app.models.admin_notification import AdminNotification
 from app.models.contact_message import ContactMessage
-from app.routes.live_auction_routes import router as live_auction_router
 
 from app.models import (
     User,
@@ -16,6 +21,10 @@ from app.models import (
     AuctionImage,
     ContactMessage
 )
+
+# =========================================================
+# ROUTES
+# =========================================================
 
 from app.routes.user_route import (
     router as user_router
@@ -29,10 +38,22 @@ from app.routes.auction_routes import (
     router as auction_router
 )
 
+from app.routes.live_auction_routes import (
+    router as live_auction_router
+)
+
+from app.routes.websocket_routes import (
+    router as websocket_router
+)
+
+# =========================================================
+# SERVICES
+# =========================================================
 
 from app.services.auction_scheduler import (
     auction_scheduler_loop
 )
+
 
 app = FastAPI(
     title="Bidora API",
@@ -63,11 +84,6 @@ app.add_middleware(
 # =========================================================
 # STATIC FILES
 # =========================================================
-# Makes uploaded auction images/documents accessible
-#
-# Example:
-# http://127.0.0.1:8000/uploads/auctions/image.jpg
-# =========================================================
 
 app.mount(
     "/uploads",
@@ -94,7 +110,18 @@ app.include_router(
     auction_router
 )
 
-app.include_router(live_auction_router)
+app.include_router(
+    live_auction_router
+)
+
+# =========================================================
+# GLOBAL REALTIME WEBSOCKET
+# =========================================================
+
+app.include_router(
+    websocket_router
+)
+
 
 # =========================================================
 # AUTOMATIC AUCTION SCHEDULER
@@ -107,6 +134,7 @@ async def start_auction_scheduler():
         auction_scheduler_loop()
     )
 
+
 # =========================================================
 # ROOT
 # =========================================================
@@ -115,5 +143,6 @@ async def start_auction_scheduler():
 def root():
 
     return {
-        "message": "Bidora API is running"
+        "message": "Bidora API is running",
+        "realtime": "WebSocket enabled"
     }

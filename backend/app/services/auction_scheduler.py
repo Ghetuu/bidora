@@ -20,33 +20,42 @@ from app.services.auction_validation_service import (
 # =========================================================
 # NOTIFY ALL USERS
 # =========================================================
-
 def notify_all_users(
     db,
+    auction,
     notif_type,
     title,
     message
 ):
     try:
+
         users = db.query(User).all()
 
         for user in users:
 
             notification = Notification(
+                recipient_type="user",
                 user_id=user.id,
-                type=notif_type,
+                auction_id=auction.id,
+                notif_type=notif_type,
                 title=title,
-                message=message
+                message=message,
+                is_read=False
             )
 
             db.add(notification)
 
+        print(
+            f"[NOTIFICATION CREATED] "
+            f"Auction {auction.id} -> {notif_type}"
+        )
+
     except Exception as e:
+
         print(
             f"[NOTIFICATION ERROR] "
             f"{notif_type}: {str(e)}"
         )
-
 
 # =========================================================
 # NOTIFY SELLER
@@ -384,6 +393,10 @@ async def process_pending_auctions(db):
 # PROCESS AUCTION TIME NOTIFICATIONS
 # =========================================================
 
+# =========================================================
+# PROCESS AUCTION TIME NOTIFICATIONS
+# =========================================================
+
 def process_auction_notifications(db):
 
     now = datetime.now()
@@ -409,6 +422,39 @@ def process_auction_notifications(db):
         try:
 
             # =================================================
+            # 30 MINUTES BEFORE AUCTION
+            # =================================================
+
+            if (
+                auction.status == "approved"
+                and auction.auction_start is not None
+            ):
+
+                diff = (
+                    auction.auction_start - now
+                ).total_seconds()
+
+                if 0 <= diff <= 1800:
+
+                    notify_all_users(
+                        db=db,
+                        auction=auction,
+                        notif_type="auction_starting_30_minutes",
+                        title="Auction Starting in 30 Minutes",
+                        message=(
+                            f'Auction '
+                            f'"{auction.product_title}" '
+                            f'will start in approximately '
+                            f'30 minutes.'
+                        )
+                    )
+
+                    print(
+                        f"[30 MIN NOTIFICATION] "
+                        f"Auction {auction.id}"
+                    )
+
+            # =================================================
             # 15 MINUTES BEFORE AUCTION
             # =================================================
 
@@ -425,8 +471,9 @@ def process_auction_notifications(db):
 
                     notify_all_users(
                         db=db,
+                        auction=auction,
                         notif_type="auction_starting_15_minutes",
-                        title="Auction Starting Soon",
+                        title="Auction Starting in 15 Minutes",
                         message=(
                             f'Auction '
                             f'"{auction.product_title}" '
@@ -457,6 +504,7 @@ def process_auction_notifications(db):
 
                     notify_all_users(
                         db=db,
+                        auction=auction,
                         notif_type="auction_starting_5_minutes",
                         title="Auction Starting Soon",
                         message=(
@@ -486,6 +534,7 @@ def process_auction_notifications(db):
 
                 notify_all_users(
                     db=db,
+                    auction=auction,
                     notif_type="auction_started",
                     title="Auction Started",
                     message=(
@@ -517,6 +566,7 @@ def process_auction_notifications(db):
 
                     notify_all_users(
                         db=db,
+                        auction=auction,
                         notif_type="auction_started_5_minutes",
                         title="Auction Is Live",
                         message=(
@@ -545,6 +595,7 @@ def process_auction_notifications(db):
 
                 notify_all_users(
                     db=db,
+                    auction=auction,
                     notif_type="auction_ended",
                     title="Auction Ended",
                     message=(
@@ -565,7 +616,6 @@ def process_auction_notifications(db):
                 f"[AUCTION NOTIFICATION ERROR] "
                 f"Auction {auction.id}: {str(e)}"
             )
-
 
 # =========================================================
 # MAIN AUCTION SCHEDULER

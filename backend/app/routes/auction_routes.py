@@ -803,7 +803,12 @@ def get_live_auctions(
                 ),
 
                 "shipping_paid_by": auction.shipping_paid_by,
+                # -------------------------------------------------
+                # PRODUCT PROOFS
+                # -------------------------------------------------
 
+                "purchase_proof_path": auction.purchase_proof_path,
+                "seller_proof_path": auction.seller_proof_path,
                 # -------------------------------------------------
                 # WARRANTY / PAYMENT
                 # -------------------------------------------------
