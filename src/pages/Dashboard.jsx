@@ -33,7 +33,7 @@ function Dashboard() {
   const [allNotificationsPopup, setAllNotificationsPopup] = useState(false);
 
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser = sessionStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
@@ -48,7 +48,7 @@ useEffect(() => {
     try {
 
       const storedUser =
-        localStorage.getItem("user");
+        sessionStorage.getItem("user");
 
       if (storedUser) {
 
@@ -91,7 +91,7 @@ useEffect(() => {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       if (!token) {
         return;
@@ -131,7 +131,7 @@ useEffect(() => {
 
 const handleMarkAllAsRead = async () => {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token || notificationCount === 0) {
       return;
@@ -181,7 +181,7 @@ const handleMarkAllAsRead = async () => {
 
   const handleNotificationClick = async (notification) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       if (!token) {
         return;
@@ -285,8 +285,8 @@ if (notification.notif_type === "auction_approved") {
   // =========================================================
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("user");
 
     navigate("/login");
   };

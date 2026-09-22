@@ -144,7 +144,7 @@ function LiveAuctions() {
     setError("");
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       console.log("LIVE AUCTIONS TOKEN EXISTS:", !!token);
 

@@ -55,6 +55,7 @@ const LiveAuctionDetails = () => {
 
   // Backend auction data
   const [auction, setAuction] = useState(null);
+  const [selectedProof, setSelectedProof] = useState(null);
 
   // Countdown
   const [timeLeft, setTimeLeft] = useState({
@@ -78,7 +79,7 @@ const LiveAuctionDetails = () => {
         setLoading(true);
         setError("");
 
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
 
         console.log("========== LIVE AUCTION DEBUG ==========");
         console.log("Auction ID:", auctionId);
@@ -178,11 +179,20 @@ const LiveAuctionDetails = () => {
       // Handle MySQL datetime: YYYY-MM-DD HH:mm:ss
       // as a local browser date instead of relying on browser parsing.
       const mysqlMatch = stringValue.match(
-        /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?$/
-      );
+  /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?$/
+);
 
       if (mysqlMatch) {
-        const [, year, month, day, hour, minute, second = "0", fraction = "0"] = mysqlMatch;
+        const [
+  ,
+  year,
+  month,
+  day,
+  hour,
+  minute,
+  second = "0",
+  fraction = "0"
+] = mysqlMatch;
         const milliseconds = Number(`0.${fraction}`) * 1000;
 
         return new Date(
@@ -379,7 +389,22 @@ const LiveAuctionDetails = () => {
 
     return `${API_BASE_URL}/${cleanPath}`;
   };
+// =========================================================
+// PROOF IMAGE URL
+// =========================================================
+const getProofImageUrl = (proofPath) => {
+  if (!proofPath) return "";
 
+  if (
+    proofPath.startsWith("http://") ||
+    proofPath.startsWith("https://")
+  ) {
+    return proofPath;
+  }
+
+  const cleanPath = proofPath.replace(/^\/+/, "");
+  return `${API_BASE_URL}/${cleanPath}`;
+};
   // =========================================================
   // PRODUCT IMAGES
   // =========================================================
@@ -535,7 +560,7 @@ const LiveAuctionDetails = () => {
 // CHECK LOGGED-IN USER ROLE
 // =========================================================
 const loggedInUser = JSON.parse(
-  localStorage.getItem("user") || "null"
+  sessionStorage.getItem("user") || "null"
 );
 
 const isSeller =
@@ -927,7 +952,11 @@ const allBidsAvailable = bids.length > 0;
   // PLACE BID
   // =========================================================
 
-  const placeBid = () => {
+  // =========================================================
+// PLACE BID
+// SAVE BID TO DATABASE
+// =========================================================
+const placeBid = async () => {
   if (!bidAmount) {
     alert("Please enter your bid amount.");
     return;
@@ -974,18 +1003,90 @@ const allBidsAvailable = bids.length > 0;
     return;
   }
 
-  // -------------------------------------------------
-  // Bid is valid
-  // -------------------------------------------------
-  alert(
-    `Your bid of ${formatOptionalCurrency(
-      enteredBid
-    )} has been placed.`
-  );
+  try {
+    const token = sessionStorage.getItem("access_token");
 
-  setBidAmount("");
+    if (!token) {
+      alert("Your login session has expired. Please login again.");
+      return;
+    }
+
+    console.log("========== PLACING BID ==========");
+    console.log("Auction ID:", auctionId);
+    console.log("Bid Amount:", enteredBid);
+
+    const response = await axios.post(
+      `${API_BASE_URL}/api/live-auctions/${auctionId}/bid`,
+      {
+        amount: enteredBid,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("PLACE BID STATUS:", response.status);
+    console.log("PLACE BID RESPONSE:", response.data);
+
+    if (response.data?.success) {
+      alert(
+        `Your bid of ${formatOptionalCurrency(
+          enteredBid
+        )} has been placed successfully.`
+      );
+
+      // Clear input
+      setBidAmount("");
+
+      // -------------------------------------------------
+      // IMPORTANT:
+      // Reload auction so graph, bid history,
+      // current highest bid and all bids update.
+      // -------------------------------------------------
+
+      const refreshedAuction = await axios.get(
+        `${API_BASE_URL}/api/live-auctions/${auctionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(
+        "REFRESHED AUCTION:",
+        refreshedAuction.data
+      );
+
+      if (refreshedAuction.data?.auction) {
+        setAuction(refreshedAuction.data.auction);
+      }
+    }
+  } catch (err) {
+    console.error("========== PLACE BID ERROR ==========");
+    console.error("Status:", err.response?.status);
+    console.error("Response:", err.response?.data);
+    console.error("Message:", err.message);
+    console.error("====================================");
+
+    const detail = err.response?.data?.detail;
+
+    if (err.response?.status === 401) {
+      alert("Your login session has expired. Please login again.");
+    } else if (err.response?.status === 403) {
+      alert(detail || "You cannot bid on this auction.");
+    } else if (err.response?.status === 400) {
+      alert(detail || "Invalid bid amount.");
+    } else if (err.response?.status === 404) {
+      alert("Live auction not found.");
+    } else {
+      alert(detail || "Unable to place bid. Please try again.");
+    }
+  }
 };
-
 
   // =========================================================
 // STOP AUCTION - SELLER ONLY
@@ -1055,6 +1156,41 @@ const stopAuction = () => {
             Loading auction details...
           </div>
         </div>
+        {/* =========================================================
+    PROOF IMAGE PREVIEW MODAL
+========================================================= */}
+{selectedProof && (
+  <div
+    className="proof-modal-overlay"
+    onClick={() => setSelectedProof(null)}
+  >
+    <div
+      className="proof-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+
+      <div className="proof-modal-header">
+        <h3>{selectedProof.title}</h3>
+
+        <button
+          type="button"
+          className="proof-modal-close"
+          onClick={() => setSelectedProof(null)}
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="proof-modal-body">
+        <img
+          src={selectedProof.image}
+          alt={selectedProof.title}
+        />
+      </div>
+
+    </div>
+  </div>
+)}
       </div>
     );
   }
@@ -1552,6 +1688,146 @@ const stopAuction = () => {
 
               </div>
             </section>
+
+            {/* =========================================================
+    PRODUCT PROOF DOCUMENTS
+========================================================= */}
+<section className="card proof-documents-card">
+
+  <div className="section-title-row">
+    <h2>
+      <ShieldCheck size={18} />
+      Product Verification
+    </h2>
+  </div>
+
+  <p className="proof-description">
+    The seller has provided the following documents as proof
+    of product purchase and seller ownership.
+  </p>
+
+  <div className="proof-documents-grid">
+
+    {/* PURCHASE / BILL PROOF */}
+    <div className="proof-document">
+
+      <div className="proof-document-header">
+        <div>
+          <h3>
+            <FileText size={17} />
+            Purchase Bill / Invoice
+          </h3>
+
+          <span>
+            Proof of product purchase
+          </span>
+        </div>
+
+        {auction.purchase_proof_path && (
+          <span className="proof-verified">
+            <CheckCircle2 size={14} />
+            Available
+          </span>
+        )}
+      </div>
+
+      {auction.purchase_proof_path ? (
+        <button
+          type="button"
+          className="proof-image-wrapper"
+          onClick={() =>
+            setSelectedProof({
+              title: "Purchase Bill / Invoice",
+              image: getProofImageUrl(
+                auction.purchase_proof_path
+              ),
+            })
+          }
+        >
+          <img
+            src={getProofImageUrl(
+              auction.purchase_proof_path
+            )}
+            alt="Purchase Bill / Invoice"
+            className="proof-image"
+          />
+
+          <div className="proof-image-overlay">
+            <Maximize2 size={20} />
+            <span>View Document</span>
+          </div>
+        </button>
+      ) : (
+        <div className="proof-not-available">
+          <FileText size={28} />
+          <span>Purchase bill not available</span>
+        </div>
+      )}
+
+    </div>
+
+
+    {/* SELLER PROOF */}
+    <div className="proof-document">
+
+      <div className="proof-document-header">
+        <div>
+          <h3>
+            <BadgeCheck size={18} />
+            Seller Proof
+          </h3>
+
+          <span>
+            Proof of seller ownership
+          </span>
+        </div>
+
+        {auction.seller_proof_path && (
+          <span className="proof-verified">
+            <CheckCircle2 size={14} />
+            Available
+          </span>
+        )}
+      </div>
+
+      {auction.seller_proof_path ? (
+        <button
+          type="button"
+          className="proof-image-wrapper"
+          onClick={() =>
+            setSelectedProof({
+              title: "Seller Proof",
+              image: getProofImageUrl(
+                auction.seller_proof_path
+              ),
+            })
+          }
+        >
+          <img
+            src={getProofImageUrl(
+              auction.seller_proof_path
+            )}
+            alt="Seller Proof"
+            className="proof-image"
+          />
+
+          <div className="proof-image-overlay">
+            <Maximize2 size={20} />
+            <span>View Document</span>
+          </div>
+        </button>
+      ) : (
+        <div className="proof-not-available">
+          <BadgeCheck size={28} />
+          <span>Seller proof not available</span>
+        </div>
+      )}
+
+    </div>
+
+  </div>
+
+</section>
 
             {/* ALL BIDS
                 HIDDEN WHEN THERE ARE NO REAL BIDS */}

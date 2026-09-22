@@ -4,7 +4,7 @@ import {
   Route,
   Navigate
 } from "react-router-dom";
-
+import { RealtimeProvider } from "./context/RealtimeContext";
 // =========================================================
 // PUBLIC
 // =========================================================
@@ -44,6 +44,7 @@ import AuctionHistory from "./pages/AuctionHistory";
 
 function App() {
   return (
+     <RealtimeProvider>
     <BrowserRouter>
 
       <Routes>
@@ -293,6 +294,7 @@ function App() {
       </Routes>
 
     </BrowserRouter>
+    </RealtimeProvider>
   );
 }
 

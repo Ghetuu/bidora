@@ -164,7 +164,7 @@ function MyAuctions() {
     try {
 
       const token =
-        localStorage.getItem("access_token");
+        sessionStorage.getItem("access_token");
 
       console.log(
         "MY AUCTIONS TOKEN EXISTS:",

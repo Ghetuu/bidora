@@ -313,24 +313,27 @@ function Login() {
       }
 
       // Store user information
-      if (data.user) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data.user)
-        );
-      }
+      // Store user information in TAB-SPECIFIC storage
+// so different browser tabs can have different accounts.
 
-      if (data.access_token) {
-        localStorage.setItem(
-          "access_token",
-          data.access_token
-        );
-      }
+if (data.user) {
+  sessionStorage.setItem(
+    "user",
+    JSON.stringify(data.user)
+  );
+}
 
-      localStorage.setItem(
-        "isLoggedIn",
-        "true"
-      );
+if (data.access_token) {
+  sessionStorage.setItem(
+    "access_token",
+    data.access_token
+  );
+}
+
+sessionStorage.setItem(
+  "isLoggedIn",
+  "true"
+);
 
       // ==========================================
       // GO TO DASHBOARD

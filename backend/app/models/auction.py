@@ -231,6 +231,13 @@ class Auction(Base):
         back_populates="auction",
         cascade="all, delete-orphan"
     )
+
+    bids = relationship(
+        "Bid",
+        back_populates="auction",
+        cascade="all, delete-orphan"
+    )
+    
     approved_by = Column(String(50), nullable=True)
     approved_at = Column(DateTime, nullable=True)
 
