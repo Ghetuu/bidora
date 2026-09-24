@@ -46,6 +46,10 @@ from app.routes.websocket_routes import (
     router as websocket_router
 )
 
+from app.routes.bid_routes import (
+    router as bid_router
+)
+
 # =========================================================
 # SERVICES
 # =========================================================
@@ -110,6 +114,9 @@ app.include_router(
     auction_router
 )
 
+app.include_router(
+    bid_router
+)
 app.include_router(
     live_auction_router
 )

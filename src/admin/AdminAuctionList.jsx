@@ -1280,6 +1280,11 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                 <th className="col-action">
                   Actions
                 </th>
+                {isLivePage && (
+  <th className="col-live-bidding">
+    Live Bidding
+  </th>
+)}
 
                 {status.toLowerCase() === "pending" && (
                   <th className="col-approval-actions">
@@ -1454,14 +1459,20 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                       {/* HIGHEST BID / BIDDER NAME (Live page only) */}
 
                       {isLivePage && (
-                        <>
-                          <td className="auction-price">
-                            {getHighestBid(auction)}
-                          </td>
-                          <td>{getBidderName(auction)}</td>
-                          <td>{getWinnerName(auction)}</td>
-                        </>
-                      )}
+  <>
+    <td className="auction-price">
+      {getHighestBid(auction)}
+    </td>
+
+    <td>
+      {getBidderName(auction)}
+    </td>
+
+    <td>
+      {getWinnerName(auction)}
+    </td>
+  </>
+)}
 
                       {isCompletedPage && (
                         <>

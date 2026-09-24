@@ -700,7 +700,9 @@ function AuctionDetails() {
             type="button"
             className="place-bid-btn"
             onClick={() =>
-              handleViewAuction?.(auction)
+              navigate(
+                `/dashboard/live-auction/${auction.id}`
+              )
             }
             disabled={
               status === "ended" ||

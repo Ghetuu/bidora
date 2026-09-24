@@ -119,7 +119,7 @@ const AuctionHistory = () => {
         setLoading(true);
         setError("");
 
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
 
         if (!token) {
           setError("Please login to view auction history.");
@@ -136,13 +136,20 @@ const AuctionHistory = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch auction history.");
-        }
+  const errBody = await response.json().catch(() => ({}));
+  console.error("my-auctions failed:", response.status, errBody);
+  throw new Error(
+    errBody.detail || `Failed to fetch auction history (${response.status}).`
+  );
+}
 
         const data = await response.json();
         const auctions = Array.isArray(data)
           ? data
           : data.auctions || data.data || [];
+
+        // DEBUG: check real field names coming from the API (remove when done)
+        console.log("FIRST AUCTION FROM API:", auctions[0]);
 
         const formattedData = auctions.map((auction) => {
           let imagePath = "";
@@ -172,28 +179,86 @@ const AuctionHistory = () => {
           }
 
           const rawStatus = auction.status || "pending";
+
           const formattedStatus =
             rawStatus.charAt(0).toUpperCase() +
             rawStatus.slice(1).toLowerCase();
 
+          /* ---------- helper: first non-empty value ---------- */
+          const pick = (...values) =>
+            values.find((v) => v !== undefined && v !== null && v !== "");
+
+          /* ---------- HIGHEST / CURRENT BID ---------- */
+          const highestBid = Number(
+            pick(
+              auction.highest_bid,
+              auction.highest_bid_amount,
+              auction.bid_amount,
+              auction.current_bid,
+              auction.max_bid,
+              0
+            )
+          );
+
+          /* ---------- FINAL PRICE ---------- */
+          let finalPrice = Number(
+            pick(auction.final_price, auction.final_bid, auction.sold_price, 0)
+          );
+
+          // If auction is over and no final price is stored, use highest bid
+          const isOver = ["ended", "completed"].includes(
+            rawStatus.toLowerCase()
+          );
+          if (!finalPrice && isOver && highestBid > 0) {
+            finalPrice = highestBid;
+          }
+
+          /* ---------- WINNER NAME ---------- */
+          const winnerName =
+            pick(
+              auction.winner_name,
+              auction.winner_username,
+              typeof auction.winner === "string" ? auction.winner : undefined,
+              auction.winner?.name,
+              auction.winner?.username,
+              auction.winner?.full_name,
+              auction.highest_bidder,
+              auction.highest_bidder_name
+            ) || "—";
+
           return {
             id: auction.id,
             image: imagePath,
-            product: auction.product_title || "Untitled Auction",
+            product: auction.product_title || auction.title || "Untitled Auction",
             category: auction.category || "—",
             startingPrice: Number(auction.starting_price || 0),
-            finalPrice: Number(auction.final_price || 0),
-            bidAmount: Number(
-              auction.bid_amount ||
-                auction.highest_bid ||
-                auction.current_bid ||
-                0
+
+            // Highest / current bid
+            bidAmount: highestBid,
+
+            // Final price
+            finalPrice,
+
+            // Total number of bids
+            bids: Number(
+              pick(auction.bids, auction.total_bids, auction.bid_count, 0)
             ),
-            bids: Number(auction.bids || 0),
+
+            // Auction time
             auctionStart: auction.auction_start,
             auctionEnd: auction.auction_end,
-            winner: auction.winner || "—",
+
+            // Winner
+            winner: winnerName,
+            winnerId: auction.winner_id || auction.winner?.id || null,
+
+            // Time status
+            auctionStatus: auction.auction_status || "unknown",
+
             status: formattedStatus,
+
+            raw: auction,
+
             date:
               auction.created_at ||
               auction.auction_start ||
@@ -375,7 +440,10 @@ const AuctionHistory = () => {
 
   /* HANDLERS */
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
-  const handleViewAuction = (auctionId) => navigate(`/dashboard/auction/${auctionId}`);
+  const handleViewAuction = (auction) =>
+    navigate(`/dashboard/auction/${auction.id}`, {
+      state: { auction: auction.raw, from: "my-auctions" },
+    });
 
   /* SINGLE DELETE */
   const handleDeleteAuction = async (auctionId) => {
@@ -383,7 +451,7 @@ const AuctionHistory = () => {
 
     try {
       setDeletingAuctionId(auctionId);
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const response = await fetch(`${API_URL}/api/auctions/${auctionId}`, {
         method: "DELETE",
@@ -416,7 +484,7 @@ const AuctionHistory = () => {
 
     try {
       setIsDeletingBulk(true);
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       // Execute parallel delete API calls for all selected items
       await Promise.all(
@@ -791,6 +859,7 @@ const AuctionHistory = () => {
                   <th className="auction-history-col-product">Product</th>
                   <th>Category</th>
                   <th>Starting Price</th>
+                  
                   <th>Final Price</th>
                   <th>Auction Start</th>
                   <th>Auction End</th>
@@ -850,6 +919,7 @@ const AuctionHistory = () => {
                       </span>
                     </td>
 
+
                     <td>
                       <span className="auction-history-price final">
                         {formatPrice(auction.finalPrice)}
@@ -889,7 +959,7 @@ const AuctionHistory = () => {
                           type="button"
                           className="auction-history-view-btn"
                           title="View Auction"
-                          onClick={() => handleViewAuction(auction.id)}
+                          onClick={() => handleViewAuction(auction)}
                         >
                           <FaEye />
                         </button>

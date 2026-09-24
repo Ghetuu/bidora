@@ -36,11 +36,13 @@ import {
   FaBuilding as Building2,
   FaGlobe as Globe2,
   FaLaptop as Laptop,
+  FaTimes as Times,
 } from "react-icons/fa";
 
 import { MdVerified as BadgeCheck } from "react-icons/md";
 
 import "../styles/LiveAuctionDetails.css";
+import "../styles/view_live_btn.css";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
@@ -56,6 +58,9 @@ const LiveAuctionDetails = () => {
   // Backend auction data
   const [auction, setAuction] = useState(null);
   const [selectedProof, setSelectedProof] = useState(null);
+  const [buyerDetails, setBuyerDetails] = useState(null);
+const [buyerLoading, setBuyerLoading] = useState(false);
+const [buyerError, setBuyerError] = useState("");
 
   // Countdown
   const [timeLeft, setTimeLeft] = useState({
@@ -460,19 +465,21 @@ const getProofImageUrl = (proofPath) => {
     const normalized = rawBids
       .map((bid, index) => {
         if (Array.isArray(bid)) {
-          const amount = getNumericValue(bid[2]);
-          const bidderName = bid[1];
-          const bidTime = bid[3];
+  const bidderId = bid[1];
+  const bidderName = bid[2];
+  const amount = getNumericValue(bid[3]);
+  const bidTime = bid[4];
 
-          if (amount === null) return null;
+  if (amount === null) return null;
 
-          return {
-            id: bid[0] || index + 1,
-            name: bidderName || "",
-            amount,
-            time: bidTime || "",
-          };
-        }
+  return {
+    id: bid[0] || index + 1,
+    bidderId,
+    name: bidderName || "",
+    amount,
+    time: bidTime || "",
+  };
+}
 
         if (typeof bid !== "object" || bid === null) {
           return null;
@@ -494,6 +501,15 @@ const getProofImageUrl = (proofPath) => {
           bid.customer ??
           bid.seller ??
           null;
+
+          const bidderId =
+            bid.user_id ??
+            bid.userId ??
+            bid.bidder_id ??
+            bid.bidderId ??
+            bid.user?.id ??
+            bid.bidder?.id ??
+            null;
 
         const bidderName =
           bid.bidder_name ??
@@ -521,6 +537,7 @@ const getProofImageUrl = (proofPath) => {
             bid.bid_id ??
             bid.bidId ??
             index + 1,
+            bidderId,
           name: bidderName,
           amount,
           time: bidTime,
@@ -1088,6 +1105,104 @@ const placeBid = async () => {
   }
 };
 
+
+// =========================================================
+// VIEW BUYER DETAILS
+// =========================================================
+
+const viewBuyerDetails = async (bidderId) => {
+  if (!bidderId) {
+    alert("Buyer information is not available for this bid.");
+    return;
+  }
+
+  try {
+    const token = sessionStorage.getItem("access_token");
+
+    if (!token) {
+      alert("Your login session has expired. Please login again.");
+      return;
+    }
+
+    setBuyerLoading(true);
+    setBuyerError("");
+    setBuyerDetails(null);
+
+    console.log("========== BUYER DETAILS ==========");
+    console.log("Buyer ID:", bidderId);
+    console.log("Auction ID:", auctionId);
+
+   const response = await axios.get(
+  `${API_BASE_URL}/api/live-auctions/${auctionId}/bidders/${bidderId}/details`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+    console.log("BUYER DETAILS RESPONSE:", response.data);
+
+    const data = response.data;
+
+setBuyerDetails({
+  ...data.buyer,
+
+  total_bids: data.bidding_stats?.total_bids ?? 0,
+  total_bid_value: data.bidding_stats?.total_bid_value ?? 0,
+  highest_bid: data.bidding_stats?.highest_bid ?? 0,
+  auctions_participated:
+    data.bidding_stats?.auctions_participated ?? 0,
+
+  auctions_created:
+    data.auction_stats?.auctions_created ?? 0,
+  auctions_won:
+    data.auction_stats?.auctions_won ?? 0,
+
+  active_auctions_created:
+    data.auction_stats?.active_auctions_created ?? 0,
+
+  completed_auctions_created:
+    data.auction_stats?.completed_auctions_created ?? 0,
+
+  current_auction_bid_count:
+    data.current_auction?.bid_count ?? 0,
+
+  current_auction_highest_bid:
+    data.current_auction?.highest_bid ?? 0,
+
+  recent_bids: data.recent_bids ?? [],
+});
+  } catch (err) {
+    console.error("========== BUYER DETAILS ERROR ==========");
+    console.error("Status:", err.response?.status);
+    console.error("Response:", err.response?.data);
+    console.error("Message:", err.message);
+
+    if (err.response?.status === 401) {
+      setBuyerError(
+        "Your login session has expired. Please login again."
+      );
+    } else if (err.response?.status === 403) {
+      setBuyerError(
+        err.response?.data?.detail ||
+          "You are not allowed to view this buyer."
+      );
+    } else if (err.response?.status === 404) {
+      setBuyerError(
+        err.response?.data?.detail ||
+          "Buyer details were not found."
+      );
+    } else {
+      setBuyerError(
+        err.response?.data?.detail ||
+          "Unable to load buyer details."
+      );
+    }
+  } finally {
+    setBuyerLoading(false);
+  }
+};
   // =========================================================
 // STOP AUCTION - SELLER ONLY
 // =========================================================
@@ -1156,41 +1271,6 @@ const stopAuction = () => {
             Loading auction details...
           </div>
         </div>
-        {/* =========================================================
-    PROOF IMAGE PREVIEW MODAL
-========================================================= */}
-{selectedProof && (
-  <div
-    className="proof-modal-overlay"
-    onClick={() => setSelectedProof(null)}
-  >
-    <div
-      className="proof-modal"
-      onClick={(e) => e.stopPropagation()}
-    >
-
-      <div className="proof-modal-header">
-        <h3>{selectedProof.title}</h3>
-
-        <button
-          type="button"
-          className="proof-modal-close"
-          onClick={() => setSelectedProof(null)}
-        >
-          ×
-        </button>
-      </div>
-
-      <div className="proof-modal-body">
-        <img
-          src={selectedProof.image}
-          alt={selectedProof.title}
-        />
-      </div>
-
-    </div>
-  </div>
-)}
       </div>
     );
   }
@@ -1689,146 +1769,6 @@ const stopAuction = () => {
               </div>
             </section>
 
-            {/* =========================================================
-    PRODUCT PROOF DOCUMENTS
-========================================================= */}
-<section className="card proof-documents-card">
-
-  <div className="section-title-row">
-    <h2>
-      <ShieldCheck size={18} />
-      Product Verification
-    </h2>
-  </div>
-
-  <p className="proof-description">
-    The seller has provided the following documents as proof
-    of product purchase and seller ownership.
-  </p>
-
-  <div className="proof-documents-grid">
-
-    {/* PURCHASE / BILL PROOF */}
-    <div className="proof-document">
-
-      <div className="proof-document-header">
-        <div>
-          <h3>
-            <FileText size={17} />
-            Purchase Bill / Invoice
-          </h3>
-
-          <span>
-            Proof of product purchase
-          </span>
-        </div>
-
-        {auction.purchase_proof_path && (
-          <span className="proof-verified">
-            <CheckCircle2 size={14} />
-            Available
-          </span>
-        )}
-      </div>
-
-      {auction.purchase_proof_path ? (
-        <button
-          type="button"
-          className="proof-image-wrapper"
-          onClick={() =>
-            setSelectedProof({
-              title: "Purchase Bill / Invoice",
-              image: getProofImageUrl(
-                auction.purchase_proof_path
-              ),
-            })
-          }
-        >
-          <img
-            src={getProofImageUrl(
-              auction.purchase_proof_path
-            )}
-            alt="Purchase Bill / Invoice"
-            className="proof-image"
-          />
-
-          <div className="proof-image-overlay">
-            <Maximize2 size={20} />
-            <span>View Document</span>
-          </div>
-        </button>
-      ) : (
-        <div className="proof-not-available">
-          <FileText size={28} />
-          <span>Purchase bill not available</span>
-        </div>
-      )}
-
-    </div>
-
-
-    {/* SELLER PROOF */}
-    <div className="proof-document">
-
-      <div className="proof-document-header">
-        <div>
-          <h3>
-            <BadgeCheck size={18} />
-            Seller Proof
-          </h3>
-
-          <span>
-            Proof of seller ownership
-          </span>
-        </div>
-
-        {auction.seller_proof_path && (
-          <span className="proof-verified">
-            <CheckCircle2 size={14} />
-            Available
-          </span>
-        )}
-      </div>
-
-      {auction.seller_proof_path ? (
-        <button
-          type="button"
-          className="proof-image-wrapper"
-          onClick={() =>
-            setSelectedProof({
-              title: "Seller Proof",
-              image: getProofImageUrl(
-                auction.seller_proof_path
-              ),
-            })
-          }
-        >
-          <img
-            src={getProofImageUrl(
-              auction.seller_proof_path
-            )}
-            alt="Seller Proof"
-            className="proof-image"
-          />
-
-          <div className="proof-image-overlay">
-            <Maximize2 size={20} />
-            <span>View Document</span>
-          </div>
-        </button>
-      ) : (
-        <div className="proof-not-available">
-          <BadgeCheck size={28} />
-          <span>Seller proof not available</span>
-        </div>
-      )}
-
-    </div>
-
-  </div>
-
-</section>
-
             {/* ALL BIDS
                 HIDDEN WHEN THERE ARE NO REAL BIDS */}
 
@@ -1851,6 +1791,7 @@ const stopAuction = () => {
                         <th>Bidder</th>
                         <th>Bid Amount</th>
                         <th>Bid Time</th>
+                         <th>Buyer Details</th>
                       </tr>
                     </thead>
 
@@ -1880,12 +1821,27 @@ const stopAuction = () => {
                           </td>
 
                           <td>
-                            {bid.time
-                              ? formatDateTime(
-                                  bid.time
-                                )
-                              : ""}
-                          </td>
+  {bid.time
+    ? formatDateTime(bid.time)
+    : ""}
+</td>
+
+<td>
+  {bid.bidderId ? (
+    <button
+      type="button"
+      className="view-buyer-btn"
+      onClick={() => viewBuyerDetails(bid.bidderId)}
+    >
+      <UserRound size={14} />
+      View Buyer
+    </button>
+  ) : (
+    <span className="buyer-details-unavailable">
+      Not Available
+    </span>
+  )}
+</td>
 
                         </tr>
                       ))}
@@ -2177,6 +2133,35 @@ const stopAuction = () => {
 
               </div>
 
+              {auction.seller_proof_path ? (
+                <button
+                  type="button"
+                  className="history-view-btn"
+                  style={{ marginTop: "14px" }}
+                  onClick={() =>
+                    setSelectedProof({
+                      title: "Seller Proof",
+                      image: getProofImageUrl(
+                        auction.seller_proof_path
+                      ),
+                    })
+                  }
+                >
+                  <BadgeCheck size={16} />
+                  View Seller Proof
+                </button>
+              ) : (
+                <p
+                  style={{
+                    marginTop: "14px",
+                    fontSize: "0.8rem",
+                    opacity: 0.6,
+                  }}
+                >
+                  Seller proof not available
+                </p>
+              )}
+
               {(sellerRating !== null ||
                 itemsSold !== null ||
                 sellerVerified !==
@@ -2277,10 +2262,452 @@ const stopAuction = () => {
 
             </section>
 
+            {/* =========================================================
+                PRODUCT PROOF DOCUMENTS
+                (placed under Safe & Secure Bidding)
+            ========================================================= */}
+
+            <section className="card proof-documents-card">
+
+              <div className="section-title-row">
+                <h2>
+                  <ShieldCheck size={18} />
+                  Product Verification
+                </h2>
+              </div>
+
+              <p className="proof-description">
+                The seller has provided the following document as proof
+                of product purchase.
+              </p>
+
+              <div
+                className="proof-documents-grid"
+                style={{ gridTemplateColumns: "1fr" }}
+              >
+
+                {/* PURCHASE / BILL PROOF */}
+                <div className="proof-document">
+
+                  <div className="proof-document-header">
+                    <div>
+                      <h3>
+                        <FileText size={17} />
+                        Purchase Bill / Invoice
+                      </h3>
+
+                      <span>
+                        Proof of product purchase
+                      </span>
+                    </div>
+
+                    {auction.purchase_proof_path && (
+                      <span className="proof-verified">
+                        <CheckCircle2 size={14} />
+                        Available
+                      </span>
+                    )}
+                  </div>
+
+                  {auction.purchase_proof_path ? (
+                    <button
+                      type="button"
+                      className="proof-image-wrapper"
+                      onClick={() =>
+                        setSelectedProof({
+                          title: "Purchase Bill / Invoice",
+                          image: getProofImageUrl(
+                            auction.purchase_proof_path
+                          ),
+                        })
+                      }
+                    >
+                      <img
+                        src={getProofImageUrl(
+                          auction.purchase_proof_path
+                        )}
+                        alt="Purchase Bill / Invoice"
+                        className="proof-image"
+                      />
+
+                      <div className="proof-image-overlay">
+                        <Maximize2 size={20} />
+                        <span>View Document</span>
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="proof-not-available">
+                      <FileText size={28} />
+                      <span>Purchase bill not available</span>
+                    </div>
+                  )}
+
+                </div>
+
+
+              </div>
+
+            </section>
+
           </aside>
 
         </div>
       </div>
+
+      {/* =========================================================
+          PROOF IMAGE PREVIEW MODAL
+      ========================================================= */}
+
+      {selectedProof && (
+        <div
+          className="proof-modal-overlay"
+          onClick={() => setSelectedProof(null)}
+        >
+          <div
+            className="proof-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+
+            <div className="proof-modal-header">
+              <h3>{selectedProof.title}</h3>
+
+              <button
+                type="button"
+                className="proof-modal-close"
+                onClick={() => setSelectedProof(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="proof-modal-body">
+              <img
+                src={selectedProof.image}
+                alt={selectedProof.title}
+              />
+            </div>
+
+          </div>
+        </div>
+      )}
+      {/* =========================================================
+    BUYER DETAILS MODAL
+========================================================= */}
+{/* =========================================================
+    BUYER DETAILS MODAL
+========================================================= */}
+
+{(buyerLoading || buyerError || buyerDetails) && (
+  <div
+    className="buyer-details-overlay"
+    onClick={() => {
+      if (!buyerLoading) {
+        setBuyerDetails(null);
+        setBuyerError("");
+      }
+    }}
+  >
+    <div
+      className="buyer-details-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+
+      {/* HEADER */}
+      <div className="buyer-details-header">
+
+        <div className="buyer-details-header-content">
+          <div className="buyer-details-header-icon">
+            <UserRound size={20} />
+          </div>
+
+          <div>
+            <h2>Buyer Details</h2>
+            <p>
+              Registration and auction activity
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="buyer-details-close"
+          onClick={() => {
+            setBuyerDetails(null);
+            setBuyerError("");
+          }}
+          aria-label="Close buyer details"
+        >
+          <Times size={19} />
+        </button>
+
+      </div>
+
+      {/* LOADING */}
+      {buyerLoading && (
+        <div className="buyer-details-loading">
+
+          <div className="buyer-loading-spinner"></div>
+
+          <h3>Loading Buyer Details</h3>
+
+          <p>
+            Please wait while we fetch the buyer information.
+          </p>
+
+        </div>
+      )}
+
+      {/* ERROR */}
+      {!buyerLoading && buyerError && (
+        <div className="buyer-details-error-container">
+
+          <div className="buyer-error-icon">
+            !
+          </div>
+
+          <h3>Unable to Load Details</h3>
+
+          <p>{buyerError}</p>
+
+          <button
+            type="button"
+            className="buyer-error-close-btn"
+            onClick={() => {
+              setBuyerDetails(null);
+              setBuyerError("");
+            }}
+          >
+            Close
+          </button>
+
+        </div>
+      )}
+
+      {/* BUYER DATA */}
+      {!buyerLoading &&
+        !buyerError &&
+        buyerDetails && (
+          <div className="buyer-details-content">
+
+            {/* =================================================
+                BUYER PROFILE
+            ================================================= */}
+
+            <div className="buyer-profile-section">
+
+              <div className="buyer-avatar">
+                {(
+                  buyerDetails.fullname ||
+                  buyerDetails.full_name ||
+                  buyerDetails.name ||
+                  buyerDetails.username ||
+                  "B"
+                )
+                  .trim()
+                  .charAt(0)
+                  .toUpperCase()}
+              </div>
+
+              <div className="buyer-profile-info">
+
+                <h3>
+                  {buyerDetails.fullname ||
+                    buyerDetails.full_name ||
+                    buyerDetails.name ||
+                    buyerDetails.username ||
+                    "Buyer"}
+                </h3>
+
+                <span className="buyer-role">
+                  <BadgeCheck size={13} />
+                  Buyer
+                </span>
+
+              </div>
+
+            </div>
+
+            {/* =================================================
+                REGISTRATION DETAILS
+            ================================================= */}
+
+            <div className="buyer-info-section">
+
+              <h3 className="buyer-info-title">
+                <UserRound size={17} />
+                Registration Details
+              </h3>
+
+              <div className="buyer-info-grid">
+
+                <div className="buyer-info-item">
+                  <span>Username</span>
+                  <strong>
+                    {buyerDetails.username || "N/A"}
+                  </strong>
+                </div>
+
+                <div className="buyer-info-item">
+                  <span>Email</span>
+                  <strong>
+                    {buyerDetails.email || "N/A"}
+                  </strong>
+                </div>
+
+                <div className="buyer-info-item">
+                  <span>Mobile</span>
+                  <strong>
+                    {buyerDetails.mobile ||
+                      buyerDetails.phone ||
+                      buyerDetails.contact ||
+                      "N/A"}
+                  </strong>
+                </div>
+
+                <div className="buyer-info-item">
+                  <span>Registration Date</span>
+                  <strong>
+                    {buyerDetails.registration_date
+                      ? formatDateTime(
+                          buyerDetails.registration_date
+                        )
+                      : buyerDetails.created_at
+                      ? formatDateTime(
+                          buyerDetails.created_at
+                        )
+                      : "N/A"}
+                  </strong>
+                </div>
+
+                <div className="buyer-info-item buyer-info-full">
+                  <span>Address</span>
+                  <strong>
+                    {buyerDetails.address || "N/A"}
+                  </strong>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* =================================================
+                AUCTION ACTIVITY
+            ================================================= */}
+
+            <div className="buyer-info-section">
+
+              <h3 className="buyer-info-title">
+                <TrendingUp size={17} />
+                Auction Activity
+              </h3>
+
+              <div className="buyer-stat-grid">
+
+                <div className="buyer-stat-card">
+                  <div className="buyer-stat-icon">
+                    <TrendingUp size={17} />
+                  </div>
+
+                  <span>Total Bids</span>
+
+                  <strong>
+                    {buyerDetails.total_bids ?? 0}
+                  </strong>
+                </div>
+
+                <div className="buyer-stat-card">
+                  <div className="buyer-stat-icon">
+                    <IndianRupee size={17} />
+                  </div>
+
+                  <span>Total Bid Value</span>
+
+                  <strong>
+                    {buyerDetails.total_bid_value != null
+                      ? formatOptionalCurrency(
+                          buyerDetails.total_bid_value
+                        )
+                      : "₹0"}
+                  </strong>
+                </div>
+
+                <div className="buyer-stat-card">
+                  <div className="buyer-stat-icon">
+                    <CheckCircle2 size={17} />
+                  </div>
+
+                  <span>Auctions Won</span>
+
+                  <strong>
+                    {buyerDetails.auctions_won ?? 0}
+                  </strong>
+                </div>
+
+                <div className="buyer-stat-card">
+                  <div className="buyer-stat-icon">
+                    <Package size={17} />
+                  </div>
+
+                  <span>Auctions Created</span>
+
+                  <strong>
+                    {buyerDetails.auctions_created ?? 0}
+                  </strong>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* =================================================
+                ADDITIONAL STATISTICS
+            ================================================= */}
+
+            {(buyerDetails.highest_bid != null ||
+              buyerDetails.auctions_participated != null) && (
+
+              <div className="buyer-info-section">
+
+                <h3 className="buyer-info-title">
+                  <TrendingUp size={17} />
+                  Additional Statistics
+                </h3>
+
+                <div className="buyer-info-grid">
+
+                  {buyerDetails.highest_bid != null && (
+                    <div className="buyer-info-item">
+                      <span>Highest Bid</span>
+
+                      <strong>
+                        {formatOptionalCurrency(
+                          buyerDetails.highest_bid
+                        )}
+                      </strong>
+                    </div>
+                  )}
+
+                  {buyerDetails.auctions_participated != null && (
+                    <div className="buyer-info-item">
+                      <span>Auctions Participated</span>
+
+                      <strong>
+                        {buyerDetails.auctions_participated}
+                      </strong>
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
+            )}
+
+          </div>
+        )}
+
+    </div>
+  </div>
+)}
     </div>
   );
 };

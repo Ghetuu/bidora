@@ -263,6 +263,7 @@ def get_live_auction(
                 "bids": [
                     {
                         "id": bid.id,
+                        "user_id": bid.user_id,
                         "bidder_name": bid.bidder_name,
                         "amount": float(bid.amount),
                         "bid_time": bid.created_at.isoformat()
@@ -467,3 +468,337 @@ def place_bid(
             detail="Unable to place bid."
         )
 
+# =========================================================
+# GET BUYER DETAILS FOR A BIDDER
+#
+# Used by the seller from the "All Bids" table.
+#
+# This endpoint:
+# - Verifies the auction exists
+# - Verifies the buyer actually bid on this auction
+# - Verifies the logged-in user owns the auction
+# - Returns registration + bidding + auction activity
+# =========================================================
+
+@router.get("/{auction_id}/bidders/{buyer_id}/details")
+def get_buyer_details(
+    auction_id: int,
+    buyer_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+
+        # -------------------------------------------------
+        # FIND AUCTION
+        # -------------------------------------------------
+
+        auction = (
+            db.query(Auction)
+            .filter(
+                Auction.id == auction_id
+            )
+            .first()
+        )
+
+        if not auction:
+            raise HTTPException(
+                status_code=404,
+                detail="Auction not found."
+            )
+
+        # -------------------------------------------------
+        # ONLY THE AUCTION SELLER CAN VIEW BIDDER DETAILS
+        # -------------------------------------------------
+
+        if current_user.id != auction.user_id:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Only the seller of this auction "
+                    "can view bidder details."
+                )
+            )
+
+        # -------------------------------------------------
+        # FIND BUYER
+        # -------------------------------------------------
+
+        buyer = (
+            db.query(User)
+            .filter(
+                User.id == buyer_id
+            )
+            .first()
+        )
+
+        if not buyer:
+            raise HTTPException(
+                status_code=404,
+                detail="Buyer not found."
+            )
+
+        # -------------------------------------------------
+        # VERIFY THAT THIS USER ACTUALLY BID ON AUCTION
+        # -------------------------------------------------
+
+        auction_bid = (
+            db.query(Bid)
+            .filter(
+                Bid.auction_id == auction_id,
+                Bid.user_id == buyer_id
+            )
+            .first()
+        )
+
+        if not auction_bid:
+            raise HTTPException(
+                status_code=404,
+                detail="This user has not bid on this auction."
+            )
+
+        # =================================================
+        # ALL BIDS MADE BY THIS USER
+        # =================================================
+
+        buyer_bids = (
+            db.query(Bid)
+            .filter(
+                Bid.user_id == buyer_id
+            )
+            .order_by(
+                Bid.created_at.desc()
+            )
+            .all()
+        )
+
+        # -------------------------------------------------
+        # TOTAL BIDS
+        # -------------------------------------------------
+
+        total_bids = len(buyer_bids)
+
+        # -------------------------------------------------
+        # TOTAL BID VALUE
+        # -------------------------------------------------
+
+        total_bid_value = sum(
+            Decimal(str(bid.amount))
+            for bid in buyer_bids
+            if bid.amount is not None
+        )
+
+        # -------------------------------------------------
+        # HIGHEST BID
+        # -------------------------------------------------
+
+        highest_bid = max(
+            (
+                Decimal(str(bid.amount))
+                for bid in buyer_bids
+                if bid.amount is not None
+            ),
+            default=Decimal("0")
+        )
+
+        # =================================================
+        # AUCTIONS PARTICIPATED IN
+        # =================================================
+
+        participated_auction_ids = {
+            bid.auction_id
+            for bid in buyer_bids
+        }
+
+        auctions_participated = len(
+            participated_auction_ids
+        )
+
+        # =================================================
+        # AUCTIONS CREATED BY THIS USER
+        # =================================================
+
+        created_auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.user_id == buyer_id
+            )
+            .all()
+        )
+
+        auctions_created = len(created_auctions)
+
+        # -------------------------------------------------
+        # ACTIVE AUCTIONS CREATED
+        # -------------------------------------------------
+
+        active_auctions_created = sum(
+            1
+            for item in created_auctions
+            if str(item.status).lower() == "live"
+        )
+
+        # -------------------------------------------------
+        # COMPLETED AUCTIONS CREATED
+        # -------------------------------------------------
+
+        completed_auctions_created = sum(
+            1
+            for item in created_auctions
+            if str(item.status).lower() == "ended"
+        )
+
+        # =================================================
+        # AUCTIONS WON
+        #
+        # Your Auction model does not have a winner_id
+        # column.
+        #
+        # Therefore, for an ended auction, the winner is
+        # determined by the highest bid.
+        # =================================================
+
+        auctions_won = 0
+
+        ended_auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.status == "ended"
+            )
+            .all()
+        )
+
+        for ended_auction in ended_auctions:
+
+            ended_bids = (
+                db.query(Bid)
+                .filter(
+                    Bid.auction_id == ended_auction.id
+                )
+                .order_by(
+                    Bid.amount.desc()
+                )
+                .all()
+            )
+
+            if not ended_bids:
+                continue
+
+            highest_ended_bid = ended_bids[0]
+
+            if highest_ended_bid.user_id == buyer_id:
+                auctions_won += 1
+
+        # =================================================
+        # CURRENT AUCTION BID ACTIVITY
+        # =================================================
+
+        current_auction_bids = [
+            bid
+            for bid in buyer_bids
+            if bid.auction_id == auction_id
+        ]
+
+        current_auction_highest_bid = max(
+            (
+                Decimal(str(bid.amount))
+                for bid in current_auction_bids
+                if bid.amount is not None
+            ),
+            default=Decimal("0")
+        )
+
+        # =================================================
+        # REGISTRATION DATE
+        # =================================================
+
+        registration_date = (
+            buyer.registration_date.isoformat()
+            if buyer.registration_date
+            else None
+        )
+
+        # =================================================
+        # PROFILE IMAGE
+        # =================================================
+
+        profile_image = buyer.profile_image
+
+        # =================================================
+        # RESPONSE
+        # =================================================
+
+        return {
+            "success": True,
+
+            "buyer": {
+                "id": buyer.id,
+                "fullname": buyer.fullname,
+                "username": buyer.username,
+                "email": buyer.email,
+                "mobile": buyer.mobile,
+                "address": buyer.address,
+                "profile_image": profile_image,
+                "email_verified": buyer.email_verified,
+                "account_status": buyer.account_status,
+                "registration_date": registration_date
+            },
+
+            "current_auction": {
+                "auction_id": auction.id,
+                "bid_count": len(current_auction_bids),
+                "highest_bid": float(
+                    current_auction_highest_bid
+                )
+            },
+
+            "bidding_stats": {
+                "total_bids": total_bids,
+                "auctions_participated": auctions_participated,
+                "total_bid_value": float(
+                    total_bid_value
+                ),
+                "highest_bid": float(
+                    highest_bid
+                )
+            },
+
+            "auction_stats": {
+                "auctions_created": auctions_created,
+                "auctions_won": auctions_won,
+                "active_auctions_created": (
+                    active_auctions_created
+                ),
+                "completed_auctions_created": (
+                    completed_auctions_created
+                )
+            },
+
+            "recent_bids": [
+                {
+                    "auction_id": bid.auction_id,
+                    "amount": float(bid.amount),
+                    "bid_time": (
+                        bid.created_at.isoformat()
+                        if bid.created_at
+                        else None
+                    )
+                }
+                for bid in buyer_bids[:10]
+            ]
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print("========================================")
+        print("BUYER DETAILS ERROR")
+        print(repr(e))
+        print("========================================")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load buyer details."
+        )

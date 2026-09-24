@@ -1803,7 +1803,7 @@ if (auctionStart <= now) {
     // GET JWT TOKEN
     // =========================================================
 
-    const storedUser = localStorage.getItem("user");
+    const storedUser = sessionStorage.getItem("user");
     let user = null;
 
     try {
@@ -1813,9 +1813,9 @@ if (auctionStart <= now) {
     }
 
     const accessToken =
-      localStorage.getItem("access_token") ||
-      localStorage.getItem("accessToken") ||
-      localStorage.getItem("token") ||
+      sessionStorage.getItem("access_token") ||
+      sessionStorage.getItem("accessToken") ||
+      sessionStorage.getItem("token") ||
       user?.access_token ||
       user?.accessToken ||
       user?.token;
