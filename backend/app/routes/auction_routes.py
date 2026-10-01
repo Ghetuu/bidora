@@ -25,6 +25,8 @@ from app.models.auction_image import AuctionImage
 from app.repositories.auction_repository import (
     AuctionRepository
 )
+from app.models.bids import Bid
+
 
 from app.schemas.auction import AuctionCreate
 
@@ -202,6 +204,15 @@ async def create_auction(
 # GET MY AUCTIONS
 # =========================================================
 
+# =========================================================
+# GET MY AUCTIONS
+# Includes:
+# - Total bids
+# - Highest bid
+# - Final price
+# - Winner
+# =========================================================
+
 @router.get("/my-auctions")
 def get_my_auctions(
     current_user: User = Depends(get_current_user),
@@ -229,9 +240,77 @@ def get_my_auctions(
             # ==========================================
 
             auction_images = sorted(
-                auction.images,
-                key=lambda image: image.display_order
+                auction.images or [],
+                key=lambda image: (
+                    image.display_order
+                    if image.display_order is not None
+                    else 0
+                )
             )
+
+            # ==========================================
+            # GET ALL BIDS FOR THIS AUCTION
+            # ==========================================
+
+            auction_bids = (
+                db.query(Bid)
+                .filter(
+                    Bid.auction_id == auction.id
+                )
+                .order_by(
+                    Bid.amount.desc(),
+                    Bid.created_at.asc()
+                )
+                .all()
+            )
+
+            # ==========================================
+            # BID INFORMATION
+            # ==========================================
+
+            total_bids = len(auction_bids)
+
+            highest_bid = (
+                auction_bids[0]
+                if auction_bids
+                else None
+            )
+
+            highest_bid_amount = (
+                float(highest_bid.amount)
+                if highest_bid and highest_bid.amount is not None
+                else 0
+            )
+
+            # ==========================================
+            # TIME STATUS
+            #
+            # This is calculated from auction_start/end.
+            # It does NOT change your existing DB status.
+            # ==========================================
+
+            auction_time_status = get_auction_time_status(
+                auction
+            )
+
+            # ==========================================
+            # FINAL PRICE + WINNER
+            #
+            # Only an ended auction has a final price
+            # and winner.
+            # ==========================================
+
+            final_price = 0
+            winner = None
+            winner_id = None
+
+            if (
+                auction_time_status == "ended"
+                and highest_bid
+            ):
+                final_price = highest_bid_amount
+                winner = highest_bid.bidder_name
+                winner_id = highest_bid.user_id
 
             # ==========================================
             # BUILD RESPONSE
@@ -296,7 +375,39 @@ def get_my_auctions(
                     else None
                 ),
 
+                # ======================================
+                # DATABASE STATUS
+                # ======================================
+
                 "status": auction.status,
+
+                # ======================================
+                # TIME STATUS
+                # ======================================
+
+                "auction_status": auction_time_status,
+
+                # ======================================
+                # BID INFORMATION
+                # ======================================
+
+                "bids": total_bids,
+
+                "highest_bid": highest_bid_amount,
+
+                "bid_amount": highest_bid_amount,
+
+                "current_bid": highest_bid_amount,
+
+                # ======================================
+                # FINAL AUCTION RESULT
+                # ======================================
+
+                "final_price": final_price,
+
+                "winner": winner,
+
+                "winner_id": winner_id,
 
                 # ======================================
                 # LOCATION
@@ -358,9 +469,13 @@ def get_my_auctions(
                 # DOCUMENTS
                 # ======================================
 
-                "purchase_proof_path": auction.purchase_proof_path,
+                "purchase_proof_path": (
+                    auction.purchase_proof_path
+                ),
 
-                "seller_proof_path": auction.seller_proof_path,
+                "seller_proof_path": (
+                    auction.seller_proof_path
+                ),
 
                 # ======================================
                 # RECORD INFORMATION
@@ -383,12 +498,15 @@ def get_my_auctions(
 
     except Exception as e:
 
-        print("GET MY AUCTIONS ERROR:", repr(e))
+        print(
+            "GET MY AUCTIONS ERROR:",
+            repr(e)
+        )
 
         raise HTTPException(
             status_code=500,
             detail="Unable to load your auctions."
-        )
+        )        
 
 
 # =========================================================
@@ -487,31 +605,21 @@ def get_all_approved_auctions(
     current_user: User = Depends(get_current_user)
 ):
     try:
-
-        # =========================================================
-        # GET APPROVED + LIVE AUCTIONS
-        # REJECTED AUCTIONS ARE NOT INCLUDED
-        # =========================================================
-
         auctions = (
-    db.query(Auction)
-    .filter(
-        Auction.status != "rejected"
-    )
-    .order_by(Auction.created_at.desc())
-    .all()
-)
+            db.query(Auction)
+            .filter(
+                Auction.status == "approved"
+            )
+            .order_by(
+                Auction.created_at.desc()
+            )
+            .all()
+        )
 
         result = []
-
-        # Current UTC time
         now = datetime.now(timezone.utc)
 
         for auction in auctions:
-
-            # =====================================================
-            # AUCTION STATUS
-            # =====================================================
 
             auction_status = "unknown"
 
@@ -520,48 +628,20 @@ def get_all_approved_auctions(
                 start_time = auction.auction_start
                 end_time = auction.auction_end
 
-                # Handle timezone-naive database values
                 if start_time.tzinfo is None:
-                    start_time = start_time.replace(
-                        tzinfo=timezone.utc
-                    )
+                    start_time = start_time.replace(tzinfo=timezone.utc)
 
                 if end_time.tzinfo is None:
-                    end_time = end_time.replace(
-                        tzinfo=timezone.utc
-                    )
-
-                # -------------------------------------------------
-                # UPCOMING
-                # -------------------------------------------------
+                    end_time = end_time.replace(tzinfo=timezone.utc)
 
                 if now < start_time:
-
                     auction_status = "upcoming"
 
-                # -------------------------------------------------
-                # LIVE
-                # -------------------------------------------------
-
                 elif start_time <= now <= end_time:
-
                     auction_status = "live"
 
-                # -------------------------------------------------
-                # ENDED
-                # -------------------------------------------------
-
                 else:
-
                     auction_status = "ended"
-
-                    # IMPORTANT:
-                    # Do NOT add ended auctions to result
-                    #continue
-
-            # =====================================================
-            # SORT IMAGES
-            # =====================================================
 
             sorted_images = sorted(
                 auction.images or [],
@@ -571,22 +651,9 @@ def get_all_approved_auctions(
                     else 0
             )
 
-            # =====================================================
-            # RESPONSE
-            # =====================================================
-
             result.append({
-
-                # -------------------------------------------------
-                # BASIC
-                # -------------------------------------------------
-
                 "id": auction.id,
                 "user_id": auction.user_id,
-
-                # -------------------------------------------------
-                # PRODUCT
-                # -------------------------------------------------
 
                 "product_title": auction.product_title,
                 "brand_model": auction.brand_model,
@@ -594,72 +661,38 @@ def get_all_approved_auctions(
                 "description": auction.description,
                 "product_condition": auction.product_condition,
 
-                # -------------------------------------------------
-                # PURCHASE
-                # -------------------------------------------------
-
                 "purchase_date": auction.purchase_date,
                 "purchased_by": auction.purchased_by,
                 "purchase_price": auction.purchase_price,
 
-                # -------------------------------------------------
-                # AUCTION
-                # -------------------------------------------------
-
                 "starting_price": auction.starting_price,
+
                 "auction_start": auction.auction_start,
                 "auction_end": auction.auction_end,
 
+                # Time-based status
                 "auction_status": auction_status,
 
-                # -------------------------------------------------
-                # LOCATION
-                # -------------------------------------------------
+                # Admin approval status
+                "status": auction.status,
 
                 "location_city": auction.location_city,
                 "location_state": auction.location_state,
                 "location_pincode": auction.location_pincode,
-
-                # -------------------------------------------------
-                # DELIVERY / SHIPPING
-                # -------------------------------------------------
 
                 "delivery_type": auction.delivery_type,
                 "shipping_type": auction.shipping_type,
                 "shipping_charges": auction.shipping_charges,
                 "shipping_paid_by": auction.shipping_paid_by,
 
-                # -------------------------------------------------
-                # WARRANTY / PAYMENT
-                # -------------------------------------------------
-
                 "warranty_status": auction.warranty_status,
                 "payment_method": auction.payment_method,
-
-                # -------------------------------------------------
-                # TERMS
-                # -------------------------------------------------
-
                 "product_terms": auction.product_terms,
                 "terms_accepted": auction.terms_accepted,
-
-                # -------------------------------------------------
-                # SELLER
-                # -------------------------------------------------
 
                 "seller_name": auction.seller_name,
                 "seller_email": auction.seller_email,
                 "seller_contact": auction.seller_contact,
-
-                # -------------------------------------------------
-                # DATABASE STATUS
-                # -------------------------------------------------
-
-                "status": auction.status,
-
-                # -------------------------------------------------
-                # IMAGES
-                # -------------------------------------------------
 
                 "images": [
                     {
@@ -670,10 +703,6 @@ def get_all_approved_auctions(
                     for image in sorted_images
                 ],
 
-                # -------------------------------------------------
-                # TIMESTAMPS
-                # -------------------------------------------------
-
                 "created_at": auction.created_at,
                 "updated_at": auction.updated_at
             })
@@ -681,11 +710,7 @@ def get_all_approved_auctions(
         return result
 
     except Exception as e:
-
-        print(
-            "ALL AUCTIONS ERROR:",
-            str(e)
-        )
+        print("ALL AUCTIONS ERROR:", str(e))
 
         raise HTTPException(
             status_code=500,

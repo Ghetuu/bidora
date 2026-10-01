@@ -38,6 +38,41 @@ function AuctionDetails() {
 
   const auction = location.state?.auction;
 
+  useEffect(() => {
+  const recordAuctionView = async () => {
+    try {
+      const token = sessionStorage.getItem("access_token");
+
+      if (!token || !auction?.id) {
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/recommendations/view/${auction.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Failed to record auction view:",
+          response.status
+        );
+      } else {
+        console.log("Auction view recorded:", auction.id);
+      }
+    } catch (error) {
+      console.error("Unable to record auction view:", error);
+    }
+  };
+
+  recordAuctionView();
+}, [auction?.id]);
   // =========================================================
   // SOURCE PAGE
   // =========================================================
@@ -700,7 +735,9 @@ function AuctionDetails() {
             type="button"
             className="place-bid-btn"
             onClick={() =>
-              handleViewAuction?.(auction)
+              navigate(
+                `/dashboard/live-auction/${auction.id}`
+              )
             }
             disabled={
               status === "ended" ||

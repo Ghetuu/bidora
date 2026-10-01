@@ -12,6 +12,8 @@ import {
   FaTimes,
   FaChevronDown,   // add
   FaCheck,
+  FaShieldAlt,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 import "../styles/adminauctionlist.css";
@@ -67,8 +69,10 @@ function AdminAuctionList({ status = "all", title = "All Auctions" }) {
 
   const [auctions, setAuctions] = useState([]);
   const [filteredAuctions, setFilteredAuctions] = useState([]);
-const [selectedRejectionReason, setSelectedRejectionReason] =
+  const [selectedRejectionReason, setSelectedRejectionReason] =
   useState(null);
+  const [trustScores, setTrustScores] = useState({});
+  const [trustModal, setTrustModal] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -188,9 +192,24 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
      FETCH AUCTIONS
   ========================================================= */
 
-  useEffect(() => {
-    fetchAuctions();
-  }, [status]);
+ useEffect(() => {
+  fetchAuctions();
+  if (status.toLowerCase() === "pending") fetchTrustScores();
+}, [status]);
+
+const fetchTrustScores = async () => {
+  try {
+    const res = await fetch(`${API_URL}/admin/auctions/trust-scores?status=pending`);
+    if (!res.ok) throw new Error("Failed to load trust scores");
+    const data = await res.json();
+    setTrustScores(data.scores || {});
+  } catch (err) {
+    console.error("Trust score error:", err);
+    setTrustScores({});
+  }
+};
+
+const getTrust = (auction) => trustScores[String(auction.id)];
 
   const fetchAuctions = async () => {
   try {
@@ -454,38 +473,38 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
      APPROVE AUCTION
   ========================================================= */
 
-  const handleApprove = async (auction) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to approve "${auction.product_title}"?`
+  const handleApprove = (auction) => {
+  const trust = getTrust(auction);
+
+  // high risk -> show the risk report and ask again
+  if (trust && trust.level === "high") {
+    setTrustModal({ auction, mode: "approve" });
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Are you sure you want to approve "${auction.product_title}"?`
+  );
+  if (!confirmed) return;
+
+  approveAuction(auction);
+};
+
+const approveAuction = async (auction) => {
+  try {
+    const response = await fetch(
+      `${API_URL}/admin/auctions/${auction.id}/approve`,
+      { method: "PUT", headers: { "Content-Type": "application/json" } }
     );
+    if (!response.ok) throw new Error("Failed to approve auction");
 
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${API_URL}/admin/auctions/${auction.id}/approve`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to approve auction");
-      }
-
-      alert("Auction approved successfully.");
-
-      fetchAuctions();
-    } catch (err) {
-      console.error("Approve auction error:", err);
-      alert("Unable to approve auction.");
-    }
-  };
+    alert("Auction approved successfully.");
+    fetchAuctions();
+  } catch (err) {
+    console.error("Approve auction error:", err);
+    alert("Unable to approve auction.");
+  }
+};
 
 
   /* =========================================================
@@ -1168,14 +1187,16 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
         <div className="auction-table-wrapper">
 
           <table
-            className={`auction-table ${
-              isApprovedPage
-                ? "approved-auction-table"
-                : isRejectedPage
-                ? "rejected-auction-table"
-                : ""
-            }`}
-          >
+  className={`auction-table ${
+    isApprovedPage
+      ? "approved-auction-table"
+      : isRejectedPage
+      ? "rejected-auction-table"
+      : isPendingPage
+      ? "pending-auction-table"
+      : ""
+  }`}
+>
 
             {/* =================================================
                 TABLE HEADER
@@ -1221,6 +1242,7 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                 <th className="col-category">
                   Category
                 </th>
+                {isPendingPage && <th className="col-trust">Trust Score</th>}
 
                 {isLivePage && (
                   <>
@@ -1280,6 +1302,11 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                 <th className="col-action">
                   Actions
                 </th>
+                {isLivePage && (
+  <th className="col-live-bidding">
+    Live Bidding
+  </th>
+)}
 
                 {status.toLowerCase() === "pending" && (
                   <th className="col-approval-actions">
@@ -1308,7 +1335,7 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
     : isRejectedPage
     ? 11
     : isPendingPage
-    ? 9
+    ? 10
     : isLivePage
     ? 12
     : isCompletedPage
@@ -1451,17 +1478,42 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
                         </span>
                       </td>
 
+                      {isPendingPage && (
+  <td>
+    {(() => {
+      const t = getTrust(auction);
+      if (!t) return <span className="trust-badge trust-na">N/A</span>;
+      return (
+        <button
+          type="button"
+          className={`trust-badge trust-${t.level}`}
+          onClick={() => setTrustModal({ auction, mode: "view" })}
+          title="View risk details"
+        >
+          <FaShieldAlt /> {t.score} · {t.label}
+        </button>
+      );
+    })()}
+  </td>
+)}
+
                       {/* HIGHEST BID / BIDDER NAME (Live page only) */}
 
                       {isLivePage && (
-                        <>
-                          <td className="auction-price">
-                            {getHighestBid(auction)}
-                          </td>
-                          <td>{getBidderName(auction)}</td>
-                          <td>{getWinnerName(auction)}</td>
-                        </>
-                      )}
+  <>
+    <td className="auction-price">
+      {getHighestBid(auction)}
+    </td>
+
+    <td>
+      {getBidderName(auction)}
+    </td>
+
+    <td>
+      {getWinnerName(auction)}
+    </td>
+  </>
+)}
 
                       {isCompletedPage && (
                         <>
@@ -1832,7 +1884,65 @@ const [selectedRejectionReason, setSelectedRejectionReason] =
 
   </div>
 )}
+{trustModal && (() => {
+  const t = getTrust(trustModal.auction);
+  if (!t) return null;
+  const isApprove = trustModal.mode === "approve";
 
+  return (
+    <div className="trust-modal" onClick={() => setTrustModal(null)}>
+      <div className="trust-modal-content" onClick={(e) => e.stopPropagation()}>
+
+        <div className="trust-modal-header">
+          <h3>Trust &amp; Risk Report</h3>
+          <p>{trustModal.auction.product_title}</p>
+        </div>
+
+        <div className={`trust-score-summary trust-${t.level}`}>
+          <strong>{t.score}</strong>
+          <span>/ 100</span>
+          <em>{t.label}</em>
+        </div>
+
+        {isApprove && (
+          <p className="trust-warning">
+            <FaExclamationTriangle /> This auction is flagged as high risk.
+            Review the reasons below before approving.
+          </p>
+        )}
+
+        <ul className="trust-reasons">
+          {t.reasons.map((r, i) => (
+            <li key={i} className={`trust-reason ${r.type}`}>
+              <span>{r.label}</span>
+              <strong>{r.points > 0 ? "+" : ""}{r.points}</strong>
+            </li>
+          ))}
+        </ul>
+
+        <div className="trust-modal-footer">
+          <button type="button" className="trust-btn-secondary" onClick={() => setTrustModal(null)}>
+            {isApprove ? "Cancel" : "Close"}
+          </button>
+          {isApprove && (
+            <button
+              type="button"
+              className="trust-btn-danger"
+              onClick={() => {
+                const a = trustModal.auction;
+                setTrustModal(null);
+                approveAuction(a);
+              }}
+            >
+              Approve anyway
+            </button>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+})()}
     </div>
   );
 }

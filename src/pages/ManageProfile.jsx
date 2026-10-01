@@ -40,7 +40,7 @@ const ManageProfile = () => {
     try {
 
       const storedUser =
-        localStorage.getItem("user");
+        sessionStorage.getItem("user");
 
       if (!storedUser) {
         return;
@@ -170,7 +170,7 @@ const ManageProfile = () => {
       setLoading(true);
 
       const token =
-        localStorage.getItem(
+        sessionStorage.getItem(
           "access_token"
         );
 
@@ -291,7 +291,7 @@ if (!response.ok) {
 
       if (result.user) {
 
-        localStorage.setItem(
+        sessionStorage.setItem(
           "user",
           JSON.stringify(
             result.user

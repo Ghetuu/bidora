@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../styles/createauctionform.css";
+import PricePrediction from "../components/priceprediction";
 
 /* =========================================================
    CATEGORY / CONDITION / WARRANTY / SHIPPING OPTIONS
@@ -1803,7 +1804,7 @@ if (auctionStart <= now) {
     // GET JWT TOKEN
     // =========================================================
 
-    const storedUser = localStorage.getItem("user");
+    const storedUser = sessionStorage.getItem("user");
     let user = null;
 
     try {
@@ -1813,9 +1814,9 @@ if (auctionStart <= now) {
     }
 
     const accessToken =
-      localStorage.getItem("access_token") ||
-      localStorage.getItem("accessToken") ||
-      localStorage.getItem("token") ||
+      sessionStorage.getItem("access_token") ||
+      sessionStorage.getItem("accessToken") ||
+      sessionStorage.getItem("token") ||
       user?.access_token ||
       user?.accessToken ||
       user?.token;
@@ -2564,6 +2565,21 @@ if (auctionStart <= now) {
               </div>
 
             </div>
+
+            {/* 👇 PASTE HERE */}
+            <PricePrediction
+              category={formData.category}
+              condition={formData.condition}
+              purchasePrice={formData.purchasePrice}
+              brandModel={formData.brandModel}
+              purchaseDate={formData.purchaseDate}
+              onUseStartingPrice={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  startingPrice: String(value),
+                }))
+              }
+            />
 
             <div className="ca-field-grid">
 

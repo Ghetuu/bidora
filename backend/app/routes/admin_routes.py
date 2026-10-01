@@ -10,6 +10,7 @@ from app.models.user import User
 from app.models.auction import Auction
 from app.models.auction_image import AuctionImage
 from app.models.contact_message import ContactMessage
+from app.models.bids import Bid
 from datetime import datetime
 
 
@@ -2310,3 +2311,782 @@ def get_all_auctions(
         })
 
     return result
+
+# =====================================================
+# GET ALL BIDS FOR A SPECIFIC AUCTION (ADMIN)
+#
+# Used by the "Live Auction Bidding" admin page to show
+# bid trend, bidder list and stats for a single auction.
+# Highest bid first.
+# =====================================================
+
+@router.get("/auctions/{auction_id}/bids")
+def get_admin_auction_bids(
+    auction_id: int,
+    db: Session = Depends(get_db)
+):
+    try:
+
+        auction = (
+            db.query(Auction)
+            .filter(Auction.id == auction_id)
+            .first()
+        )
+
+        if not auction:
+            raise HTTPException(
+                status_code=404,
+                detail="Auction not found."
+            )
+
+        bids = (
+            db.query(Bid)
+            .filter(Bid.auction_id == auction_id)
+            .order_by(Bid.amount.desc())
+            .all()
+        )
+
+        result = [
+            {
+                "id": bid.id,
+                "auction_id": bid.auction_id,
+                "user_id": bid.user_id,
+                "bidder_id": bid.user_id,
+                "bidder_name": bid.bidder_name,
+                "amount": float(bid.amount),
+                "bid_amount": float(bid.amount),
+                "created_at": (
+                    bid.created_at.isoformat()
+                    if bid.created_at
+                    else None
+                ),
+                "bid_time": (
+                    bid.created_at.isoformat()
+                    if bid.created_at
+                    else None
+                )
+            }
+            for bid in bids
+        ]
+
+        return {
+            "success": True,
+            "count": len(result),
+            "bids": result
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        print("ADMIN AUCTION BIDS ERROR:", repr(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load bids for this auction."
+        )
+# =========================================================
+# GET BID INFORMATION FOR AUCTION LIST
+# =========================================================
+# =========================================================
+# GET BID INFORMATION FOR AUCTION
+# =========================================================
+
+def get_bid_information(auction_id: int, db: Session):
+
+    """
+    Get the highest bid and highest bidder for an auction.
+
+    This only reads existing Bid records.
+    It does not change any existing bidding logic.
+    """
+
+    highest_bid = (
+        db.query(Bid)
+        .filter(
+            Bid.auction_id == auction_id
+        )
+        .order_by(
+            Bid.amount.desc()
+        )
+        .first()
+    )
+
+    # -----------------------------------------------------
+    # NO BIDS
+    # -----------------------------------------------------
+
+    if not highest_bid:
+
+        return {
+            "highest_bid": 0,
+            "highest_bidder_name": None,
+            "bidder_name": None,
+            "current_bid": 0,
+            "current_highest_bid": 0,
+            "winner_name": "Not decided yet"
+        }
+
+    # -----------------------------------------------------
+    # GET BIDDER NAME
+    # -----------------------------------------------------
+
+    bidder_name = highest_bid.bidder_name
+
+    # -----------------------------------------------------
+    # FALLBACK TO USER TABLE
+    # -----------------------------------------------------
+
+    if not bidder_name and highest_bid.user_id:
+
+        bidder = (
+            db.query(User)
+            .filter(
+                User.id == highest_bid.user_id
+            )
+            .first()
+        )
+
+        if bidder:
+
+            bidder_name = (
+                getattr(
+                    bidder,
+                    "fullname",
+                    None
+                )
+                or getattr(
+                    bidder,
+                    "username",
+                    None
+                )
+                or getattr(
+                    bidder,
+                    "name",
+                    None
+                )
+            )
+
+    # -----------------------------------------------------
+    # RETURN BID INFORMATION
+    # -----------------------------------------------------
+
+    return {
+
+        "highest_bid": float(
+            highest_bid.amount
+        ),
+
+        "highest_bidder_name": bidder_name,
+
+        "bidder_name": bidder_name,
+
+        "current_bid": float(
+            highest_bid.amount
+        ),
+
+        "current_highest_bid": float(
+            highest_bid.amount
+        ),
+
+        # LIVE AUCTION = NO FINAL WINNER
+        "winner_name": "Not decided yet"
+    }
+
+
+# =========================================================
+# GET AUCTIONS BY STATUS
+# =========================================================
+
+@router.get("/auctions/status/{status}")
+def get_auctions_by_status(
+
+    status: str,
+
+    db: Session = Depends(get_db)
+
+):
+
+    try:
+
+        # =================================================
+        # VALID STATUS
+        # =================================================
+
+        allowed_statuses = [
+            "pending",
+            "approved",
+            "rejected",
+            "live",
+            "ended",
+            "completed"
+        ]
+
+        status = status.strip().lower()
+
+        if status not in allowed_statuses:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid auction status."
+            )
+
+        # =================================================
+        # GET AUCTIONS
+        # =================================================
+
+        auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.status == status
+            )
+            .order_by(
+                Auction.id.desc()
+            )
+            .all()
+        )
+
+        result = []
+
+        # =================================================
+        # LOOP AUCTIONS
+        # =================================================
+
+        for auction in auctions:
+
+            # =================================================
+            # SELLER / USER
+            # =================================================
+
+            seller = None
+
+            # Prefer seller_id if your Auction table has it
+            if getattr(auction, "seller_id", None):
+
+                seller = (
+                    db.query(User)
+                    .filter(
+                        User.id == auction.seller_id
+                    )
+                    .first()
+                )
+
+            # Fallback to user_id
+            if not seller and getattr(
+                auction,
+                "user_id",
+                None
+            ):
+
+                seller = (
+                    db.query(User)
+                    .filter(
+                        User.id == auction.user_id
+                    )
+                    .first()
+                )
+
+            # =================================================
+            # IMAGES
+            # =================================================
+
+            images = (
+                db.query(AuctionImage)
+                .filter(
+                    AuctionImage.auction_id == auction.id
+                )
+                .order_by(
+                    AuctionImage.display_order.asc()
+                )
+                .all()
+            )
+
+            image_list = [
+
+                {
+                    "id": image.id,
+
+                    "image_path": image.image_path,
+
+                    "display_order":
+                        image.display_order
+                }
+
+                for image in images
+
+            ]
+
+            # =================================================
+            # BID INFORMATION
+            # =================================================
+
+            bid_info = get_bid_information(
+                auction.id,
+                db
+            )
+
+            # =================================================
+            # AUCTION DATA
+            # =================================================
+
+            auction_data = {
+
+                # -------------------------------------------------
+                # BASIC
+                # -------------------------------------------------
+
+                "id": auction.id,
+
+                "user_id": getattr(
+                    auction,
+                    "user_id",
+                    None
+                ),
+
+                "seller_id": getattr(
+                    auction,
+                    "seller_id",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # PRODUCT
+                # -------------------------------------------------
+
+                "product_title":
+                    auction.product_title,
+
+                "brand_model":
+                    auction.brand_model,
+
+                "category":
+                    auction.category,
+
+                "description":
+                    auction.description,
+
+                "product_condition":
+                    auction.product_condition,
+
+                # -------------------------------------------------
+                # PURCHASE
+                # -------------------------------------------------
+
+                "purchase_date": (
+
+                    auction.purchase_date.isoformat()
+
+                    if auction.purchase_date
+
+                    else None
+                ),
+
+                "purchase_price": (
+
+                    float(
+                        auction.purchase_price
+                    )
+
+                    if auction.purchase_price
+                    is not None
+
+                    else None
+                ),
+
+                "purchased_by":
+                    getattr(
+                        auction,
+                        "purchased_by",
+                        None
+                    ),
+
+                # -------------------------------------------------
+                # AUCTION
+                # -------------------------------------------------
+
+                "starting_price": (
+
+                    float(
+                        auction.starting_price
+                    )
+
+                    if auction.starting_price
+                    is not None
+
+                    else 0
+                ),
+
+                "auction_start": (
+
+                    auction.auction_start.isoformat()
+
+                    if auction.auction_start
+
+                    else None
+                ),
+
+                "auction_end": (
+
+                    auction.auction_end.isoformat()
+
+                    if auction.auction_end
+
+                    else None
+                ),
+
+                # -------------------------------------------------
+                # LOCATION
+                # -------------------------------------------------
+
+                "location": getattr(
+                    auction,
+                    "location",
+                    None
+                ),
+
+                "location_area": getattr(
+                    auction,
+                    "location_area",
+                    None
+                ),
+
+                "location_city": getattr(
+                    auction,
+                    "location_city",
+                    None
+                ),
+
+                "location_state": getattr(
+                    auction,
+                    "location_state",
+                    None
+                ),
+
+                "location_country": getattr(
+                    auction,
+                    "location_country",
+                    None
+                ),
+
+                "location_pincode": getattr(
+                    auction,
+                    "location_pincode",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # DELIVERY
+                # -------------------------------------------------
+
+                "shipping": getattr(
+                    auction,
+                    "shipping",
+                    None
+                ),
+
+                "shipping_type": getattr(
+                    auction,
+                    "shipping_type",
+                    None
+                ),
+
+                "shipping_charges": (
+
+                    float(
+                        auction.shipping_charges
+                    )
+
+                    if getattr(
+                        auction,
+                        "shipping_charges",
+                        None
+                    ) is not None
+
+                    else 0
+                ),
+
+                "shipping_paid_by": getattr(
+                    auction,
+                    "shipping_paid_by",
+                    None
+                ),
+
+                "delivery_type": getattr(
+                    auction,
+                    "delivery_type",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # WARRANTY / PAYMENT
+                # -------------------------------------------------
+
+                "warranty_status":
+                    auction.warranty_status,
+
+                "payment_method":
+                    auction.payment_method,
+
+                "payment_status": getattr(
+                    auction,
+                    "payment_status",
+                    None
+                ),
+
+                "payment_type": getattr(
+                    auction,
+                    "payment_type",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # TERMS
+                # -------------------------------------------------
+
+                "product_terms":
+                    auction.product_terms,
+
+                "terms_accepted": getattr(
+                    auction,
+                    "terms_accepted",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # SELLER
+                # -------------------------------------------------
+
+                "seller_name": (
+
+                    seller.fullname
+
+                    if seller
+
+                    else getattr(
+                        auction,
+                        "seller_name",
+                        None
+                    )
+                ),
+
+                "seller_username": (
+
+                    seller.username
+
+                    if seller
+
+                    else None
+                ),
+
+                "seller_email": (
+
+                    seller.email
+
+                    if seller
+
+                    else getattr(
+                        auction,
+                        "seller_email",
+                        None
+                    )
+                ),
+
+                "seller_mobile": (
+
+                    seller.mobile
+
+                    if seller
+
+                    else getattr(
+                        auction,
+                        "seller_contact",
+                        None
+                    )
+                ),
+
+                "seller_contact": getattr(
+                    auction,
+                    "seller_contact",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # FILES / PROOFS
+                # -------------------------------------------------
+
+                "purchase_proof": getattr(
+                    auction,
+                    "purchase_proof",
+                    None
+                ),
+
+                "purchase_proof_path": getattr(
+                    auction,
+                    "purchase_proof_path",
+                    None
+                ),
+
+                "seller_proof": getattr(
+                    auction,
+                    "seller_proof",
+                    None
+                ),
+
+                "seller_proof_path": getattr(
+                    auction,
+                    "seller_proof_path",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # IMAGES
+                # -------------------------------------------------
+
+                "images": image_list,
+
+                # -------------------------------------------------
+                # STATUS
+                # -------------------------------------------------
+
+                "status":
+                    auction.status,
+
+                # -------------------------------------------------
+                # APPROVAL
+                # -------------------------------------------------
+
+                "approved_by": getattr(
+                    auction,
+                    "approved_by",
+                    None
+                ),
+
+                "approved_at": (
+
+                    auction.approved_at.isoformat()
+
+                    if getattr(
+                        auction,
+                        "approved_at",
+                        None
+                    )
+
+                    else None
+                ),
+
+                # -------------------------------------------------
+                # REJECTION
+                # -------------------------------------------------
+
+                "rejected_by": getattr(
+                    auction,
+                    "rejected_by",
+                    None
+                ),
+
+                "rejected_at": (
+
+                    auction.rejected_at.isoformat()
+
+                    if getattr(
+                        auction,
+                        "rejected_at",
+                        None
+                    )
+
+                    else None
+                ),
+
+                "rejection_reason": getattr(
+                    auction,
+                    "rejection_reason",
+                    None
+                ),
+
+                # -------------------------------------------------
+                # DATES
+                # -------------------------------------------------
+
+                "created_at": (
+
+                    auction.created_at.isoformat()
+
+                    if auction.created_at
+
+                    else None
+                ),
+
+                "updated_at": (
+
+                    auction.updated_at.isoformat()
+
+                    if auction.updated_at
+
+                    else None
+                ),
+
+                # =================================================
+                # BID INFORMATION
+                # =================================================
+
+                "highest_bid":
+                    bid_info["highest_bid"],
+
+                "highest_bidder_name":
+                    bid_info[
+                        "highest_bidder_name"
+                    ],
+
+                "bidder_name":
+                    bid_info["bidder_name"],
+
+                "current_bid":
+                    bid_info["current_bid"],
+
+                "current_highest_bid":
+                    bid_info[
+                        "current_highest_bid"
+                    ],
+
+                # LIVE = NO FINAL WINNER
+                "winner_name":
+                    bid_info["winner_name"]
+            }
+
+            result.append(auction_data)
+
+        # =================================================
+        # RESPONSE
+        # =================================================
+
+        return {
+
+            "success": True,
+
+            "count": len(result),
+
+            "auctions": result
+
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "========================================"
+        )
+
+        print(
+            f"GET AUCTIONS BY STATUS ERROR: {str(e)}"
+        )
+
+        print(
+            "========================================"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load auctions."
+        )

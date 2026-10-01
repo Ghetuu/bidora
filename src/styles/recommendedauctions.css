@@ -1,0 +1,171 @@
+.recommended-section {
+  width: 100%;
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.recommended-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.recommended-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.recommended-header p {
+  margin-top: 6px;
+  color: #777;
+  font-size: 14px;
+}
+
+.recommended-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(220px, 1fr)
+  );
+
+  gap: 20px;
+}
+
+.recommended-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+
+  border: 1px solid #e5e5e5;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.recommended-card:hover {
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.10);
+}
+
+.recommended-image {
+  width: 100%;
+  height: 180px;
+  background: #f3f3f3;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recommended-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.no-image {
+  color: #999;
+  font-size: 14px;
+}
+
+.recommended-content {
+  padding: 16px;
+}
+
+.recommended-content h3 {
+  margin: 0 0 6px;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommended-brand {
+  margin: 0 0 8px;
+
+  font-size: 13px;
+  color: #666;
+}
+
+.recommended-category {
+  display: inline-block;
+
+  padding: 4px 8px;
+
+  border-radius: 6px;
+
+  background: #f0f0f0;
+
+  font-size: 12px;
+}
+
+.recommended-price {
+  margin-top: 14px;
+
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.recommended-reason {
+  margin-top: 10px;
+
+  font-size: 12px;
+
+  color: #777;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+  .recommended-grid {
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+    gap: 12px;
+  }
+
+  .recommended-image {
+    height: 140px;
+  }
+
+  .recommended-content {
+    padding: 12px;
+  }
+
+  .recommended-content h3 {
+    font-size: 15px;
+  }
+
+  .recommended-price {
+    font-size: 17px;
+  }
+
+}
+
+
+@media (max-width: 480px) {
+
+  .recommended-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+

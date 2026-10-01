@@ -12,7 +12,6 @@ class UserService:
         db: Session,
         data
     ):
-
         # ==========================================
         # HASH PASSWORD
         # ==========================================
@@ -40,6 +39,13 @@ class UserService:
             password=hashed_password,
 
             address=data.address.strip(),
+
+            # ======================================
+            # ROLE
+            # 1 = admin
+            # 2 = normal user
+            # ======================================
+            role_id=2,
 
             # Email was verified through OTP
             email_verified=True,

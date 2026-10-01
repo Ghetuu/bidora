@@ -25,7 +25,7 @@ import AdminAuctionList from "./admin/AdminAuctionList";
 import ContactMessages from "./admin/ContactMessages";
 import AdminAuctionDetails from "./admin/AdminAuctionDetails";
 import LiveAuctionBidding from "./admin/LiveAuctionBidding";
-
+import AdminReports from "./admin/adminreports";   
 
 // =========================================================
 // USER DASHBOARD
@@ -40,6 +40,7 @@ import LiveAuctions from "./pages/LiveAuctions";
 import LiveAuctionDetails from "./pages/LiveAuctionDetails";
 import ManageProfile from "./pages/ManageProfile";
 import AuctionHistory from "./pages/AuctionHistory";
+import BidHistory from "./pages/bidhistory";
 
 
 function App() {
@@ -133,9 +134,13 @@ function App() {
           />
           <Route path="manage-profile" element={<ManageProfile />} />
           <Route
-    path="history/auction"
-    element={<AuctionHistory />}
-  />
+            path="history/auction"
+            element={<AuctionHistory />}
+          />
+          <Route 
+            path="history/bid" 
+            element={<BidHistory />} 
+          />
 
         </Route>
 
@@ -268,7 +273,10 @@ function App() {
     path="/admin/dashboard/auctions/:id"
     element={<AdminAuctionDetails />}
   />
-
+          <Route
+            path="reports"
+            element={<AdminReports />}
+          />
 
           {/* =================================================
               CONTACT MESSAGES

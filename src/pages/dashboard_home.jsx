@@ -13,7 +13,7 @@ import {
   FaClock,
 } from "react-icons/fa";
 import { useState } from "react";
-
+import RecommendedAuctions from "../components/RecommendedAuctions";
 import "../styles/dashboard_home.css";
 
 function DashboardHome() {
@@ -128,7 +128,18 @@ function DashboardHome() {
           </p>
         </div>
 
+        
       </section>
+
+       <div className="dashboard-content">
+
+    {/* your existing dashboard */}
+
+    <RecommendedAuctions />
+
+    {/* other existing sections */}
+
+  </div>
 
 
       {/* ==================================================

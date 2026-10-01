@@ -1,0 +1,662 @@
+/* =========================================================
+   BID HISTORY COMPONENT STYLES (Light Theme with Animations)
+   Scoped with 'bh-' prefix to prevent any CSS leaks
+========================================================= */
+
+/* --- Base Animations --- */
+@keyframes bhFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bhPulseDot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+  }
+}
+
+.bh-wrapper {
+  padding: 1.5rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  color: #1e293b;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+  animation: bhFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Top Metrics Grid --- */
+.bh-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .bh-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .bh-metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.bh-metric-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: default;
+}
+
+/* Card Hover Elevation & Glow */
+.bh-metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  border-color: #cbd5e1;
+}
+
+.bh-metric-card.bh-warning {
+  border-color: #fde68a;
+  background-color: #fffdf5;
+}
+
+.bh-metric-card.bh-warning:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.12);
+}
+
+.bh-metric-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.bh-metric-card:hover .bh-metric-label {
+  color: #475569;
+}
+
+.bh-metric-value-box {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.bh-metric-number {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bh-metric-subtext-success {
+  font-size: 0.75rem;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.bh-metric-subtext-warning {
+  font-size: 0.75rem;
+  color: #d97706;
+  font-weight: 600;
+}
+
+.bh-metric-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bh-metric-card:hover .bh-metric-icon {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.bh-icon-blue { background-color: #eff6ff; color: #2563eb; }
+.bh-icon-amber { background-color: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+.bh-icon-purple { background-color: #faf5ff; color: #9333ea; }
+.bh-icon-green { background-color: #f0fdf4; color: #16a34a; }
+
+/* --- Main Card Container --- */
+.bh-container {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* --- Controls Section --- */
+.bh-controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .bh-controls-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.bh-tabs-group {
+  display: flex;
+  background-color: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  align-self: flex-start;
+}
+
+.bh-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bh-tab-btn:hover {
+  color: #0f172a;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.bh-tab-btn.bh-active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.bh-tab-btn.bh-active:hover {
+  background-color: #1d4ed8;
+}
+
+.bh-badge-active {
+  background-color: #1d4ed8;
+  color: #ffffff;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.bh-badge-inactive {
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.bh-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bh-search-box {
+  position: relative;
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .bh-search-box {
+    width: 16rem;
+  }
+}
+
+.bh-search-icon {
+  position: absolute;
+  left: 0.75rem; /* Keeps icon nicely padded from the left edge */
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+  pointer-events: none; /* Prevents icon from blocking input clicks */
+}
+
+.bh-input-search {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  /* INCREASED LEFT PADDING: Change 2.25rem to 2.5rem or 2.75rem for more space */
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.bh-input-search:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.bh-search-box:focus-within .bh-search-icon {
+  color: #2563eb;
+}
+
+.bh-select-status {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bh-select-status:hover {
+  border-color: #94a3b8;
+}
+
+.bh-select-status:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.bh-btn-reset {
+  padding: 0.625rem;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bh-btn-reset:hover {
+  background-color: #f1f5f9;
+  color: #2563eb;
+  border-color: #94a3b8;
+  transform: rotate(90deg);
+}
+
+/* --- Data Table --- */
+.bh-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.bh-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.bh-table th {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f8fafc;
+}
+
+.bh-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.bh-table tr {
+  transition: background-color 0.2s ease;
+}
+
+/* Row Hover Highlights */
+.bh-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.bh-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bh-item-img {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  background-color: #e2e8f0;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bh-table tr:hover .bh-item-img {
+  transform: scale(1.05);
+}
+
+.bh-item-title {
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.bh-item-title:hover {
+  color: #2563eb;
+}
+
+.bh-item-category {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.bh-seller-name {
+  color: #334155;
+  font-weight: 500;
+}
+
+.bh-amount-highlight {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bh-amount-subtle {
+  color: #475569;
+}
+
+.bh-time-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #64748b;
+}
+
+/* --- Status Badges --- */
+.bh-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
+.bh-table tr:hover .bh-status-pill {
+  transform: translateY(-1px);
+}
+
+.bh-status-highest {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.bh-status-outbid {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.bh-status-won {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+/* Animated Pulsing Dot for Active Bids */
+.bh-dot-green {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #16a34a;
+  animation: bhPulseDot 2s infinite;
+}
+
+/* --- Action Buttons --- */
+.bh-action-btn-view {
+  display: inline-block;
+  background-color: #ffffff;
+  color: #334155;
+  font-weight: 500;
+  padding: 0.375rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  text-decoration: none;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bh-action-btn-view:hover {
+  background-color: #f8fafc;
+  color: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.bh-action-btn-view:active {
+  transform: translateY(0);
+}
+
+.bh-action-btn-raise {
+  display: inline-block;
+  background-color: #f59e0b;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.375rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
+}
+
+.bh-action-btn-raise:hover {
+  background-color: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
+}
+
+.bh-action-btn-raise:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   CUSTOM STATUS DROPDOWN (Light Theme)
+========================================================= */
+
+.bh-custom-dropdown {
+  position: relative;
+  width: 13rem;
+  user-select: none;
+}
+
+/* Header Trigger Button */
+.bh-dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.bh-dropdown-btn:hover {
+  border-color: #3b82f6;
+  background-color: #f8fafc;
+}
+
+.bh-dropdown-btn.bh-open {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background-color: #ffffff;
+}
+
+.bh-dropdown-selected {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.bh-dropdown-main-icon {
+  color: #64748b;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.bh-dropdown-btn:hover .bh-dropdown-main-icon {
+  color: #2563eb;
+}
+
+.bh-dropdown-arrow {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+/* Dropdown Menu Popup */
+.bh-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  animation: bhDropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bhDropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Individual Option Items */
+.bh-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bh-dropdown-item:hover {
+  background-color: #f1f5f9;
+}
+
+.bh-dropdown-item.bh-selected {
+  background-color: #eff6ff;
+}
+
+.bh-item-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.bh-dropdown-item.bh-selected .bh-item-label {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+/* Circular Radio Checkbox Indicator */
+.bh-radio-circle {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bh-dropdown-item:hover .bh-radio-circle {
+  border-color: #94a3b8;
+}
+
+.bh-radio-circle.bh-checked {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.bh-check-icon {
+  color: #ffffff;
+  font-size: 0.625rem;
+}
