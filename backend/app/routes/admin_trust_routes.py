@@ -296,7 +296,323 @@ def _check_complaints(auction, db, r):
     if on_others:
         r.add(f"{on_others} support message(s) about the seller's other auctions", -min(on_others * 5, 10))
 
+# =====================================================
+# 5. SELLER TRUST SCORE
+# =====================================================
 
+def calculate_seller_trust_score(auction, seller, db, now=None):
+    """
+    Calculates the seller's overall trust score.
+
+    This is separate from the Auction Trust Score.
+
+    Currently available factors:
+      - Account age
+      - Email verification
+      - Account approval
+      - Completed auctions
+      - Rejected auctions
+      - Buyer/support complaints
+      - Proof verification history
+      - Bid history
+      - Ended/winning auction history
+
+    Payment and transaction history are intentionally NOT included
+    because those features do not exist yet.
+    """
+
+    now = now or datetime.utcnow()
+
+    if seller is None:
+        return {
+            "seller_id": auction.user_id,
+            "score": 0,
+            "level": "high",
+            "label": "High risk",
+            "reasons": [{
+                "label": "Seller account not found",
+                "points": -100,
+                "type": "risk",
+            }],
+        }
+
+    reasons = []
+
+    def add(label, points):
+        reasons.append({
+            "label": label,
+            "points": points,
+            "type": (
+                "trust" if points > 0
+                else "risk" if points < 0
+                else "info"
+            ),
+        })
+
+    # -------------------------------------------------
+    # Account age
+    # -------------------------------------------------
+
+    if seller.registration_date:
+        age_days = (now - seller.registration_date).days
+
+        if age_days < 7:
+            add(
+                f"Very new account ({max(age_days, 0)} days old)",
+                -15
+            )
+        elif age_days < 30:
+            add(
+                f"New account ({age_days} days old)",
+                -8
+            )
+        elif age_days >= 180:
+            add(
+                f"Established account ({age_days // 30} months old)",
+                10
+            )
+        else:
+            add(
+                f"Account age: {age_days} days",
+                5
+            )
+
+    # -------------------------------------------------
+    # Email verification
+    # -------------------------------------------------
+
+    if seller.email_verified:
+        add("Seller email is verified", 10)
+    else:
+        add("Seller email is not verified", -15)
+
+    # -------------------------------------------------
+    # Account approval
+    # -------------------------------------------------
+
+    status = str(seller.account_status or "").upper()
+
+    if status == "APPROVED":
+        add("Seller account is approved", 10)
+    else:
+        add(
+            f"Seller account status is {status or 'unknown'}",
+            -20
+        )
+
+    # -------------------------------------------------
+    # Seller's auction history
+    # -------------------------------------------------
+
+    rows = (
+        db.query(Auction.status, func.count(Auction.id))
+        .filter(Auction.user_id == seller.id)
+        .group_by(Auction.status)
+        .all()
+    )
+
+    counts = {
+        str(status): int(count)
+        for status, count in rows
+    }
+
+    ended = counts.get("ended", 0)
+    rejected = counts.get("rejected", 0)
+    approved = counts.get("approved", 0)
+    live = counts.get("live", 0)
+
+    total_previous = sum(counts.values()) - counts.get(
+        "draft", 0
+    )
+
+    # Completed auctions
+    if ended >= 10:
+        add(f"{ended} completed auctions", 15)
+    elif ended >= 5:
+        add(f"{ended} completed auctions", 10)
+    elif ended >= 1:
+        add(f"{ended} completed auction(s)", 5)
+    else:
+        add("No completed auctions yet", 0)
+
+    # Rejected auctions
+    if rejected == 0:
+        add("No rejected auctions", 5)
+    elif rejected == 1:
+        add("1 rejected auction", -5)
+    elif rejected >= 2:
+        add(
+            f"{rejected} rejected auctions",
+            -min(rejected * 5, 20)
+        )
+
+    # -------------------------------------------------
+    # Bid history
+    # -------------------------------------------------
+
+    bid_count = (
+        db.query(func.count(Bid.id))
+        .join(
+            Auction,
+            Bid.auction_id == Auction.id
+        )
+        .filter(Auction.user_id == seller.id)
+        .scalar()
+    ) or 0
+
+    if bid_count == 0:
+        add("No bidding history", 0)
+    elif bid_count >= 20:
+        add(f"{bid_count} bids received", 10)
+    elif bid_count >= 10:
+        add(f"{bid_count} bids received", 7)
+    else:
+        add(f"{bid_count} bid(s) received", 3)
+
+    # -------------------------------------------------
+    # Win / completed auction history
+    #
+    # Your current database does not have a separate
+    # winner/payment table, so we use ended auctions
+    # as the available completed-history signal.
+    # -------------------------------------------------
+
+    if ended >= 5:
+        add(
+            f"{ended} ended auctions indicate completed history",
+            5
+        )
+    elif ended >= 1:
+        add(
+            f"{ended} ended auction(s) indicate completed history",
+            2
+        )
+
+    # -------------------------------------------------
+    # Buyer complaints / support messages
+    # -------------------------------------------------
+
+    seller_auction_ids = [
+        row[0]
+        for row in db.query(Auction.id)
+        .filter(Auction.user_id == seller.id)
+        .all()
+    ]
+
+    if seller_auction_ids:
+        complaint_count = (
+            db.query(func.count(ContactMessage.id))
+            .filter(
+                ContactMessage.auction_id.in_(
+                    [str(x) for x in seller_auction_ids]
+                )
+            )
+            .scalar()
+        ) or 0
+    else:
+        complaint_count = 0
+
+    if complaint_count == 0:
+        add("No buyer/support complaints", 10)
+    elif complaint_count == 1:
+        add("1 buyer/support complaint", -5)
+    else:
+        add(
+            f"{complaint_count} buyer/support complaints",
+            -min(complaint_count * 5, 20)
+        )
+
+    # -------------------------------------------------
+    # Proof verification history
+    # -------------------------------------------------
+
+    seller_auctions = (
+        db.query(Auction)
+        .filter(Auction.user_id == seller.id)
+        .all()
+    )
+
+    proof_available = sum(
+        1
+        for a in seller_auctions
+        if (a.purchase_proof_path or "").strip()
+    )
+
+    id_proof_available = sum(
+        1
+        for a in seller_auctions
+        if (a.seller_proof_path or "").strip()
+    )
+
+    if seller_auctions:
+        if proof_available == len(seller_auctions):
+            add(
+                "Purchase proof consistently provided",
+                5
+            )
+        elif proof_available > 0:
+            add(
+                f"Purchase proof provided for {proof_available} "
+                f"of {len(seller_auctions)} auctions",
+                2
+            )
+        else:
+            add("No purchase proof history", -5)
+
+        if id_proof_available == len(seller_auctions):
+            add(
+                "Seller ID proof consistently provided",
+                5
+            )
+        elif id_proof_available > 0:
+            add(
+                f"Seller ID proof provided for {id_proof_available} "
+                f"of {len(seller_auctions)} auctions",
+                2
+            )
+        else:
+            add("No seller ID proof history", -5)
+
+    # -------------------------------------------------
+    # Convert rule points into a 0-100 score
+    # -------------------------------------------------
+
+    # Seller score starts from 70.
+    # This is independent from the Auction BASE_SCORE = 80.
+    seller_base = 70
+
+    total_points = sum(
+        item["points"]
+        for item in reasons
+    )
+
+    score = max(
+        0,
+        min(100, seller_base + total_points)
+    )
+
+    if score < MEDIUM_AT:
+        level = "high"
+        label = "High risk"
+    elif score < LOW_AT:
+        level = "medium"
+        label = "Medium risk"
+    else:
+        level = "low"
+        label = "Low risk"
+
+    reasons.sort(
+        key=lambda item: item["points"]
+    )
+
+    return {
+        "seller_id": seller.id,
+        "seller_name": seller.fullname,
+        "score": score,
+        "level": level,
+        "label": label,
+        "reasons": reasons,
+    }
 # =====================================================
 # PUBLIC FUNCTION
 # =====================================================
@@ -306,6 +622,13 @@ def calculate_trust_score(auction, db, now=None):
     r = _Reasons()
 
     seller = db.query(User).filter(User.id == auction.user_id).first()
+    # Separate seller-level score
+    seller_score = calculate_seller_trust_score(
+        auction,
+        seller,
+        db,
+        now
+    )
 
     _check_seller(auction, seller, db, now, r)
     _check_listing(auction, db, now, r)
@@ -330,6 +653,9 @@ def calculate_trust_score(auction, db, now=None):
         "label": label,
         "critical": r.critical,
         "reasons": reasons,
+
+         #Seller Trust Score
+        "seller_trust": seller_score,
     }
 
 
