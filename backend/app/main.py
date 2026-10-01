@@ -57,7 +57,9 @@ from app.routes.admin_report_routes import (
 from app.routes.admin_trust_routes import (
     router as admin_trust_router
 )
-
+from app.routes.recommendation_routes import (
+    router as recommendation_router
+)
 
 
 # =========================================================
@@ -141,6 +143,9 @@ app.include_router(
 )
 
 
+app.include_router(
+    recommendation_router
+)
 
 
 app.include_router(price_prediction_router)
