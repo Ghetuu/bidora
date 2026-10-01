@@ -50,12 +50,26 @@ from app.routes.bid_routes import (
     router as bid_router
 )
 
+from app.routes.admin_report_routes import (
+    router as admin_report_router
+)
+
+from app.routes.admin_trust_routes import (
+    router as admin_trust_router
+)
+
+
+
 # =========================================================
 # SERVICES
 # =========================================================
 
 from app.services.auction_scheduler import (
     auction_scheduler_loop
+)
+
+from app.routes.price_prediction_routes import (
+    router as price_prediction_router
 )
 
 
@@ -120,6 +134,21 @@ app.include_router(
 app.include_router(
     live_auction_router
 )
+
+app.include_router(
+    admin_report_router,
+    tags=["Admin Reports"]
+)
+
+
+
+
+app.include_router(price_prediction_router)
+app.include_router(
+    admin_trust_router,
+    tags=["Admin Trust Score"]
+)
+
 
 # =========================================================
 # GLOBAL REALTIME WEBSOCKET

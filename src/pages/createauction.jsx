@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../styles/createauction.css";
-
+import PricePrediction from "../components/PricePrediction";
 const CreateAuction = () => {
   const [images, setImages] = useState([]);
   const [purchaseProof, setPurchaseProof] = useState(null);

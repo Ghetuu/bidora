@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../styles/createauctionform.css";
+import PricePrediction from "../components/priceprediction";
 
 /* =========================================================
    CATEGORY / CONDITION / WARRANTY / SHIPPING OPTIONS
@@ -2564,6 +2565,21 @@ if (auctionStart <= now) {
               </div>
 
             </div>
+
+            {/* 👇 PASTE HERE */}
+            <PricePrediction
+              category={formData.category}
+              condition={formData.condition}
+              purchasePrice={formData.purchasePrice}
+              brandModel={formData.brandModel}
+              purchaseDate={formData.purchaseDate}
+              onUseStartingPrice={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  startingPrice: String(value),
+                }))
+              }
+            />
 
             <div className="ca-field-grid">
 

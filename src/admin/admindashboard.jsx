@@ -533,9 +533,14 @@ function AdminDashboard() {
               REPORTS
           ================================================= */}
 
-          <li
+                    <li
+            className={
+              location.pathname === "/admin/dashboard/reports"
+                ? "active"
+                : ""
+            }
             onClick={() =>
-              goTo("/admin/reports")
+              goTo("/admin/dashboard/reports")
             }
           >
 

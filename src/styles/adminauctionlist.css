@@ -1917,3 +1917,78 @@
 .clear-filters-btn:hover {
   background: rgba(255,255,255,0.08);
 }
+
+/* ===== Trust & Risk badge ===== */
+.trust-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 999px; border: 0;
+  font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.trust-badge.trust-low    { background: #dcfce7; color: #15803d; }
+.trust-badge.trust-medium { background: #fef3c7; color: #b45309; }
+.trust-badge.trust-high   { background: #fee2e2; color: #b91c1c; }
+.trust-badge.trust-na     { background: #f1f5f9; color: #64748b; cursor: default; }
+
+/* ===== Trust modal ===== */
+.trust-modal {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.trust-modal-content {
+  background: #fff; width: 100%; max-width: 480px; max-height: 88vh;
+  overflow-y: auto; border-radius: 14px; padding: 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+.trust-modal-header h3 { margin: 0 0 2px; font-size: 18px; }
+.trust-modal-header p  { margin: 0 0 14px; color: #64748b; font-size: 13px; }
+
+.trust-score-summary {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 12px 14px; border-radius: 10px; margin-bottom: 12px;
+}
+.trust-score-summary strong { font-size: 32px; line-height: 1; }
+.trust-score-summary span   { color: #64748b; }
+.trust-score-summary em     { margin-left: auto; font-style: normal; font-weight: 700; }
+.trust-score-summary.trust-low    { background: #dcfce7; color: #15803d; }
+.trust-score-summary.trust-medium { background: #fef3c7; color: #b45309; }
+.trust-score-summary.trust-high   { background: #fee2e2; color: #b91c1c; }
+
+.trust-warning {
+  display: flex; gap: 8px; align-items: flex-start;
+  background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+  padding: 10px 12px; border-radius: 8px; font-size: 13px; margin: 0 0 12px;
+}
+
+.trust-reasons { list-style: none; margin: 0; padding: 0; }
+.trust-reason {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px;
+}
+.trust-reason.risk  strong { color: #b91c1c; }
+.trust-reason.trust strong { color: #15803d; }
+
+.trust-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.trust-btn-secondary, .trust-btn-danger {
+  padding: 9px 16px; border-radius: 8px; border: 0; font-weight: 600; cursor: pointer;
+}
+.trust-btn-secondary { background: #f1f5f9; color: #334155; }
+.trust-btn-danger    { background: #dc2626; color: #fff; }
+
+/* =========================================================
+   PENDING PAGE - COLUMN WIDTHS (includes Trust Score)
+========================================================= */
+.pending-auction-table {
+  min-width: 1350px;
+}
+
+.pending-auction-table .col-checkbox        { width: 3%; }
+.pending-auction-table .col-id              { width: 4%; }
+.pending-auction-table .col-image           { width: 6%; }
+.pending-auction-table .col-product         { width: 16%; }
+.pending-auction-table .col-seller          { width: 11%; }
+.pending-auction-table .col-category        { width: 9%; }
+.pending-auction-table .col-trust           { width: 14%; }
+.pending-auction-table .col-date            { width: 11%; min-width: 140px; padding-left: 16px; }
+.pending-auction-table .col-action          { width: 12%; }
+.pending-auction-table .col-approval-actions{ width: 14%; }
