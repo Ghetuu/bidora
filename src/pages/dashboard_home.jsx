@@ -11,6 +11,10 @@ import {
   FaHeadset,
   FaUndo,
   FaClock,
+  FaRobot,
+FaTimes,
+FaPaperPlane,
+FaMagic,
 } from "react-icons/fa";
 import { useState } from "react";
 import RecommendedAuctions from "../components/RecommendedAuctions";
@@ -22,6 +26,20 @@ function DashboardHome() {
   const storedUser = localStorage.getItem("user");
   return storedUser ? JSON.parse(storedUser) : null;
 });
+
+// ==========================================
+  // AI CHATBOT
+  // ==========================================
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState([
+    {
+      id: 1,
+      sender: "bot",
+      text: `Hi ${user?.fullname || "there"}! 👋 I'm Aurora, your Bidora AI assistant. Ask me about auctions, bids, or your activity.`,
+    },
+  ]);
 
   // ==========================================
   // GRAPH DATA
@@ -108,6 +126,43 @@ function DashboardHome() {
       icon: "🪙",
     },
   ];
+
+    const handleChatSend = () => {
+    const message = chatMessage.trim();
+
+    if (!message) return;
+
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        sender: "user",
+        text: message,
+      },
+    ]);
+
+    setChatMessage("");
+
+    // Temporary frontend response.
+    // Backend AI connection will be added next.
+    setTimeout(() => {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: "bot",
+          text: "I'm ready to help with your Bidora auctions. My secure database connection will be connected next.",
+        },
+      ]);
+    }, 500);
+  };
+
+  const handleChatKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSend();
+    }
+  };
 
   return (
     <div className="dashboard-home">
@@ -720,7 +775,184 @@ function DashboardHome() {
         </div>
 
       </section>
+      {/* ==================================================
+          AI CHATBOT - AURORA
+      ================================================== */}
 
+      <div className="aurora-chatbot">
+
+        {/* CHAT WINDOW */}
+
+        {isChatOpen && (
+          <div className="aurora-chat-window">
+
+            {/* CHAT HEADER */}
+
+            <div className="aurora-chat-header">
+
+              <div className="aurora-chat-title">
+
+                <div className="aurora-chat-avatar">
+                  <FaMagic />
+                </div>
+
+                <div>
+                  <strong>Ask Aurora</strong>
+                  <span>
+                    <i></i>
+                    AI Auction Assistant
+                  </span>
+                </div>
+
+              </div>
+
+              <button
+                type="button"
+                className="aurora-close-btn"
+                onClick={() => setIsChatOpen(false)}
+                aria-label="Close chatbot"
+              >
+                <FaTimes />
+              </button>
+
+            </div>
+
+
+            {/* CHAT MESSAGES */}
+
+            <div className="aurora-chat-messages">
+
+              {chatMessages.map((message) => (
+
+                <div
+                  key={message.id}
+                  className={`aurora-message ${
+                    message.sender === "user"
+                      ? "aurora-user-message"
+                      : "aurora-bot-message"
+                  }`}
+                >
+
+                  {message.sender === "bot" && (
+                    <div className="aurora-small-avatar">
+                      <FaMagic />
+                    </div>
+                  )}
+
+                  <div className="aurora-message-bubble">
+                    {message.text}
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
+
+
+            {/* QUICK QUESTIONS */}
+
+            <div className="aurora-quick-questions">
+
+              <button
+                type="button"
+                onClick={() => {
+                  setChatMessage("Show me my active bids");
+                }}
+              >
+                My active bids
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setChatMessage("Show me live auctions");
+                }}
+              >
+                Live auctions
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setChatMessage("What auctions are ending soon?");
+                }}
+              >
+                Ending soon
+              </button>
+
+            </div>
+
+
+            {/* CHAT INPUT */}
+
+            <div className="aurora-chat-input-wrapper">
+
+              <textarea
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyDown={handleChatKeyDown}
+                placeholder="Ask about auctions, bids..."
+                rows={1}
+              />
+
+              <button
+                type="button"
+                className="aurora-send-btn"
+                onClick={handleChatSend}
+                disabled={!chatMessage.trim()}
+                aria-label="Send message"
+              >
+                <FaPaperPlane />
+              </button>
+
+            </div>
+
+
+            <div className="aurora-security-note">
+              <FaShieldAlt />
+              <span>
+                Aurora only uses information available to your account.
+              </span>
+            </div>
+
+          </div>
+        )}
+
+
+        {/* FLOATING ASK AURORA BUTTON */}
+
+        {!isChatOpen && (
+          <div className="aurora-floating-wrapper">
+
+            <button
+              type="button"
+              className="aurora-ask-button"
+              onClick={() => setIsChatOpen(true)}
+            >
+              <FaMagic />
+              <span>Ask Aurora</span>
+            </button>
+
+
+            <button
+              type="button"
+              className="aurora-floating-icon"
+              onClick={() => setIsChatOpen(true)}
+              aria-label="Open Ask Aurora"
+            >
+              <div className="aurora-glow"></div>
+
+              <div className="aurora-orb">
+                <FaRobot />
+              </div>
+
+            </button>
+
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

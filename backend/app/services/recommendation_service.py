@@ -348,11 +348,11 @@ def get_recommendations(
 
         # Don't repeatedly recommend something
         # the user already interacted with.
-        #if auction.id in viewed_auction_ids:
-         #   continue
+        if auction.id in viewed_auction_ids:
+            continue
 
-       # if auction.id in bid_auction_ids:
-        #    continue
+        if auction.id in bid_auction_ids:
+            continue
 
         score = calculate_auction_score(
             auction,
