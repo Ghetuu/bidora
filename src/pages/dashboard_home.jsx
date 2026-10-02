@@ -133,15 +133,12 @@ function DashboardHome() {
         
       </section>
 
-       <div className="dashboard-content">
+{/* ==================================================
+    FOR YOU / RECOMMENDATIONS
+================================================== */}
 
-    {/* your existing dashboard */}
-
-    <RecommendedAuctions />
-
-    {/* other existing sections */}
-
-  </div>
+<RecommendedAuctions />
+       
 
 
       {/* ==================================================

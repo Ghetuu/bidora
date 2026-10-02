@@ -1,161 +1,371 @@
+/* =====================================================
+   RECOMMENDED / FOR YOU
+===================================================== */
+
 .recommended-section {
   width: 100%;
-  margin-top: 30px;
-  margin-bottom: 30px;
+  margin: 28px 0;
 }
+
+
+/* =====================================================
+   HEADER
+===================================================== */
 
 .recommended-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
 
 .recommended-header h2 {
   margin: 0;
   font-size: 24px;
   font-weight: 700;
+  color: #222;
 }
 
 .recommended-header p {
-  margin-top: 6px;
+  margin: 5px 0 0;
+  font-size: 13px;
   color: #777;
-  font-size: 14px;
 }
+
+.recommended-see-all {
+  border: none;
+  background: transparent;
+  color: #6c4cff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recommended-see-all:hover {
+  text-decoration: underline;
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
 
 .recommended-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(220px, 1fr)
-  );
 
-  gap: 20px;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 16px;
 }
 
-.recommended-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
 
-  border: 1px solid #e5e5e5;
+/* =====================================================
+   CARD
+===================================================== */
+
+.recommended-card {
+  position: relative;
+
+  background: #ffffff;
+
+  border: 1px solid #eeeeee;
+
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  cursor: pointer;
 
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
+
+  min-width: 0;
 }
 
 .recommended-card:hover {
   transform: translateY(-4px);
 
   box-shadow:
-    0 8px 25px rgba(0, 0, 0, 0.10);
+    0 8px 24px rgba(0, 0, 0, 0.10);
 }
 
+
+/* =====================================================
+   IMAGE
+===================================================== */
+
 .recommended-image {
+  position: relative;
+
   width: 100%;
+
   height: 180px;
-  background: #f3f3f3;
+
+  background: #f7f7f7;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
+  overflow: hidden;
 }
 
 .recommended-image img {
   width: 100%;
   height: 100%;
 
-  object-fit: cover;
+  object-fit: contain;
+
+  padding: 12px;
+
+  transition:
+    transform 0.25s ease;
 }
+
+.recommended-card:hover
+.recommended-image img {
+  transform: scale(1.05);
+}
+
+
+/* =====================================================
+   NO IMAGE
+===================================================== */
 
 .no-image {
   color: #999;
-  font-size: 14px;
-}
-
-.recommended-content {
-  padding: 16px;
-}
-
-.recommended-content h3 {
-  margin: 0 0 6px;
-
-  font-size: 17px;
-  font-weight: 700;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.recommended-brand {
-  margin: 0 0 8px;
 
   font-size: 13px;
-  color: #666;
 }
 
-.recommended-category {
-  display: inline-block;
 
-  padding: 4px 8px;
+/* =====================================================
+   LIVE BADGE
+===================================================== */
+
+.recommended-live-badge {
+  position: absolute;
+
+  top: 10px;
+  left: 10px;
+
+  background: #ff4d4f;
+
+  color: white;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  padding: 5px 8px;
 
   border-radius: 6px;
 
-  background: #f0f0f0;
-
-  font-size: 12px;
+  letter-spacing: 0.4px;
 }
 
-.recommended-price {
-  margin-top: 14px;
 
-  font-size: 20px;
-  font-weight: 700;
+/* =====================================================
+   HEART
+===================================================== */
+
+.recommended-heart {
+  position: absolute;
+
+  right: 10px;
+  bottom: 10px;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+
+  border: 1px solid #eeeeee;
+
+  background: rgba(255, 255, 255, 0.95);
+
+  color: #888;
+
+  font-size: 19px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  cursor: pointer;
 }
 
-.recommended-reason {
-  margin-top: 10px;
+.recommended-heart:hover {
+  color: #ff4d6d;
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.recommended-content {
+  padding: 13px 14px 15px;
+}
+
+.recommended-content h3 {
+  margin: 0;
+
+  font-size: 15px;
+
+  line-height: 1.35;
+
+  font-weight: 600;
+
+  color: #222;
+
+  display: -webkit-box;
+
+  -webkit-line-clamp: 2;
+
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+
+/* =====================================================
+   BRAND
+===================================================== */
+
+.recommended-brand {
+  margin: 4px 0;
 
   font-size: 12px;
 
   color: #777;
 
-  line-height: 1.4;
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 }
 
 
-/* =========================================
-   MOBILE
-========================================= */
+/* =====================================================
+   CATEGORY
+===================================================== */
 
-@media (max-width: 768px) {
+.recommended-category {
+  display: inline-block;
+
+  margin-top: 5px;
+
+  padding: 3px 7px;
+
+  border-radius: 5px;
+
+  background: #f2efff;
+
+  color: #674de8;
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+
+/* =====================================================
+   BOTTOM
+===================================================== */
+
+.recommended-bottom {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 8px;
+
+  margin-top: 12px;
+}
+
+
+/* =====================================================
+   PRICE
+===================================================== */
+
+.recommended-price {
+  font-size: 17px;
+
+  font-weight: 700;
+
+  color: #222;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   RATING / LIVE
+===================================================== */
+
+.recommended-rating {
+  display: flex;
+
+  align-items: center;
+
+  gap: 3px;
+
+  font-size: 10px;
+
+  color: #777;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.recommended-loading {
+  padding: 30px;
+
+  text-align: center;
+
+  color: #777;
+
+  font-size: 14px;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1100px) {
 
   .recommended-grid {
-    grid-template-columns: repeat(
-      2,
-      minmax(0, 1fr)
-    );
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
 
-    gap: 12px;
+}
+
+
+@media (max-width: 750px) {
+
+  .recommended-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 
   .recommended-image {
-    height: 140px;
-  }
-
-  .recommended-content {
-    padding: 12px;
-  }
-
-  .recommended-content h3 {
-    font-size: 15px;
-  }
-
-  .recommended-price {
-    font-size: 17px;
+    height: 150px;
   }
 
 }
@@ -164,8 +374,30 @@
 @media (max-width: 480px) {
 
   .recommended-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+  }
+
+  .recommended-image {
+    height: 125px;
+  }
+
+  .recommended-content {
+    padding: 10px;
+  }
+
+  .recommended-content h3 {
+    font-size: 13px;
+  }
+
+  .recommended-price {
+    font-size: 14px;
+  }
+
+  .recommended-rating {
+    font-size: 9px;
   }
 
 }
-
