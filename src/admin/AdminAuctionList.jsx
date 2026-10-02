@@ -15,7 +15,7 @@ import {
   FaShieldAlt,
   FaExclamationTriangle,
 } from "react-icons/fa";
-
+import adminApi from "../api/adminApi";
 import "../styles/adminauctionlist.css";
 
 const API_URL = "http://127.0.0.1:8000";
@@ -199,7 +199,10 @@ function AdminAuctionList({ status = "all", title = "All Auctions" }) {
 
 const fetchTrustScores = async () => {
   try {
-    const res = await fetch(`${API_URL}/admin/auctions/trust-scores?status=pending`);
+    const res = await adminApi.get(
+  "/admin/auctions/trust-scores?status=pending"
+);
+
     if (!res.ok) throw new Error("Failed to load trust scores");
     const data = await res.json();
     setTrustScores(data.scores || {});
@@ -216,23 +219,20 @@ const getTrust = (auction) => trustScores[String(auction.id)];
     setLoading(true);
     setError("");
 
-    let url = `${API_URL}/admin/auctions/all`;
+    let url = "/admin/auctions/all";
 
-    // For "approved", fetch everything and filter client-side below,
-    // instead of relying on a strict status="approved" match from backend
-    if (status !== "all" && status.toLowerCase() !== "approved") {
-      url = `${API_URL}/admin/auctions/status/${status}`;
+    if (
+      status !== "all" &&
+      status.toLowerCase() !== "approved"
+    ) {
+      url = `/admin/auctions/status/${status}`;
     }
 
-    const response = await fetch(url);
+    const response = await adminApi.get(url);
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch auctions");
-    }
-
-    const data = await response.json();
-
-    let auctionData = Array.isArray(data) ? data : data.auctions || [];
+    let auctionData = Array.isArray(response.data)
+      ? response.data
+      : response.data.auctions || [];
 
     if (status.toLowerCase() === "approved") {
       auctionData = auctionData.filter((auction) => {
@@ -248,8 +248,6 @@ const getTrust = (auction) => trustScores[String(auction.id)];
           auction.approval_datetime ||
           auction.approval_date_time;
 
-        // Keep it if it has any approval trace, OR its current status
-        // is one that only happens after approval
         return (
           hasApprovalInfo ||
           ["approved", "live", "ended", "completed", "closed"].includes(
@@ -263,9 +261,15 @@ const getTrust = (auction) => trustScores[String(auction.id)];
     setFilteredAuctions(auctionData);
     setSelectedAuctions([]);
     setCurrentPage(1);
+
   } catch (err) {
     console.error("Auction fetch error:", err);
-    setError("Unable to load auctions.");
+    console.error("Response:", err.response?.data);
+
+    setError(
+      err.response?.data?.detail ||
+      "Unable to load auctions."
+    );
   } finally {
     setLoading(false);
   }
@@ -492,10 +496,9 @@ const getTrust = (auction) => trustScores[String(auction.id)];
 
 const approveAuction = async (auction) => {
   try {
-    const response = await fetch(
-      `${API_URL}/admin/auctions/${auction.id}/approve`,
-      { method: "PUT", headers: { "Content-Type": "application/json" } }
-    );
+    const response = await adminApi.put(
+  `/admin/auctions/${auction.id}/approve`
+);
     if (!response.ok) throw new Error("Failed to approve auction");
 
     alert("Auction approved successfully.");
@@ -526,18 +529,12 @@ const approveAuction = async (auction) => {
     }
 
     try {
-      const response = await fetch(
-        `${API_URL}/admin/auctions/${auction.id}/reject`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            rejection_reason: reason.trim(),
-          }),
-        }
-      );
+     const response = await adminApi.put(
+  `/admin/auctions/${auction.id}/reject`,
+  {
+    rejection_reason: reason.trim(),
+  }
+);
 
       if (!response.ok) {
         throw new Error("Failed to reject auction");
@@ -581,12 +578,9 @@ const approveAuction = async (auction) => {
     }
 
     try {
-      const response = await fetch(
-        `${API_URL}/admin/auctions/${auction.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await adminApi.delete(
+  `/admin/auctions/${auction.id}`
+);
 
       if (!response.ok) {
         throw new Error("Failed to delete auction");

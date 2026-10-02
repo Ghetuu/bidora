@@ -470,7 +470,7 @@ def build_report(
 def get_reports(
     date_from: date | None = Query(None, alias="from"),
     date_to: date | None = Query(None, alias="to"),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
 
     today = date.today()

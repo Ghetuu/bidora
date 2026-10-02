@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import adminApi from "../api/adminApi"
 
 
 function AdminUsers() {
@@ -44,9 +44,9 @@ function AdminUsers() {
     try {
       setLoading(true);
 
-      const response = await axios.get(
-        "http://127.0.0.1:8000/admin/users/"
-      );
+      const response = await adminApi.get(
+  "/admin/users/"
+);
 
       console.log("USERS FROM BACKEND:", response.data);
 
@@ -126,8 +126,8 @@ function AdminUsers() {
     e.preventDefault();
 
     try {
-      await axios.put(
-        `http://127.0.0.1:8000/admin/users/${editingUser.id}`,
+     await adminApi.put(
+  `/admin/users/${editingUser.id}`,
         {
           ...editingUser,
           account_status: editingUser.account_status, // unchanged, not editable here
@@ -168,9 +168,9 @@ function AdminUsers() {
     if (!deletingUser) return;
 
     try {
-      await axios.delete(
-        `http://127.0.0.1:8000/admin/users/${deletingUser.id}`
-      );
+      await adminApi.delete(
+  `/admin/users/${deletingUser.id}`
+);
 
       alert("User deleted successfully.");
 
