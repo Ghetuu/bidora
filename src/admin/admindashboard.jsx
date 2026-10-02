@@ -1,5 +1,5 @@
 import "../styles/admindashboard.css";
-
+import adminApi from "../api/adminApi";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -43,44 +43,35 @@ function AdminDashboard() {
   ===================================================== */
 
   useEffect(() => {
+  const fetchNotifications = async () => {
+    try {
+      const response = await adminApi.get(
+        "/admin/notifications"
+      );
 
-    const fetchNotifications = async () => {
+      console.log("ADMIN NOTIFICATIONS:", response.data);
 
-      try {
+      const data = response.data;
 
-        const response = await fetch(
-          "http://127.0.0.1:8000/admin/notifications"
-        );
+      setNotifications(data);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch notifications");
-        }
+      const unreadCount = data.filter(
+        (notification) => !notification.is_read
+      ).length;
 
-        const data = await response.json();
+      setNotificationCount(unreadCount);
 
-        setNotifications(data);
+    } catch (error) {
+      console.error(
+        "Notification error:",
+        error.response?.status,
+        error.response?.data || error.message
+      );
+    }
+  };
 
-        const unreadCount = data.filter(
-          (notification) => !notification.is_read
-        ).length;
-
-        setNotificationCount(unreadCount);
-
-      } catch (error) {
-
-        console.error(
-          "Notification error:",
-          error
-        );
-
-      }
-
-    };
-
-    fetchNotifications();
-
-  }, []);
-
+  fetchNotifications();
+}, []);
 
   /* =====================================================
      LOGOUT
@@ -142,12 +133,18 @@ function AdminDashboard() {
 
       if (!notification.is_read) {
 
-        const response = await fetch(
-          `http://127.0.0.1:8000/admin/notifications/${notification.id}/read`,
-          {
-            method: "PUT",
-          }
-        );
+        const token = localStorage.getItem("adminToken");
+
+const response = await fetch(
+  `http://127.0.0.1:8000/admin/notifications/${notification.id}/read`,
+  {
+    method: "PUT",
+
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
         if (response.ok) {
 

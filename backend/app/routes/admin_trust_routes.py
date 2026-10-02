@@ -666,7 +666,7 @@ def calculate_trust_score(auction, db, now=None):
 @router.get("/auctions/trust-scores")
 def get_trust_scores(
     status: str = Query("pending"),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
     status = status.strip().lower()
     if status not in ALLOWED_STATUSES:
@@ -686,7 +686,8 @@ def get_trust_scores(
 
 
 @router.get("/auctions/{auction_id}/trust-score")
-def get_trust_score(auction_id: int, db: Session = Depends(get_db)):
+def get_trust_score(auction_id: int, db: Session = Depends(get_db),
+):
     auction = db.query(Auction).filter(Auction.id == auction_id).first()
     if not auction:
         raise HTTPException(status_code=404, detail="Auction not found.")

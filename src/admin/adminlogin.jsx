@@ -37,6 +37,18 @@ function AdminLogin() {
       );
 
       alert(res.data.message);
+      alert(res.data.message);
+
+localStorage.setItem(
+  "adminToken",
+  res.data.access_token
+);
+
+localStorage.setItem(
+  "adminLoggedIn",
+  "true"
+);
+
       navigate("/admin/dashboard");
     } catch (err) {
       alert(err.response?.data?.detail || "Login Failed");

@@ -2,6 +2,7 @@ from collections import Counter
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 from app.models.auction import Auction
 from app.models.bids import Bid
@@ -331,16 +332,19 @@ def get_recommendations(
     # =====================================================
 
     auctions = (
-        db.query(Auction)
-        .filter(
-            Auction.status == "live",
-            Auction.user_id != user_id
-        )
-        .order_by(
-            Auction.created_at.desc()
-        )
-        .all()
+    db.query(Auction)
+    .filter(
+        or_(
+            Auction.status == "approved",
+            Auction.status == "live"
+        ),
+        Auction.user_id != user_id
     )
+    .order_by(
+        Auction.created_at.desc()
+    )
+    .all()
+)
 
     recommendations = []
 
@@ -351,8 +355,8 @@ def get_recommendations(
         #if auction.id in viewed_auction_ids:
          #   continue
 
-       # if auction.id in bid_auction_ids:
-        #    continue
+        if auction.id in bid_auction_ids:
+            continue
 
         score = calculate_auction_score(
             auction,
@@ -444,46 +448,43 @@ def get_recommendations(
         # -------------------------------------------------
 
         recommendations.append({
-            "id": auction.id,
-            "user_id": auction.user_id,
+        "id": auction.id,
+        "user_id": auction.user_id,
 
-            "product_title": auction.product_title,
-            "brand_model": auction.brand_model,
-            "category": auction.category,
+        "status": auction.status,
 
-            "description": auction.description,
+        "product_title": auction.product_title,
+        "brand_model": auction.brand_model,
+        "category": auction.category,
+        "description": auction.description,
 
-            "product_condition":
-                auction.product_condition,
+        "product_condition": auction.product_condition,
 
-            "starting_price": (
-                float(auction.starting_price)
-                if auction.starting_price is not None
-                else 0
-            ),
+        "starting_price": (
+            float(auction.starting_price)
+            if auction.starting_price is not None
+            else 0
+        ),
 
-            "auction_start": (
-                auction.auction_start.isoformat()
-                if auction.auction_start
-                else None
-            ),
+        "auction_start": (
+            auction.auction_start.isoformat()
+            if auction.auction_start
+            else None
+        ),
 
-            "auction_end": (
-                auction.auction_end.isoformat()
-                if auction.auction_end
-                else None
-            ),
+        "auction_end": (
+            auction.auction_end.isoformat()
+            if auction.auction_end
+            else None
+        ),
 
-            "location_city": auction.location_city,
-            "location_state": auction.location_state,
+        "location_city": auction.location_city,
+        "location_state": auction.location_state,
+        "seller_name": auction.seller_name,
+        "image": first_image,
 
-            "seller_name": auction.seller_name,
-
-            "image": first_image,
-
-            "score": score,
-
-            "reason": reason
+        "score": score,
+        "reason": reason
         })
 
     # =====================================================

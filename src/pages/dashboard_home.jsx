@@ -11,10 +11,12 @@ import {
   FaHeadset,
   FaUndo,
   FaClock,
+  
 } from "react-icons/fa";
 import { useState } from "react";
 import RecommendedAuctions from "../components/RecommendedAuctions";
 import "../styles/dashboard_home.css";
+import AuroraChatbot from "../components/AuroraChatbot";
 
 function DashboardHome() {
 
@@ -131,15 +133,12 @@ function DashboardHome() {
         
       </section>
 
-       <div className="dashboard-content">
+{/* ==================================================
+    FOR YOU / RECOMMENDATIONS
+================================================== */}
 
-    {/* your existing dashboard */}
-
-    <RecommendedAuctions />
-
-    {/* other existing sections */}
-
-  </div>
+<RecommendedAuctions />
+       
 
 
       {/* ==================================================
@@ -720,7 +719,11 @@ function DashboardHome() {
         </div>
 
       </section>
+         {/* ==================================================
+          AI CHATBOT - AURORA
+      ================================================== */}
 
+      <AuroraChatbot />
     </div>
   );
 }

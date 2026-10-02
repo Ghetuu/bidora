@@ -12,6 +12,10 @@ from app.models.auction_image import AuctionImage
 from app.models.contact_message import ContactMessage
 from app.models.bids import Bid
 from datetime import datetime
+from app.core.admin_auth import (
+    create_admin_token,
+    get_current_admin
+)
 
 
 class AuctionReject(BaseModel):
@@ -51,7 +55,6 @@ class AdminLogin(BaseModel):
     username: str
     password: str
 
-
 @router.post("/login")
 def admin_login(data: AdminLogin):
 
@@ -60,9 +63,13 @@ def admin_login(data: AdminLogin):
         and data.password == ADMIN_PASSWORD
     ):
 
+        token = create_admin_token()
+
         return {
             "success": True,
-            "message": "Login Successful"
+            "message": "Login Successful",
+            "access_token": token,
+            "token_type": "bearer"
         }
 
     raise HTTPException(
@@ -77,7 +84,8 @@ def admin_login(data: AdminLogin):
 
 @router.get("/users/")
 def get_all_users(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
 ):
 
     users = (
@@ -113,7 +121,8 @@ def get_all_users(
 @router.get("/users/{user_id}")
 def get_user(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
 ):
 
     user = (
@@ -165,7 +174,8 @@ def update_user(
 
     data: UserUpdate,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 
 ):
 
@@ -273,7 +283,8 @@ def delete_user(
 
     user_id: int,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 
 ):
 
@@ -309,7 +320,8 @@ def delete_user(
 
 @router.get("/auctions/pending")
 def get_pending_auctions(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     # =================================================
@@ -610,7 +622,8 @@ async def approve_auction(
 
     auction_id: int,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 
 ):
 
@@ -815,7 +828,8 @@ async def reject_auction(
 
     data: AuctionReject,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 
 ):
 
@@ -1035,7 +1049,8 @@ async def reject_auction(
 
 @router.get("/notifications")
 def get_admin_notifications(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
     notifications = (
         db.query(AdminNotification)
@@ -1066,7 +1081,8 @@ def get_admin_notifications(
 
 @router.get("/notifications/unread-count")
 def get_unread_notification_count(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
     count = (
         db.query(AdminNotification)
@@ -1084,7 +1100,8 @@ def get_unread_notification_count(
 @router.put("/notifications/{notification_id}/read")
 def mark_notification_read(
     notification_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
     notification = (
         db.query(AdminNotification)
@@ -1140,7 +1157,8 @@ class ContactReplyCreate(BaseModel):
 @router.post("/contact")
 def create_contact_message(
     data: ContactMessageCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     # Check privacy agreement
@@ -1282,7 +1300,8 @@ def create_contact_message(
 
 @router.get("/contact-messages")
 def get_contact_messages(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     contacts = (
@@ -1347,7 +1366,8 @@ def get_contact_messages(
 @router.put("/contact-messages/{message_id}/read")
 def mark_contact_message_read(
     message_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     contact = (
@@ -1384,7 +1404,8 @@ def mark_contact_message_read(
 def update_contact_message_status(
     message_id: int,
     data: ContactStatusUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     allowed_statuses = [
@@ -1441,7 +1462,8 @@ def update_contact_message_status(
 async def reply_to_contact_message(
     message_id: int,
     data: ContactReplyCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     # =====================================================
@@ -1595,7 +1617,8 @@ Bidora
 @router.get("/auctions/status/{status}")
 def get_auctions_by_status(
     status: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     allowed_statuses = [
@@ -1944,7 +1967,8 @@ def get_auctions_by_status(
 
 @router.get("/auctions/all")
 def get_all_auctions(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
 
     # =====================================================
@@ -2323,7 +2347,8 @@ def get_all_auctions(
 @router.get("/auctions/{auction_id}/bids")
 def get_admin_auction_bids(
     auction_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
     try:
 
@@ -2503,7 +2528,8 @@ def get_auctions_by_status(
 
     status: str,
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
 
 ):
 

@@ -6,24 +6,18 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "http://127.0.0.1:8000";
 
-const RecommendedAuctions = () => {
-
+function RecommendedAuctions() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
-
     const fetchRecommendations = async () => {
-
       try {
-
         const token =
           sessionStorage.getItem("access_token");
 
-        // User is not logged in
         if (!token) {
           setLoading(false);
           return;
@@ -33,7 +27,6 @@ const RecommendedAuctions = () => {
           `${API_BASE_URL}/api/recommendations?limit=6`,
           {
             method: "GET",
-
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
@@ -43,236 +36,298 @@ const RecommendedAuctions = () => {
 
         if (!response.ok) {
           throw new Error(
-            "Failed to load recommendations"
+            `Recommendation API failed: ${response.status}`
           );
         }
 
         const data = await response.json();
 
-        setRecommendations(
-          data.recommendations || []
+        console.log(
+          "Recommendation API response:",
+          data
         );
 
-      } catch (err) {
+        const recommendationList =
+          Array.isArray(data)
+            ? data
+            : data.recommendations || [];
 
+        console.log(
+          "Recommendations:",
+          recommendationList
+        );
+
+        setRecommendations(recommendationList);
+      } catch (error) {
         console.error(
           "Recommendation error:",
-          err
+          error
         );
 
-        setError(
-          "Unable to load recommendations."
-        );
-
+        setRecommendations([]);
       } finally {
-
         setLoading(false);
-
       }
-
     };
 
     fetchRecommendations();
-
   }, []);
-
 
   // =====================================================
   // OPEN AUCTION
   // =====================================================
 
-  const handleAuctionClick = (auction) => {
+  const handleAuctionClick = async (auction) => {
+    const token =
+      sessionStorage.getItem("access_token");
 
-    navigate(
-      `/auction/${auction.id}`,
-      {
-        state: {
-          auction: auction
-        }
+    // Record view
+    if (token) {
+      try {
+        await fetch(
+          `${API_BASE_URL}/api/recommendations/view/${auction.id}`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } catch (error) {
+        console.error(
+          "View tracking error:",
+          error
+        );
       }
-    );
+    }
 
+    // LIVE AUCTION
+if (auction.status === "live") {
+  navigate(
+    `/dashboard/live-auction/${auction.id}`,
+    {
+      state: {
+        auction,
+        from: "recommendations",
+      },
+    }
+  );
+  return;
+}
+
+// APPROVED AUCTION
+if (auction.status === "approved") {
+  navigate(
+    `/dashboard/auction/${auction.id}`,
+    {
+      state: {
+        auction,
+        from: "recommendations",
+      },
+    }
+  );
+  return;
+}
+
+// OTHER STATUS
+navigate(
+  `/dashboard/auction/${auction.id}`,
+  {
+    state: {
+      auction,
+      from: "recommendations",
+    },
+  }
+);
+  }
+  // =====================================================
+  // IMAGE URL
+  // =====================================================
+
+  const getImageUrl = (image) => {
+    if (!image) return null;
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    return `${API_BASE_URL}/${image}`;
   };
-
 
   // =====================================================
   // LOADING
   // =====================================================
 
   if (loading) {
-
     return (
       <section className="recommended-section">
-
-        <h2>🤖 Recommended For You</h2>
-
-        <p>Finding auctions for you...</p>
-
+        <div className="recommended-header">
+          <div>
+            <h2>For You</h2>
+            <p>Finding auctions for you...</p>
+          </div>
+        </div>
       </section>
     );
-
   }
-
-
-  // =====================================================
-  // ERROR
-  // =====================================================
-
-  if (error) {
-
-    return null;
-
-  }
-
 
   // =====================================================
   // NO RECOMMENDATIONS
   // =====================================================
 
-  if (!recommendations || recommendations.length === 0) {
-    return (
-      <section className="recommended-section">
-        <h2>🤖 Recommended For You</h2>
-        <p>No recommendations available yet.</p>
-      </section>
-    );
-}
-
+  if (recommendations.length === 0) {
+    return null;
+  }
 
   // =====================================================
-  // DISPLAY
+  // UI
   // =====================================================
 
   return (
-
     <section className="recommended-section">
+
+      {/* HEADER */}
 
       <div className="recommended-header">
 
         <div>
-
-          <h2>
-            🤖 Recommended For You
-          </h2>
+          <h2>For You</h2>
 
           <p>
-            Based on auctions you viewed and
-            bid on
+            Auctions selected based on your activity
           </p>
-
         </div>
+
+        <button
+          className="recommended-see-all"
+          onClick={() =>
+            navigate("/dashboard/all-auctions")
+          }
+        >
+          See All
+        </button>
 
       </div>
 
+      {/* CARDS */}
 
       <div className="recommended-grid">
 
-        {recommendations.map((auction) => (
+        {recommendations.map((auction) => {
 
-          <div
-            key={auction.id}
-            className="recommended-card"
-            onClick={() =>
-              handleAuctionClick(auction)
-            }
-          >
+          const imageUrl =
+            getImageUrl(auction.image);
 
-            {/* =========================================
-                IMAGE
-            ========================================== */}
+          return (
+            <div
+              key={auction.id}
+              className="recommended-card"
+              onClick={() =>
+                handleAuctionClick(auction)
+              }
+            >
 
-            <div className="recommended-image">
+              {/* IMAGE */}
 
-              {auction.image ? (
+              <div className="recommended-image">
 
-                <img
-                  src={`${API_BASE_URL}/${auction.image}`}
-                  alt={
-                    auction.product_title ||
-                    "Auction"
-                  }
-                />
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={
+                      auction.product_title ||
+                      "Auction"
+                    }
+                  />
+                ) : (
+                  <div className="no-image">
+                    No Image
+                  </div>
+                )}
 
-              ) : (
+                {/* LIVE BADGE */}
 
-                <div className="no-image">
-                  No Image
-                </div>
+                {auction.status === "live" && (
+                  <span className="recommended-live-badge">
+                    LIVE
+                  </span>
+                )}
 
-              )}
+                {/* APPROVED BADGE */}
 
-            </div>
+                {auction.status === "approved" && (
+                  <span className="recommended-approved-badge">
+                    APPROVED
+                  </span>
+                )}
 
+                {/* HEART */}
 
-            {/* =========================================
-                CONTENT
-            ========================================== */}
-
-            <div className="recommended-content">
-
-              <h3>
-
-                {auction.product_title ||
-                  "Auction"}
-
-              </h3>
-
-
-              {auction.brand_model && (
-
-                <p className="recommended-brand">
-
-                  {auction.brand_model}
-
-                </p>
-
-              )}
-
-
-              {auction.category && (
-
-                <span className="recommended-category">
-
-                  {auction.category}
-
-                </span>
-
-              )}
-
-
-              {/* PRICE */}
-
-              <div className="recommended-price">
-
-                ₹
-                {Number(
-                  auction.starting_price || 0
-                ).toLocaleString("en-IN")}
+                <button
+                  className="recommended-heart"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                  }}
+                >
+                  ♡
+                </button>
 
               </div>
 
+              {/* CONTENT */}
 
-              {/* REASON */}
+              <div className="recommended-content">
 
-              <p className="recommended-reason">
+                <h3>
+                  {auction.product_title ||
+                    "Auction"}
+                </h3>
 
-                ✨ {auction.reason}
+                {auction.brand_model && (
+                  <p className="recommended-brand">
+                    {auction.brand_model}
+                  </p>
+                )}
 
-              </p>
+                {auction.category && (
+                  <span className="recommended-category">
+                    {auction.category}
+                  </span>
+                )}
+
+                <div className="recommended-bottom">
+
+                  <strong className="recommended-price">
+                    ₹
+                    {Number(
+                      auction.starting_price || 0
+                    ).toLocaleString("en-IN")}
+                  </strong>
+
+                  <span className="recommended-status">
+                    {auction.status === "live"
+                      ? "🔴 Live"
+                      : auction.status === "approved"
+                      ? "🟢 Approved"
+                      : auction.status}
+                  </span>
+
+                </div>
+
+              </div>
 
             </div>
-
-          </div>
-
-        ))}
+          );
+        })}
 
       </div>
 
     </section>
-
   );
-
-};
-
+}
 
 export default RecommendedAuctions;

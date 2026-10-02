@@ -1104,3 +1104,1153 @@
   }
 
 }
+
+/* =========================================================
+   BIDORA - AURORA AI CHATBOT
+   Dark futuristic theme
+   Does NOT modify existing dashboard styles
+========================================================= */
+
+.dashboard-home .aurora-chatbot {
+  position: fixed;
+  right: 28px;
+  bottom: 25px;
+  z-index: 9999;
+}
+
+
+/* =========================================================
+   FLOATING BUTTON
+========================================================= */
+
+.dashboard-home .aurora-floating-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+
+/* Ask Aurora pill */
+
+.dashboard-home .aurora-ask-button {
+  height: 42px;
+
+  padding: 0 17px;
+
+  border: 1px solid rgba(117, 100, 255, 0.25);
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #171d3b,
+      #24265a
+    );
+
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 25px rgba(20, 24, 60, 0.28);
+
+  transition: all 0.25s ease;
+}
+
+.dashboard-home .aurora-ask-button:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(121, 105, 255, 0.55);
+
+  box-shadow:
+    0 12px 32px rgba(53, 49, 145, 0.35);
+}
+
+.dashboard-home .aurora-ask-button svg {
+  color: #a18cff;
+
+  font-size: 13px;
+
+  filter:
+    drop-shadow(0 0 5px rgba(142, 118, 255, 0.7));
+}
+
+
+/* =========================================================
+   FLOATING AURORA ORB
+========================================================= */
+
+.dashboard-home .aurora-floating-icon {
+  position: relative;
+
+  width: 63px;
+  height: 63px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Outer glow */
+
+.dashboard-home .aurora-glow {
+  position: absolute;
+
+  width: 72px;
+  height: 72px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(103, 80, 255, 0.55) 0%,
+      rgba(74, 65, 220, 0.28) 35%,
+      rgba(40, 45, 130, 0.08) 65%,
+      transparent 75%
+    );
+
+  filter: blur(5px);
+
+  animation:
+    auroraPulse 2.8s ease-in-out infinite;
+}
+
+
+/* Orb */
+
+.dashboard-home .aurora-orb {
+  position: relative;
+
+  width: 54px;
+  height: 54px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+
+  font-size: 20px;
+
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #a795ff 0%,
+      #6955ed 22%,
+      #3b398e 55%,
+      #151937 100%
+    );
+
+  border: 2px solid rgba(154, 137, 255, 0.45);
+
+  box-shadow:
+    0 8px 28px rgba(49, 43, 148, 0.55),
+    inset 0 0 17px rgba(255, 255, 255, 0.12);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.dashboard-home .aurora-floating-icon:hover .aurora-orb {
+  transform: scale(1.08);
+
+  box-shadow:
+    0 10px 35px rgba(76, 61, 213, 0.65),
+    inset 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+
+/* =========================================================
+   MAIN CHAT WINDOW
+========================================================= */
+
+.dashboard-home .aurora-chat-window {
+  width: 425px;
+
+  height: 625px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #080f25 0%,
+      #0a1128 55%,
+      #0c1430 100%
+    );
+
+  border: 1px solid rgba(122, 110, 255, 0.28);
+
+  border-radius: 22px;
+
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  box-shadow:
+    0 25px 70px rgba(7, 12, 35, 0.45),
+    0 0 45px rgba(82, 66, 210, 0.12);
+
+  animation:
+    auroraChatOpen 0.25s ease-out;
+}
+
+
+/* =========================================================
+   CHAT HEADER
+========================================================= */
+
+.dashboard-home .aurora-chat-header {
+  position: relative;
+
+  min-height: 86px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      #151b48 0%,
+      #1c2054 48%,
+      #121839 100%
+    );
+
+  border-bottom: 1px solid rgba(131, 119, 255, 0.13);
+}
+
+
+/* Decorative header glow */
+
+.dashboard-home .aurora-chat-header::after {
+  content: "";
+
+  position: absolute;
+
+  width: 220px;
+  height: 100px;
+
+  right: -45px;
+  top: -55px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(106, 77, 255, 0.55),
+      rgba(78, 70, 220, 0.18),
+      transparent 70%
+    );
+
+  filter: blur(12px);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   HEADER TITLE
+========================================================= */
+
+.dashboard-home .aurora-chat-title {
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+
+/* Header icon */
+
+.dashboard-home .aurora-chat-avatar {
+  width: 49px;
+  height: 49px;
+
+  min-width: 49px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #9f8dff,
+      #5f4de1 45%,
+      #30266f
+    );
+
+  color: #ffffff;
+
+  font-size: 20px;
+
+  border: 1px solid rgba(184, 171, 255, 0.35);
+
+  box-shadow:
+    0 0 22px rgba(108, 84, 255, 0.45),
+    inset 0 0 12px rgba(255, 255, 255, 0.12);
+}
+
+
+.dashboard-home .aurora-chat-title strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 17px;
+
+  line-height: 1.2;
+
+  font-weight: 800;
+
+  letter-spacing: -0.3px;
+}
+
+
+.dashboard-home .aurora-chat-title span {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 5px;
+
+  color: #b9c0db;
+
+  font-size: 10px;
+}
+
+
+.dashboard-home .aurora-chat-title span i {
+  width: 7px;
+  height: 7px;
+
+  display: inline-block;
+
+  border-radius: 50%;
+
+  background: #31d985;
+
+  box-shadow:
+    0 0 8px rgba(49, 217, 133, 0.75);
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.dashboard-home .aurora-close-btn {
+  position: relative;
+
+  z-index: 3;
+
+  width: 40px;
+  height: 40px;
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.dashboard-home .aurora-close-btn:hover {
+  background:
+    rgba(255, 255, 255, 0.14);
+
+  transform: rotate(90deg);
+}
+
+
+/* =========================================================
+   CHAT MESSAGES AREA
+========================================================= */
+
+.dashboard-home .aurora-chat-messages {
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding: 20px 17px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(80, 70, 170, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 60%,
+      rgba(57, 78, 170, 0.06),
+      transparent 30%
+    ),
+    #080f22;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #303b69
+    transparent;
+}
+
+
+/* Chrome scrollbar */
+
+.dashboard-home .aurora-chat-messages::-webkit-scrollbar {
+  width: 7px;
+}
+
+.dashboard-home .aurora-chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-home .aurora-chat-messages::-webkit-scrollbar-thumb {
+  background: #303b69;
+
+  border-radius: 10px;
+}
+
+.dashboard-home .aurora-chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #4a5790;
+}
+
+
+/* =========================================================
+   MESSAGE ROW
+========================================================= */
+
+.dashboard-home .aurora-message {
+  display: flex;
+
+  align-items: flex-end;
+
+  gap: 9px;
+
+  max-width: 91%;
+
+  animation:
+    auroraMessageIn 0.2s ease-out;
+}
+
+
+.dashboard-home .aurora-bot-message {
+  align-self: flex-start;
+}
+
+
+.dashboard-home .aurora-user-message {
+  align-self: flex-end;
+}
+
+
+/* =========================================================
+   BOT AVATAR
+========================================================= */
+
+.dashboard-home .aurora-small-avatar {
+  width: 31px;
+  height: 31px;
+
+  min-width: 31px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 30% 25%,
+      #927dff,
+      #5144c9 45%,
+      #29255e
+    );
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  border: 1px solid rgba(126, 108, 255, 0.45);
+
+  box-shadow:
+    0 0 14px rgba(90, 72, 220, 0.35);
+}
+
+
+/* =========================================================
+   MESSAGE BUBBLE
+========================================================= */
+
+.dashboard-home .aurora-message-bubble {
+  padding: 12px 14px;
+
+  border-radius: 15px;
+
+  font-size: 11.5px;
+
+  line-height: 1.65;
+
+  letter-spacing: 0.05px;
+}
+
+
+/* Bot */
+
+.dashboard-home .aurora-bot-message .aurora-message-bubble {
+  color: #e4e8f7;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(30, 43, 78, 0.95),
+      rgba(22, 33, 63, 0.95)
+    );
+
+  border: 1px solid rgba(109, 127, 191, 0.22);
+
+  border-bottom-left-radius: 5px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+
+/* User */
+
+.dashboard-home .aurora-user-message .aurora-message-bubble {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2d65ed,
+      #4b45df
+    );
+
+  border: 1px solid rgba(107, 137, 255, 0.35);
+
+  border-bottom-right-radius: 5px;
+
+  box-shadow:
+    0 7px 18px rgba(38, 65, 190, 0.22);
+}
+
+
+/* =========================================================
+   QUICK QUESTIONS
+========================================================= */
+
+.dashboard-home .aurora-quick-questions {
+  display: flex;
+
+  gap: 8px;
+
+  overflow-x: auto;
+
+  padding: 12px 13px;
+
+  background:
+    #0b1330;
+
+  border-top: 1px solid rgba(119, 125, 185, 0.11);
+
+  scrollbar-width: none;
+}
+
+.dashboard-home .aurora-quick-questions::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* Quick button */
+
+.dashboard-home .aurora-quick-questions button {
+  flex-shrink: 0;
+
+  height: 35px;
+
+  padding: 0 13px;
+
+  border-radius: 18px;
+
+  border: 1px solid rgba(94, 113, 225, 0.55);
+
+  background:
+    rgba(21, 30, 62, 0.9);
+
+  color: #d7dcf5;
+
+  font-size: 9.5px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.dashboard-home .aurora-quick-questions button:hover {
+  color: #ffffff;
+
+  border-color: #6e63ff;
+
+  background:
+    rgba(49, 52, 117, 0.95);
+
+  box-shadow:
+    0 0 15px rgba(93, 75, 220, 0.16);
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   CHAT INPUT AREA
+========================================================= */
+
+.dashboard-home .aurora-chat-input-wrapper {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 10px 13px 11px;
+
+  background:
+    #0b1330;
+}
+
+
+/* Input */
+
+.dashboard-home .aurora-chat-input-wrapper textarea {
+  flex: 1;
+
+  min-height: 48px;
+  max-height: 100px;
+
+  resize: none;
+
+  padding: 14px 15px;
+
+  border-radius: 15px;
+
+  border: 1px solid #3157c9;
+
+  outline: none;
+
+  color: #e9edff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #101a3b,
+      #0d1631
+    );
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  box-shadow:
+    0 0 0 2px rgba(45, 90, 231, 0.10),
+    inset 0 0 18px rgba(52, 72, 147, 0.08);
+
+  transition: all 0.2s ease;
+}
+
+
+.dashboard-home .aurora-chat-input-wrapper textarea:focus {
+  border-color: #536fff;
+
+  box-shadow:
+    0 0 0 3px rgba(76, 93, 255, 0.12),
+    0 0 20px rgba(62, 71, 190, 0.12);
+}
+
+
+.dashboard-home .aurora-chat-input-wrapper textarea::placeholder {
+  color: #8490bd;
+}
+
+
+/* Send button */
+
+.dashboard-home .aurora-send-btn {
+  width: 49px;
+  height: 49px;
+
+  min-width: 49px;
+
+  border: none;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7258ff,
+      #4b38dc
+    );
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 7px 20px rgba(77, 55, 220, 0.42);
+
+  transition: all 0.2s ease;
+}
+
+
+.dashboard-home .aurora-send-btn:hover:not(:disabled) {
+  transform:
+    translateY(-2px)
+    scale(1.03);
+
+  box-shadow:
+    0 10px 28px rgba(90, 67, 235, 0.55);
+}
+
+
+.dashboard-home .aurora-send-btn:disabled {
+  background:
+    #303a58;
+
+  color: #8790ac;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SECURITY NOTE
+========================================================= */
+
+.dashboard-home .aurora-security-note {
+  min-height: 32px;
+
+  padding: 0 15px 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  background:
+    #0b1330;
+
+  color: #7f8bb2;
+
+  font-size: 8.5px;
+
+  border-top: 1px solid rgba(117, 126, 180, 0.06);
+}
+
+
+.dashboard-home .aurora-security-note svg {
+  color: #31c979;
+
+  font-size: 10px;
+
+  filter:
+    drop-shadow(0 0 4px rgba(49, 201, 121, 0.45));
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes auroraPulse {
+
+  0%,
+  100% {
+    transform: scale(0.95);
+
+    opacity: 0.65;
+  }
+
+  50% {
+    transform: scale(1.08);
+
+    opacity: 1;
+  }
+
+}
+
+
+@keyframes auroraChatOpen {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(18px)
+      scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+@keyframes auroraMessageIn {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .dashboard-home .aurora-chatbot {
+    right: 15px;
+    bottom: 15px;
+  }
+
+  .dashboard-home .aurora-chat-window {
+    width: calc(100vw - 30px);
+
+    height: min(625px, calc(100vh - 30px));
+
+    border-radius: 19px;
+  }
+
+}
+
+
+@media (max-width: 500px) {
+
+  .dashboard-home .aurora-chatbot {
+    right: 10px;
+    left: 10px;
+
+    bottom: 10px;
+  }
+
+  .dashboard-home .aurora-chat-window {
+    width: 100%;
+
+    height: calc(100vh - 20px);
+
+    border-radius: 18px;
+  }
+
+  .dashboard-home .aurora-ask-button {
+    display: none;
+  }
+
+  .dashboard-home .aurora-floating-wrapper {
+    justify-content: flex-end;
+  }
+
+}
+
+/* =========================================================
+   AURORA DATABASE RESULT CARDS
+========================================================= */
+
+/* Result container */
+.dashboard-home .aurora-result-list {
+  width: 100%;
+  max-width: 100%;
+
+  margin-top: 8px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 9px;
+
+  box-sizing: border-box;
+}
+
+
+/* Individual auction result */
+.dashboard-home .aurora-result-card {
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding: 12px 13px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23, 35, 68, 0.98),
+      rgba(15, 26, 53, 0.98)
+    );
+
+  border: 1px solid rgba(91, 111, 180, 0.30);
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.18),
+
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.025);
+
+  color: #dce3fa;
+
+  overflow: hidden;
+
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* Hover */
+.dashboard-home .aurora-result-card:hover {
+  transform: translateY(-1px);
+
+  border-color:
+    rgba(111, 103, 255, 0.55);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 40, 78, 0.99),
+      rgba(18, 30, 61, 0.99)
+    );
+}
+
+
+/* Auction title */
+.dashboard-home .aurora-result-card strong {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  line-height: 1.4;
+
+  font-weight: 750;
+
+  white-space: normal;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* Category */
+.dashboard-home .aurora-result-card > span {
+  display: block;
+
+  margin-top: 1px;
+
+  color: #8f9bc1;
+
+  font-size: 9.5px;
+
+  line-height: 1.3;
+
+  text-transform: capitalize;
+}
+
+
+/* Result information */
+.dashboard-home .aurora-result-card small {
+  display: flex;
+
+  align-items: baseline;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+  width: 100%;
+
+  margin-top: 3px;
+
+  padding-top: 3px;
+
+  color: #8d98b8;
+
+  font-size: 9.5px;
+
+  line-height: 1.4;
+
+  box-sizing: border-box;
+}
+
+
+/* Values */
+.dashboard-home .aurora-result-card small b {
+  color: #ffffff;
+
+  font-size: 9.5px;
+
+  font-weight: 700;
+
+  text-align: right;
+
+  white-space: nowrap;
+}
+
+
+/* Current bid / bid values */
+.dashboard-home .aurora-result-card small b {
+  color: #8faeff;
+}
+
+
+/* Starting price */
+.dashboard-home .aurora-result-card small:last-child b {
+  color: #b3bdde;
+}
+
+
+/* Status */
+.dashboard-home .aurora-result-card small b:has(+ *) {
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   KEEP RESULT AREA INSIDE CHAT BUBBLE
+========================================================= */
+
+.dashboard-home .aurora-bot-message > div:last-child {
+  min-width: 0;
+
+  max-width: 100%;
+
+  width: auto;
+}
+
+
+/* Result cards should not become wider than chat */
+.dashboard-home .aurora-bot-message .aurora-result-list {
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .dashboard-home .aurora-result-card {
+    padding: 11px 12px;
+
+    border-radius: 11px;
+  }
+
+  .dashboard-home .aurora-result-card strong {
+    font-size: 11.5px;
+  }
+
+  .dashboard-home .aurora-result-card small {
+    font-size: 9px;
+  }
+
+  .dashboard-home .aurora-result-card small b {
+    font-size: 9px;
+  }
+
+}
