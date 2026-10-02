@@ -2034,3 +2034,223 @@
   }
 
 }
+
+/* =========================================================
+   AURORA DATABASE RESULT CARDS
+========================================================= */
+
+/* Result container */
+.dashboard-home .aurora-result-list {
+  width: 100%;
+  max-width: 100%;
+
+  margin-top: 8px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 9px;
+
+  box-sizing: border-box;
+}
+
+
+/* Individual auction result */
+.dashboard-home .aurora-result-card {
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding: 12px 13px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23, 35, 68, 0.98),
+      rgba(15, 26, 53, 0.98)
+    );
+
+  border: 1px solid rgba(91, 111, 180, 0.30);
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.18),
+
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.025);
+
+  color: #dce3fa;
+
+  overflow: hidden;
+
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* Hover */
+.dashboard-home .aurora-result-card:hover {
+  transform: translateY(-1px);
+
+  border-color:
+    rgba(111, 103, 255, 0.55);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 40, 78, 0.99),
+      rgba(18, 30, 61, 0.99)
+    );
+}
+
+
+/* Auction title */
+.dashboard-home .aurora-result-card strong {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  line-height: 1.4;
+
+  font-weight: 750;
+
+  white-space: normal;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* Category */
+.dashboard-home .aurora-result-card > span {
+  display: block;
+
+  margin-top: 1px;
+
+  color: #8f9bc1;
+
+  font-size: 9.5px;
+
+  line-height: 1.3;
+
+  text-transform: capitalize;
+}
+
+
+/* Result information */
+.dashboard-home .aurora-result-card small {
+  display: flex;
+
+  align-items: baseline;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+  width: 100%;
+
+  margin-top: 3px;
+
+  padding-top: 3px;
+
+  color: #8d98b8;
+
+  font-size: 9.5px;
+
+  line-height: 1.4;
+
+  box-sizing: border-box;
+}
+
+
+/* Values */
+.dashboard-home .aurora-result-card small b {
+  color: #ffffff;
+
+  font-size: 9.5px;
+
+  font-weight: 700;
+
+  text-align: right;
+
+  white-space: nowrap;
+}
+
+
+/* Current bid / bid values */
+.dashboard-home .aurora-result-card small b {
+  color: #8faeff;
+}
+
+
+/* Starting price */
+.dashboard-home .aurora-result-card small:last-child b {
+  color: #b3bdde;
+}
+
+
+/* Status */
+.dashboard-home .aurora-result-card small b:has(+ *) {
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   KEEP RESULT AREA INSIDE CHAT BUBBLE
+========================================================= */
+
+.dashboard-home .aurora-bot-message > div:last-child {
+  min-width: 0;
+
+  max-width: 100%;
+
+  width: auto;
+}
+
+
+/* Result cards should not become wider than chat */
+.dashboard-home .aurora-bot-message .aurora-result-list {
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .dashboard-home .aurora-result-card {
+    padding: 11px 12px;
+
+    border-radius: 11px;
+  }
+
+  .dashboard-home .aurora-result-card strong {
+    font-size: 11.5px;
+  }
+
+  .dashboard-home .aurora-result-card small {
+    font-size: 9px;
+  }
+
+  .dashboard-home .aurora-result-card small b {
+    font-size: 9px;
+  }
+
+}

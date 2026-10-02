@@ -61,6 +61,9 @@ from app.routes.recommendation_routes import (
     router as recommendation_router
 )
 
+from app.routes.aurora_routes import (
+    router as aurora_router
+)
 
 # =========================================================
 # SERVICES
@@ -146,9 +149,12 @@ app.include_router(
 app.include_router(
     recommendation_router
 )
-
+app.include_router(
+    aurora_router
+)
 
 app.include_router(price_prediction_router)
+
 app.include_router(
     admin_trust_router,
     tags=["Admin Trust Score"]
