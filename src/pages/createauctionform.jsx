@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../styles/createauctionform.css";
 import PricePrediction from "../components/priceprediction";
-
+import Papa from "papaparse";
+import * as pdfjsLib from "pdfjs-dist";
 /* =========================================================
    CATEGORY / CONDITION / WARRANTY / SHIPPING OPTIONS
 ========================================================= */
@@ -1492,6 +1493,285 @@ const CreateAuction = () => {
     });
   };
 
+
+  /* =========================================================
+   IMPORT AUCTION FROM JSON FILE
+========================================================= */
+
+/* =========================================================
+   IMPORT AUCTION FROM JSON / TXT / CSV / PDF
+========================================================= */
+
+const handleImportAuction = async (e) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  const fileName = file.name.toLowerCase();
+  const extension = fileName.split(".").pop();
+
+  const allowedExtensions = [
+    "json",
+    "txt",
+    "csv",
+    "pdf",
+  ];
+
+  if (!allowedExtensions.includes(extension)) {
+    setSubmitError(
+      "Please select a JSON, TXT, CSV or PDF auction file."
+    );
+
+    e.target.value = "";
+    return;
+  }
+
+  try {
+    let importedData = {};
+
+    /* =====================================================
+       JSON
+    ===================================================== */
+
+    if (extension === "json") {
+      const text = await file.text();
+
+      importedData = JSON.parse(text);
+    }
+
+    /* =====================================================
+       TXT
+       Expected format:
+
+       productTitle: Maruti Suzuki Swift 2022
+       brandModel: Maruti Suzuki Swift VXI
+       category: vehicles
+       ...
+    ===================================================== */
+
+    else if (extension === "txt") {
+      const text = await file.text();
+
+      text
+        .split(/\r?\n/)
+        .forEach((line) => {
+          const separatorIndex = line.indexOf(":");
+
+          if (separatorIndex === -1) return;
+
+          const key = line
+            .slice(0, separatorIndex)
+            .trim();
+
+          const value = line
+            .slice(separatorIndex + 1)
+            .trim();
+
+          if (key && value !== undefined) {
+            importedData[key] = value;
+          }
+        });
+    }
+
+    /* =====================================================
+       CSV
+
+       Expected format:
+
+       field,value
+       productTitle,Maruti Suzuki Swift 2022
+       brandModel,Maruti Suzuki Swift VXI
+       ...
+    ===================================================== */
+
+    else if (extension === "csv") {
+      const text = await file.text();
+
+      const result = Papa.parse(text, {
+        skipEmptyLines: true,
+      });
+
+      if (result.errors.length > 0) {
+        throw new Error("Invalid CSV file.");
+      }
+
+      result.data.forEach((row, index) => {
+        if (index === 0) return;
+
+        const key = row[0]?.trim();
+        const value = row[1]?.trim();
+
+        if (key) {
+          importedData[key] = value ?? "";
+        }
+      });
+    }
+
+    /* =====================================================
+       PDF
+    ===================================================== */
+
+    else if (extension === "pdf") {
+      const arrayBuffer = await file.arrayBuffer();
+
+      const pdf = await pdfjsLib.getDocument({
+        data: arrayBuffer,
+      }).promise;
+
+      let fullText = "";
+
+      for (
+        let pageNumber = 1;
+        pageNumber <= pdf.numPages;
+        pageNumber++
+      ) {
+        const page = await pdf.getPage(pageNumber);
+
+        const content =
+          await page.getTextContent();
+
+        const pageText = content.items
+          .map((item) => item.str)
+          .join(" ");
+
+        fullText += pageText + "\n";
+      }
+
+      /*
+       * PDF generated for our test file has:
+       *
+       * productTitle: Maruti Suzuki Swift 2022
+       *
+       * Parse key:value pairs.
+       */
+
+      const regex =
+        /([A-Za-z][A-Za-z0-9]*)\s*:\s*([\s\S]*?)(?=\s+[A-Za-z][A-Za-z0-9]*\s*:|$)/g;
+
+      let match;
+
+      while (
+        (match = regex.exec(fullText)) !== null
+      ) {
+        const key = match[1].trim();
+        const value = match[2].trim();
+
+        if (key) {
+          importedData[key] = value;
+        }
+      }
+    }
+
+    /* =====================================================
+       VALIDATE IMPORTED DATA
+    ===================================================== */
+
+    if (
+      !importedData ||
+      typeof importedData !== "object" ||
+      Object.keys(importedData).length === 0
+    ) {
+      throw new Error(
+        "No auction data found in file."
+      );
+    }
+
+    /* =====================================================
+       ONLY ALLOW FORM FIELDS
+    ===================================================== */
+
+    const allowedFields = [
+      "productTitle",
+      "brandModel",
+      "category",
+      "description",
+      "condition",
+
+      "purchaseDate",
+      "purchasedBy",
+      "purchasePrice",
+
+      "startingPrice",
+      "auctionStart",
+      "auctionEnd",
+
+      "locationArea",
+      "locationCity",
+      "locationState",
+      "locationCountry",
+      "locationPincode",
+
+      "deliveryType",
+
+      "shippingType",
+      "shippingCharges",
+      "shippingPaidBy",
+
+      "warrantyStatus",
+
+      "paymentMethod",
+      "productTerms",
+
+      "sellerName",
+      "sellerEmail",
+      "sellerContact",
+    ];
+
+    const importedFields = {};
+
+    allowedFields.forEach((field) => {
+      if (
+        importedData[field] !== undefined &&
+        importedData[field] !== null
+      ) {
+        importedFields[field] =
+          String(importedData[field]).trim();
+      }
+    });
+
+    if (
+      Object.keys(importedFields).length === 0
+    ) {
+      throw new Error(
+        "The file does not contain valid auction fields."
+      );
+    }
+
+    /* =====================================================
+       UPDATE FORM
+    ===================================================== */
+
+    setFormData((prev) => ({
+      ...prev,
+      ...importedFields,
+
+      // Never automatically accept terms
+      termsAccepted: false,
+    }));
+
+    setSubmitError("");
+    setSubmitSuccess("");
+
+    alert(
+      `Auction details imported successfully from ${extension.toUpperCase()} file. Please review the information before publishing.`
+    );
+
+  } catch (error) {
+    console.error(
+      "IMPORT AUCTION ERROR:",
+      error
+    );
+
+    setSubmitError(
+      `Unable to import ${extension.toUpperCase()} file. Please make sure the file contains valid auction details.`
+    );
+  }
+
+  // Allow selecting the same file again
+  e.target.value = "";
+};
+
+
   /* =====================================================
      SUBMIT
   ===================================================== */
@@ -2116,23 +2396,26 @@ if (auctionStart <= now) {
 
         <div className="ca-header-actions">
 
-          <button
-            type="button"
-            className="ca-btn ca-btn-light"
-            onClick={saveDraft}
-          >
-            Save Draft
-          </button>
+  <button
+    type="button"
+    className="ca-btn ca-btn-light"
+    onClick={saveDraft}
+  >
+    Save Draft
+  </button>
 
-          <button
-            type="submit"
-            form="ca-auction-form"
-            className="ca-btn ca-btn-primary"
-          >
-            + Publish Auction
-          </button>
+   <label className="ca-btn ca-btn-light ca-import-btn">
+    <span className="ca-import-icon">📂</span>
+    <span>Import Auction</span>
 
-        </div>
+    <input
+      type="file"
+      accept=".json,.txt,.csv,.pdf,application/json,text/plain,text/csv,application/pdf"
+      onChange={handleImportAuction}
+    />
+  </label>
+
+</div>
 
       </header>
 

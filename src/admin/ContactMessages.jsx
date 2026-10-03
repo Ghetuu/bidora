@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-
+import adminApi from "../api/adminApi";
 const API_URL = "http://127.0.0.1:8000";
 
 // =====================================================
@@ -93,445 +93,382 @@ const ContactMessages = () => {
   // =====================================================
   // FETCH CONTACT MESSAGES
   // =====================================================
+// =====================================================
+// FETCH CONTACT MESSAGES
+// =====================================================
 
-  const fetchMessages = async () => {
-    try {
-      setLoading(true);
+const fetchMessages = async () => {
+  try {
+    setLoading(true);
 
-      const response = await fetch(`${API_URL}/admin/contact-messages`);
+    const response = await adminApi.get(
+      "/admin/contact-messages"
+    );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch contact messages");
+    console.log("Contact Messages Response:", response.data);
+
+    setMessages(response.data || []);
+
+  } catch (error) {
+    console.error(
+      "Error fetching contact messages:",
+      error
+    );
+
+    console.error(
+      "Server response:",
+      error.response?.data
+    );
+
+    setMessages([]);
+
+  } finally {
+    setLoading(false);
+  }
+};
+useEffect(() => {
+  fetchMessages();
+}, []);
+
+
+// =====================================================
+// DELETE SINGLE MESSAGE
+// =====================================================
+
+const deleteMessage = async (id) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this contact message?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    setDeleting(true);
+
+    const response = await adminApi.delete(
+      "/admin/contact-messages/bulk-delete",
+      {
+        data: {
+          ids: [id],
+        },
       }
+    );
 
-      const data = await response.json();
-      setMessages(data);
-    } catch (error) {
-      console.error("Error fetching contact messages:", error);
-    } finally {
-      setLoading(false);
+    const data = response.data;
+
+    setMessages((prev) =>
+      prev.filter((message) => message.id !== id)
+    );
+
+    setSelectedIds((prev) =>
+      prev.filter((selectedId) => selectedId !== id)
+    );
+
+    if (selectedMessage?.id === id) {
+      setSelectedMessage(null);
     }
-  };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+    alert(
+      data?.message ||
+      "Contact message deleted successfully."
+    );
 
-  // =====================================================
-  // SEARCH + FILTER LOGIC
-  // =====================================================
+  } catch (error) {
+    console.error(
+      "Delete contact message error:",
+      error
+    );
 
-  const filteredMessages = useMemo(() => {
-    const search = searchTerm.trim().toLowerCase();
-    const now = new Date();
+    alert(
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to delete contact message."
+    );
 
-    return messages.filter((message) => {
-      // SEARCH
-      const searchableText = [
-        message.id,
-        message.first_name,
-        message.last_name,
-        `${message.first_name || ""} ${message.last_name || ""}`,
-        message.email,
-        message.phone,
-        message.help_topic,
-        message.other_topic,
-        message.auction_id,
-        message.message,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+  } finally {
+    setDeleting(false);
+  }
+};
 
-      const matchesSearch = !search || searchableText.includes(search);
 
-      // STATUS
-      const matchesStatus =
-        statusFilter === "ALL" || message.status === statusFilter;
+// =====================================================
+// DELETE SELECTED
+// =====================================================
 
-      // TOPIC
-      const matchesTopic =
-        topicFilter === "ALL" || message.help_topic === topicFilter;
+const deleteSelected = async () => {
+  if (selectedIds.length === 0) {
+    return;
+  }
 
-      // DATE
-      let matchesDate = true;
+  const confirmed = window.confirm(
+    `Are you sure you want to delete ${
+      selectedIds.length
+    } selected message${
+      selectedIds.length > 1 ? "s" : ""
+    }? This action cannot be undone.`
+  );
 
-      if (message.created_at && dateFilter !== "ALL") {
-        const messageDate = new Date(message.created_at);
+  if (!confirmed) {
+    return;
+  }
 
-        if (!Number.isNaN(messageDate.getTime())) {
-          const startOfToday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate()
-          );
+  try {
+    setDeleting(true);
 
-          if (dateFilter === "TODAY") {
-            matchesDate = messageDate >= startOfToday;
-          }
-
-          if (dateFilter === "YESTERDAY") {
-            const startOfYesterday = new Date(startOfToday);
-            startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-
-            matchesDate =
-              messageDate >= startOfYesterday && messageDate < startOfToday;
-          }
-
-          if (dateFilter === "LAST_7_DAYS") {
-            const sevenDaysAgo = new Date(startOfToday);
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-
-            matchesDate = messageDate >= sevenDaysAgo;
-          }
-
-          if (dateFilter === "LAST_30_DAYS") {
-            const thirtyDaysAgo = new Date(startOfToday);
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-
-            matchesDate = messageDate >= thirtyDaysAgo;
-          }
-        }
+    const response = await adminApi.delete(
+      "/admin/contact-messages/bulk-delete",
+      {
+        data: {
+          ids: selectedIds,
+        },
       }
+    );
 
-      return (
-        matchesSearch && matchesStatus && matchesTopic && matchesDate
-      );
-    });
-  }, [messages, searchTerm, statusFilter, topicFilter, dateFilter]);
+    const data = response.data;
 
-  // =====================================================
-  // RESET FILTERS
-  // =====================================================
+    setMessages((prev) =>
+      prev.filter(
+        (message) =>
+          !selectedIds.includes(message.id)
+      )
+    );
 
-  const resetFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("ALL");
-    setTopicFilter("ALL");
-    setDateFilter("ALL");
+    if (
+      selectedMessage &&
+      selectedIds.includes(selectedMessage.id)
+    ) {
+      setSelectedMessage(null);
+    }
+
     setSelectedIds([]);
-  };
 
-  // =====================================================
-  // SELECT / UNSELECT SINGLE MESSAGE
-  // =====================================================
-
-  const handleSelectMessage = (id) => {
-    setSelectedIds((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((selectedId) => selectedId !== id);
-      }
-
-      return [...prev, id];
-    });
-  };
-
-  // =====================================================
-  // SELECT ALL FILTERED MESSAGES
-  // =====================================================
-
-  const handleSelectAll = () => {
-    const filteredIds = filteredMessages.map((message) => message.id);
-
-    const allFilteredSelected =
-      filteredIds.length > 0 &&
-      filteredIds.every((id) => selectedIds.includes(id));
-
-    if (allFilteredSelected) {
-      setSelectedIds((prev) =>
-        prev.filter((id) => !filteredIds.includes(id))
-      );
-    } else {
-      setSelectedIds((prev) => [...new Set([...prev, ...filteredIds])]);
-    }
-  };
-
-  // =====================================================
-  // DELETE SINGLE MESSAGE
-  // =====================================================
-
-  const deleteMessage = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this contact message?"
+    alert(
+      data?.message ||
+      "Selected messages deleted successfully."
     );
 
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setDeleting(true);
-
-      const response = await fetch(
-        `${API_URL}/admin/contact-messages/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Failed to delete contact message.");
-      }
-
-      setMessages((prev) => prev.filter((message) => message.id !== id));
-      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
-
-      if (selectedMessage?.id === id) {
-        setSelectedMessage(null);
-      }
-
-      alert("Contact message deleted successfully.");
-    } catch (error) {
-      console.error("Delete contact message error:", error);
-      alert(error.message);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  // =====================================================
-  // DELETE SELECTED
-  // =====================================================
-
-  const deleteSelected = async () => {
-    if (selectedIds.length === 0) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${selectedIds.length} selected message${
-        selectedIds.length > 1 ? "s" : ""
-      }? This action cannot be undone.`
+  } catch (error) {
+    console.error(
+      "Delete selected messages error:",
+      error
     );
 
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setDeleting(true);
-
-      const response = await fetch(
-        `${API_URL}/admin/contact-messages/bulk-delete`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ids: selectedIds,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.detail || "Failed to delete selected messages."
-        );
-      }
-
-      setMessages((prev) =>
-        prev.filter((message) => !selectedIds.includes(message.id))
-      );
-
-      if (selectedMessage && selectedIds.includes(selectedMessage.id)) {
-        setSelectedMessage(null);
-      }
-
-      setSelectedIds([]);
-
-      alert(
-        data.message || "Selected messages deleted successfully."
-      );
-    } catch (error) {
-      console.error("Delete selected messages error:", error);
-      alert(error.message);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  // =====================================================
-  // DELETE ALL
-  // =====================================================
-
-  const deleteAllMessages = async () => {
-    if (messages.length === 0) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      "Are you sure you want to DELETE ALL contact messages?\n\nThis action cannot be undone."
+    alert(
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to delete selected messages."
     );
 
-    if (!confirmed) {
-      return;
+  } finally {
+    setDeleting(false);
+  }
+};
+
+
+// =====================================================
+// DELETE ALL
+// =====================================================
+
+const deleteAllMessages = async () => {
+  if (messages.length === 0) {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Are you sure you want to DELETE ALL contact messages?\n\nThis action cannot be undone."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    setDeleting(true);
+
+    const response = await adminApi.delete(
+      "/admin/contact-messages/delete-all"
+    );
+
+    const data = response.data;
+
+    setMessages([]);
+    setSelectedIds([]);
+    setSelectedMessage(null);
+
+    alert(
+      data?.message ||
+      "All contact messages deleted successfully."
+    );
+
+  } catch (error) {
+    console.error(
+      "Delete all messages error:",
+      error
+    );
+
+    alert(
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to delete all messages."
+    );
+
+  } finally {
+    setDeleting(false);
+  }
+};
+
+
+// =====================================================
+// MARK AS READ
+// =====================================================
+
+const markAsRead = async (id) => {
+  try {
+    await adminApi.put(
+      `/admin/contact-messages/${id}/read`
+    );
+
+    await fetchMessages();
+
+    if (selectedMessage?.id === id) {
+      setSelectedMessage((prev) => ({
+        ...prev,
+        is_read: true,
+      }));
     }
 
-    try {
-      setDeleting(true);
+  } catch (error) {
+    console.error(
+      "Error marking message as read:",
+      error
+    );
 
-      const response = await fetch(
-        `${API_URL}/admin/contact-messages/delete-all`,
-        {
-          method: "DELETE",
-        }
-      );
+    alert(
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to mark message as read."
+    );
+  }
+};
 
-      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.detail || "Failed to delete all messages.");
+// =====================================================
+// UPDATE STATUS
+// =====================================================
+
+const updateStatus = async (id, status) => {
+  try {
+    const response = await adminApi.put(
+      `/admin/contact-messages/${id}/status`,
+      {
+        status: status,
       }
+    );
 
-      setMessages([]);
-      setSelectedIds([]);
-      setSelectedMessage(null);
+    const data = response.data;
 
-      alert(
-        data.message || "All contact messages deleted successfully."
-      );
-    } catch (error) {
-      console.error("Delete all messages error:", error);
-      alert(error.message);
-    } finally {
-      setDeleting(false);
+    console.log(
+      "Status update response:",
+      data
+    );
+
+    await fetchMessages();
+
+    if (selectedMessage?.id === id) {
+      setSelectedMessage((prev) => ({
+        ...prev,
+        status: status,
+        is_read:
+          status !== "OPEN"
+            ? true
+            : prev.is_read,
+      }));
     }
-  };
 
-  // =====================================================
-  // MARK AS READ
-  // =====================================================
+  } catch (error) {
+    console.error(
+      "Error updating contact status:",
+      error
+    );
 
-  const markAsRead = async (id) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/admin/contact-messages/${id}/read`,
-        {
-          method: "PUT",
-        }
-      );
+    alert(
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to update status."
+    );
+  }
+};
 
-      if (!response.ok) {
-        throw new Error("Failed to mark message as read");
+
+// =====================================================
+// OPEN REPLY MODAL
+// =====================================================
+
+const openReply = (message) => {
+  setSelectedMessage(message);
+  setReplyMessage("");
+};
+
+
+// =====================================================
+// SEND REPLY
+// =====================================================
+
+const handleReply = async () => {
+  if (!selectedMessage) {
+    return;
+  }
+
+  if (!replyMessage.trim()) {
+    alert("Please enter a reply message.");
+    return;
+  }
+
+  try {
+    setReplying(true);
+
+    const response = await adminApi.post(
+      `/admin/contact-messages/${selectedMessage.id}/reply`,
+      {
+        reply: replyMessage.trim(),
       }
+    );
 
-      await fetchMessages();
+    const data = response.data;
 
-      if (selectedMessage?.id === id) {
-        setSelectedMessage((prev) => ({
-          ...prev,
-          is_read: true,
-        }));
-      }
-    } catch (error) {
-      console.error("Error marking message as read:", error);
-    }
-  };
+    console.log(
+      "Reply response:",
+      data
+    );
 
-  // =====================================================
-  // UPDATE STATUS
-  // =====================================================
+    alert(
+      data?.message ||
+      `Reply sent successfully to ${selectedMessage.email}`
+    );
 
-  const updateStatus = async (id, status) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/admin/contact-messages/${id}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: status,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Failed to update status");
-      }
-
-      await fetchMessages();
-
-      if (selectedMessage?.id === id) {
-        setSelectedMessage((prev) => ({
-          ...prev,
-          status: status,
-          is_read: status !== "OPEN" ? true : prev.is_read,
-        }));
-      }
-    } catch (error) {
-      console.error("Error updating contact status:", error);
-      alert(error.message);
-    }
-  };
-
-  // =====================================================
-  // OPEN REPLY MODAL
-  // =====================================================
-
-  const openReply = (message) => {
-    setSelectedMessage(message);
     setReplyMessage("");
-  };
+    setSelectedMessage(null);
 
-  // =====================================================
-  // SEND REPLY
-  // =====================================================
+    await fetchMessages();
 
-  const handleReply = async () => {
-    if (!selectedMessage) {
-      return;
-    }
+  } catch (error) {
+    console.error(
+      "Reply error:",
+      error
+    );
 
-    if (!replyMessage.trim()) {
-      alert("Please enter a reply message.");
-      return;
-    }
+    alert(
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to send reply."
+    );
 
-    try {
-      setReplying(true);
-
-      const response = await fetch(
-        `${API_URL}/admin/contact-messages/${selectedMessage.id}/reply`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            reply: replyMessage.trim(),
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Failed to send reply.");
-      }
-
-      alert("Reply sent successfully to " + selectedMessage.email);
-
-      setReplyMessage("");
-      setSelectedMessage(null);
-
-      await fetchMessages();
-    } catch (error) {
-      console.error("Reply error:", error);
-      alert(error.message);
-    } finally {
-      setReplying(false);
-    }
-  };
-
+  } finally {
+    setReplying(false);
+  }
+};
   // =====================================================
   // FORMAT DATE
   // =====================================================
@@ -574,20 +511,221 @@ const ContactMessages = () => {
   // CHECK ALL FILTERED
   // =====================================================
 
-  const allFilteredSelected =
-    filteredMessages.length > 0 &&
-    filteredMessages.every((message) => selectedIds.includes(message.id));
+  // =====================================================
+// FILTER MESSAGES
+// =====================================================
 
+const filteredMessages = useMemo(() => {
+  let result = [...messages];
+
+  // -----------------------------
+  // SEARCH
+  // -----------------------------
+  if (searchTerm.trim()) {
+    const search = searchTerm.toLowerCase().trim();
+
+    result = result.filter((message) => {
+      const fullName =
+        `${message.first_name || ""} ${message.last_name || ""}`.toLowerCase();
+
+      const email =
+        (message.email || "").toLowerCase();
+
+      const topic =
+        (message.help_topic || "").toLowerCase();
+
+      const otherTopic =
+        (message.other_topic || "").toLowerCase();
+
+      const messageText =
+        (message.message || "").toLowerCase();
+
+      const auctionId =
+        String(message.auction_id || "").toLowerCase();
+
+      const id =
+        String(message.id || "").toLowerCase();
+
+      return (
+        fullName.includes(search) ||
+        email.includes(search) ||
+        topic.includes(search) ||
+        otherTopic.includes(search) ||
+        messageText.includes(search) ||
+        auctionId.includes(search) ||
+        id.includes(search)
+      );
+    });
+  }
+
+  // -----------------------------
+  // STATUS FILTER
+  // -----------------------------
+  if (statusFilter !== "ALL") {
+    result = result.filter(
+      (message) => message.status === statusFilter
+    );
+  }
+
+  // -----------------------------
+  // TOPIC FILTER
+  // -----------------------------
+  if (topicFilter !== "ALL") {
+    result = result.filter(
+      (message) => message.help_topic === topicFilter
+    );
+  }
+
+  // -----------------------------
+  // DATE FILTER
+  // -----------------------------
+  if (dateFilter !== "ALL") {
+    const now = new Date();
+
+    result = result.filter((message) => {
+      if (!message.created_at) {
+        return false;
+      }
+
+      const messageDate = new Date(message.created_at);
+
+      // TODAY
+      if (dateFilter === "TODAY") {
+        return (
+          messageDate.getDate() === now.getDate() &&
+          messageDate.getMonth() === now.getMonth() &&
+          messageDate.getFullYear() === now.getFullYear()
+        );
+      }
+
+      // YESTERDAY
+      if (dateFilter === "YESTERDAY") {
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+
+        return (
+          messageDate.getDate() === yesterday.getDate() &&
+          messageDate.getMonth() === yesterday.getMonth() &&
+          messageDate.getFullYear() === yesterday.getFullYear()
+        );
+      }
+
+      // LAST 7 DAYS
+      if (dateFilter === "LAST_7_DAYS") {
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(now.getDate() - 7);
+
+        return messageDate >= sevenDaysAgo;
+      }
+
+      // LAST 30 DAYS
+      if (dateFilter === "LAST_30_DAYS") {
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(now.getDate() - 30);
+
+        return messageDate >= thirtyDaysAgo;
+      }
+
+      return true;
+    });
+  }
+
+  return result;
+}, [
+  messages,
+  searchTerm,
+  statusFilter,
+  topicFilter,
+  dateFilter,
+]);
+
+
+// =====================================================
+// RESET FILTERS
+// =====================================================
+
+const resetFilters = () => {
+  setSearchTerm("");
+  setStatusFilter("ALL");
+  setTopicFilter("ALL");
+  setDateFilter("ALL");
+};
+
+
+// =====================================================
+// SELECT SINGLE MESSAGE
+// =====================================================
+
+const handleSelectMessage = (id) => {
+  setSelectedIds((prev) => {
+    if (prev.includes(id)) {
+      return prev.filter((selectedId) => selectedId !== id);
+    }
+
+    return [...prev, id];
+  });
+};
+
+
+// =====================================================
+// SELECT ALL FILTERED MESSAGES
+// =====================================================
+
+const handleSelectAll = () => {
+  const filteredIds = filteredMessages.map(
+    (message) => message.id
+  );
+
+  const allSelected =
+    filteredIds.length > 0 &&
+    filteredIds.every((id) =>
+      selectedIds.includes(id)
+    );
+
+  if (allSelected) {
+    // Remove filtered messages from selection
+    setSelectedIds((prev) =>
+      prev.filter(
+        (id) => !filteredIds.includes(id)
+      )
+    );
+  } else {
+    // Add filtered messages to selection
+    setSelectedIds((prev) => [
+      ...new Set([
+        ...prev,
+        ...filteredIds,
+      ]),
+    ]);
+  }
+};
+
+
+// =====================================================
+// CHECK ALL FILTERED
+// =====================================================
+
+const allFilteredSelected =
+  filteredMessages.length > 0 &&
+  filteredMessages.every((message) =>
+    selectedIds.includes(message.id)
+  );
+
+
+// =====================================================
+// ACTIVE FILTER CHECK
+// =====================================================
+
+const hasActiveFilters =
+  searchTerm ||
+  statusFilter !== "ALL" ||
+  topicFilter !== "ALL" ||
+  dateFilter !== "ALL";
   // =====================================================
   // ACTIVE FILTER CHECK
   // =====================================================
 
-  const hasActiveFilters =
-    searchTerm ||
-    statusFilter !== "ALL" ||
-    topicFilter !== "ALL" ||
-    dateFilter !== "ALL";
-
+ 
   return (
     <>
       <div className="cm-page">

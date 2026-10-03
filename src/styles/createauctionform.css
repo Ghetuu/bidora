@@ -1183,6 +1183,60 @@
   cursor: pointer;
 }
 
+/* Import Auction */
+.ca-import-btn {
+  position: relative;
+
+  width: 165px;
+  min-width: 165px;
+  height: 56px;
+
+  padding: 0 20px;
+
+  background: #ffffff;
+  color: #243b5a;
+
+  border: 1px solid #d6deeb;
+  border-radius: 10px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Import icon */
+.ca-import-icon {
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Hidden file input */
+.ca-import-btn input[type="file"] {
+  display: none;
+}
+
+/* Hover */
+.ca-import-btn:hover {
+  background: #f7f9fc;
+  border-color: #b9c5d8;
+}
+
+/* Click effect */
+.ca-import-btn:active {
+  transform: translateY(1px)
+}
+
+.ca-import-btn input[type="file"] {
+  display: none;
+}
+
 .ca-upload-document:hover {
   background: #1b51d0;
 }
@@ -2826,3 +2880,112 @@
   }
 
 }
+
+/* =========================================================
+   FINAL IMPORT AUCTION BUTTON FIX
+   Added without changing existing CSS
+========================================================= */
+
+.ca-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Keep existing button design */
+.ca-header-actions .ca-btn {
+  height: 45px;
+  box-sizing: border-box;
+}
+
+/* Import Auction button */
+.ca-header-actions .ca-import-btn {
+  position: relative;
+
+  width: 165px;
+  min-width: 165px;
+  height: 45px;
+
+  padding: 0 20px;
+  margin: 0;
+
+  box-sizing: border-box;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 1px solid #d8e0eb;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #40516d;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1;
+  text-align: center;
+
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Folder icon */
+.ca-header-actions .ca-import-btn .ca-import-icon {
+  width: auto;
+  height: auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
+
+  font-size: 16px;
+  line-height: 1;
+
+  flex-shrink: 0;
+}
+
+/* Import Auction text */
+.ca-header-actions .ca-import-btn > span:last-of-type {
+  display: inline-block;
+
+  margin: 0;
+  padding: 0;
+
+  color: #40516d;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Hide actual file input */
+.ca-header-actions .ca-import-btn input[type="file"] {
+  display: none !important;
+}
+
+/* Hover */
+.ca-header-actions .ca-import-btn:hover {
+  background: #f8fafc;
+  border-color: #c5d0df;
+  color: #40516d;
+}
+

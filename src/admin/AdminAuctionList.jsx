@@ -200,18 +200,18 @@ function AdminAuctionList({ status = "all", title = "All Auctions" }) {
 const fetchTrustScores = async () => {
   try {
     const res = await adminApi.get(
-  "/admin/auctions/trust-scores?status=pending"
-);
+      "/admin/auctions/trust-scores?status=pending"
+    );
 
-    if (!res.ok) throw new Error("Failed to load trust scores");
-    const data = await res.json();
-    setTrustScores(data.scores || {});
+    console.log("Trust Score API Response:", res.data);
+
+    setTrustScores(res.data?.scores || {});
   } catch (err) {
     console.error("Trust score error:", err);
+    console.error("Trust score response:", err.response?.data);
     setTrustScores({});
   }
 };
-
 const getTrust = (auction) => trustScores[String(auction.id)];
 
   const fetchAuctions = async () => {
