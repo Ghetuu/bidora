@@ -497,16 +497,18 @@ const response = await fetch(
           ================================================= */}
 
           <li
-            onClick={() =>
-              goTo("/admin/winners")
-            }
-          >
-
-            <FaTrophy />
-
-            <span>Winners</span>
-
-          </li>
+  className={
+    location.pathname === "/admin/dashboard/winners"
+      ? "active"
+      : ""
+  }
+  onClick={() =>
+    goTo("/admin/dashboard/winners")
+  }
+>
+  <FaTrophy />
+  <span>Winners</span>
+</li>
 
 
           {/* =================================================

@@ -240,6 +240,65 @@ function AuroraChatbot() {
                 </span>
               )}
 
+              {/* Total bids received */}
+{item.bid_count !== undefined && (
+  <small>
+    Total bids received: <b>{item.bid_count}</b>
+  </small>
+)}
+
+{/* Recorded auction views */}
+{item.view_count !== undefined && (
+  <small>
+    Recorded views: <b>{item.view_count}</b>
+  </small>
+)}
+
+{/* Bid-to-view ratio */}
+{item.bid_to_view_ratio !== undefined && (
+  <small>
+    Bid-to-view ratio:{" "}
+    <b>{item.bid_to_view_ratio}%</b>
+  </small>
+)}
+
+{/* Bidder names and their recorded bids */}
+{Array.isArray(item.bidder_details) &&
+  item.bidder_details.length > 0 && (
+    <div className="aurora-bidder-details">
+      <strong>Bid activity</strong>
+
+      {item.bidder_details.map((bidder, index) => (
+        <div key={index} className="aurora-bidder-item">
+          <small>
+            Bidder: <b>{bidder.bidder_name}</b>
+          </small>
+
+          <small>
+            Bid amount: <b>{bidder.amount}</b>
+          </small>
+
+          <small>
+            Bid time: <b>{bidder.bid_time}</b>
+          </small>
+        </div>
+      ))}
+    </div>
+  )}
+
+{/* Auction improvement suggestions */}
+{Array.isArray(item.tips) && item.tips.length > 0 && (
+  <div className="aurora-auction-tips">
+    <strong>Suggestions to improve</strong>
+
+    {item.tips.map((tip, index) => (
+      <small key={index}>
+        {index + 1}. {tip}
+      </small>
+    ))}
+  </div>
+)}
+
 
               {item.my_bid && (
                 <small>

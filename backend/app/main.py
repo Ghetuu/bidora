@@ -3,7 +3,6 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
 # =========================================================
 # MODELS
 # =========================================================
@@ -21,6 +20,13 @@ from app.models import (
     AuctionImage,
     ContactMessage
 )
+
+
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
 
 # =========================================================
 # ROUTES
@@ -180,7 +186,6 @@ async def start_auction_scheduler():
     asyncio.create_task(
         auction_scheduler_loop()
     )
-
 
 # =========================================================
 # ROOT

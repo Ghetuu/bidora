@@ -1,6 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
+from fastapi import Depends, HTTPException
 from fastapi_mail import FastMail, MessageSchema, MessageType
 from app.core.email import mail_config
 from app.models.notification import Notification
@@ -3115,4 +3118,756 @@ def get_auctions_by_status(
         raise HTTPException(
             status_code=500,
             detail="Failed to load auctions."
+        )
+
+
+# =========================================================
+# HIDDEN WINNERS TABLE
+# Automatically creates the table in MySQL if it doesn't exist
+# =========================================================
+
+from sqlalchemy import text
+from app.database import engine
+
+
+def ensure_hidden_winners_table():
+    with engine.begin() as connection:
+        connection.execute(
+            text("""
+                CREATE TABLE IF NOT EXISTS hidden_winners (
+                    id INT NOT NULL AUTO_INCREMENT,
+                    auction_id INT NOT NULL,
+                    hidden_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    UNIQUE KEY uq_hidden_winners_auction_id (auction_id)
+                )
+            """)
+        )
+
+
+def hide_winner_for_auction(
+    db: Session,
+    auction_id: int
+):
+    db.execute(
+        text("""
+            INSERT INTO hidden_winners (auction_id)
+            VALUES (:auction_id)
+            ON DUPLICATE KEY UPDATE
+                auction_id = VALUES(auction_id)
+        """),
+        {"auction_id": auction_id}
+    )
+# =========================================================
+# HIDE ONE WINNER
+# =========================================================
+
+def hide_winner_for_auction(db: Session, auction_id: int):
+    """
+    Hide a winner from the Admin Winners page without
+    deleting the auction or its bids.
+    """
+
+    db.execute(
+        text("""
+            INSERT INTO hidden_winners (auction_id)
+            VALUES (:auction_id)
+            ON DUPLICATE KEY UPDATE
+                auction_id = VALUES(auction_id)
+        """),
+        {"auction_id": auction_id}
+    )
+
+# =========================================================
+# ADMIN WINNERS
+# GET /admin/winners
+#
+# Identifies the highest bidder for each ended auction.
+# Uses the existing Auction, Bid, and User models.
+# =========================================================
+
+# =========================================================
+# ADMIN WINNERS
+# GET /admin/winners
+# =========================================================
+
+@router.get("/winners")
+def get_admin_winners(
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    try:
+        # Create hidden_winners table if it does not exist.
+        ensure_hidden_winners_table()
+
+        # Get auction IDs that have been hidden by the admin.
+        hidden_result = db.execute(
+            text("SELECT auction_id FROM hidden_winners")
+        ).all()
+
+        hidden_ids = {
+            int(row[0]) for row in hidden_result
+        }
+
+        # Find completed auctions.
+        completed_auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.status.in_(["ended", "completed"])
+            )
+            .order_by(Auction.id.desc())
+            .all()
+        )
+
+        winners = []
+
+        # Process each completed auction.
+        for auction in completed_auctions:
+
+            # Do not display hidden winners.
+            if int(auction.id) in hidden_ids:
+                continue
+
+            # Find the highest bid.
+            highest_bid = (
+                db.query(Bid)
+                .filter(
+                    Bid.auction_id == auction.id
+                )
+                .order_by(
+                    Bid.amount.desc(),
+                    Bid.created_at.desc(),
+                    Bid.id.desc()
+                )
+                .first()
+            )
+
+            # An auction without bids has no winner.
+            if not highest_bid:
+                continue
+
+            # Find the winning bidder.
+            bidder = None
+
+            if highest_bid.user_id:
+                bidder = (
+                    db.query(User)
+                    .filter(
+                        User.id == highest_bid.user_id
+                    )
+                    .first()
+                )
+
+            winner_name = (
+                (
+                    getattr(bidder, "fullname", None)
+                    or getattr(bidder, "username", None)
+                )
+                if bidder
+                else highest_bid.bidder_name
+            )
+
+            winner_email = (
+                getattr(bidder, "email", None)
+                if bidder
+                else None
+            )
+
+            # Count bids for this auction.
+            total_bids = (
+                db.query(Bid)
+                .filter(
+                    Bid.auction_id == auction.id
+                )
+                .count()
+            )
+
+            # Add winner to the response.
+            winners.append({
+                "winner_id": highest_bid.user_id,
+
+                "winner_name": (
+                    winner_name or "Unknown Winner"
+                ),
+
+                "winner_email": winner_email,
+
+                "auction_id": auction.id,
+
+                "auction_title": (
+                    auction.product_title
+                    or "Auction item"
+                ),
+
+                "winning_bid": float(
+                    highest_bid.amount or 0
+                ),
+
+                "market_value": None,
+
+                "claim_date": (
+                    highest_bid.created_at.isoformat()
+                    if highest_bid.created_at
+                    else None
+                ),
+
+                "verification_status": "pending",
+                "payout_status": None,
+                "total_bids": total_bids,
+            })
+
+        return {
+            "success": True,
+            "count": len(winners),
+            "winners": winners,
+        }
+
+    except Exception as e:
+        print(
+            "ADMIN WINNERS ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load winner records."
+        )
+
+@router.get("/winners/{auction_id}/details")
+def get_admin_winner_details(
+    auction_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    try:
+        # Get auction
+        auction = (
+            db.query(Auction)
+            .filter(Auction.id == auction_id)
+            .first()
+        )
+
+        if not auction:
+            raise HTTPException(
+                status_code=404,
+                detail="Auction not found.",
+            )
+
+        # Get highest bid
+        winning_bid = (
+            db.query(Bid)
+            .filter(Bid.auction_id == auction.id)
+            .order_by(
+                Bid.amount.desc(),
+                Bid.created_at.desc(),
+                Bid.id.desc(),
+            )
+            .first()
+        )
+
+        if not winning_bid:
+            raise HTTPException(
+                status_code=404,
+                detail="No winning bid found for this auction.",
+            )
+
+        # Get winner
+        winner = (
+            db.query(User)
+            .filter(User.id == winning_bid.user_id)
+            .first()
+        )
+
+        # Get product images
+        images = (
+            db.query(AuctionImage)
+            .filter(AuctionImage.auction_id == auction.id)
+            .order_by(AuctionImage.display_order.asc())
+            .all()
+        )
+
+        return {
+            "success": True,
+
+            "winner": {
+                "id": winner.id if winner else winning_bid.user_id,
+                "fullname": (
+                    winner.fullname
+                    if winner
+                    else winning_bid.bidder_name
+                ),
+                "username": winner.username if winner else None,
+                "email": winner.email if winner else None,
+                "mobile": winner.mobile if winner else None,
+                "address": winner.address if winner else None,
+                "profile_image": (
+                    winner.profile_image if winner else None
+                ),
+            },
+
+            "auction": {
+                "id": auction.id,
+                "product_title": auction.product_title,
+                "brand_model": auction.brand_model,
+                "category": auction.category,
+                "description": auction.description,
+                "product_condition": auction.product_condition,
+
+                "purchase_date": (
+                    auction.purchase_date.isoformat()
+                    if auction.purchase_date else None
+                ),
+
+                "purchased_by": auction.purchased_by,
+                "purchase_price": float(
+                    auction.purchase_price or 0
+                ),
+                "starting_price": float(
+                    auction.starting_price or 0
+                ),
+
+                "auction_start": (
+                    auction.auction_start.isoformat()
+                    if auction.auction_start else None
+                ),
+
+                "auction_end": (
+                    auction.auction_end.isoformat()
+                    if auction.auction_end else None
+                ),
+
+                "location_area": auction.location_area,
+                "location_city": auction.location_city,
+                "location_state": auction.location_state,
+                "location_country": auction.location_country,
+                "location_pincode": auction.location_pincode,
+
+                "delivery_type": auction.delivery_type,
+                "shipping_type": auction.shipping_type,
+
+                "shipping_charges": float(
+                    auction.shipping_charges or 0
+                ),
+
+                "shipping_paid_by": auction.shipping_paid_by,
+                "warranty_status": auction.warranty_status,
+                "payment_method": auction.payment_method,
+                "product_terms": auction.product_terms,
+
+                "seller_name": auction.seller_name,
+                "seller_email": auction.seller_email,
+                "seller_contact": auction.seller_contact,
+
+                "status": auction.status,
+
+                "images": [
+                    {
+                        "image_path": image.image_path,
+                        "display_order": image.display_order,
+                    }
+                    for image in images
+                ],
+            },
+
+            "winning_bid": {
+                "id": winning_bid.id,
+                "user_id": winning_bid.user_id,
+                "bidder_name": winning_bid.bidder_name,
+                "amount": float(winning_bid.amount or 0),
+
+                "created_at": (
+                    winning_bid.created_at.isoformat()
+                    if winning_bid.created_at else None
+                ),
+            },
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        print("ADMIN WINNER DETAILS ERROR:", repr(exc))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load winner details.",
+        )
+
+@router.put("/winners/{auction_id}")
+def update_admin_winner(
+    auction_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    try:
+        auction = (
+            db.query(Auction)
+            .filter(Auction.id == auction_id)
+            .first()
+        )
+
+        if not auction:
+            raise HTTPException(
+                status_code=404,
+                detail="Auction not found.",
+            )
+
+        winning_bid = (
+            db.query(Bid)
+            .filter(Bid.auction_id == auction.id)
+            .order_by(
+                Bid.amount.desc(),
+                Bid.created_at.desc(),
+                Bid.id.desc(),
+            )
+            .first()
+        )
+
+        if not winning_bid:
+            raise HTTPException(
+                status_code=404,
+                detail="Winning bid not found.",
+            )
+
+        winner = (
+            db.query(User)
+            .filter(User.id == winning_bid.user_id)
+            .first()
+        )
+
+        if not winner:
+            raise HTTPException(
+                status_code=404,
+                detail="Winner account not found.",
+            )
+
+        winner_data = payload.get("winner", {})
+        auction_data = payload.get("auction", {})
+
+        # -----------------------------
+        # UPDATE WINNER
+        # -----------------------------
+
+        if "fullname" in winner_data:
+            fullname = str(
+                winner_data["fullname"] or ""
+            ).strip()
+
+            if not fullname:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Winner name cannot be empty.",
+                )
+
+            winner.fullname = fullname
+
+        if "email" in winner_data:
+            email = str(
+                winner_data["email"] or ""
+            ).strip().lower()
+
+            if not email:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Winner email cannot be empty.",
+                )
+
+            duplicate_email = (
+                db.query(User)
+                .filter(
+                    User.email == email,
+                    User.id != winner.id,
+                )
+                .first()
+            )
+
+            if duplicate_email:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Email already belongs to another user.",
+                )
+
+            winner.email = email
+
+        if "mobile" in winner_data:
+            mobile = str(
+                winner_data["mobile"] or ""
+            ).strip()
+
+            if not mobile:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Mobile number cannot be empty.",
+                )
+
+            duplicate_mobile = (
+                db.query(User)
+                .filter(
+                    User.mobile == mobile,
+                    User.id != winner.id,
+                )
+                .first()
+            )
+
+            if duplicate_mobile:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Mobile number already belongs to another user.",
+                )
+
+            winner.mobile = mobile
+
+        # -----------------------------
+        # UPDATE PRODUCT
+        # -----------------------------
+
+        if "product_title" in auction_data:
+            title = str(
+                auction_data["product_title"] or ""
+            ).strip()
+
+            if not title:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Product title cannot be empty.",
+                )
+
+            auction.product_title = title
+
+        if "category" in auction_data:
+            category = str(
+                auction_data["category"] or ""
+            ).strip()
+
+            if not category:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Category cannot be empty.",
+                )
+
+            auction.category = category
+
+        if "description" in auction_data:
+            description = str(
+                auction_data["description"] or ""
+            ).strip()
+
+            if not description:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Description cannot be empty.",
+                )
+
+            auction.description = description
+
+        db.commit()
+
+        db.refresh(winner)
+        db.refresh(auction)
+
+        return {
+            "success": True,
+            "message": "Winner and product details updated successfully.",
+
+            "winner": {
+                "id": winner.id,
+                "fullname": winner.fullname,
+                "email": winner.email,
+                "mobile": winner.mobile,
+            },
+
+            "auction": {
+                "id": auction.id,
+                "product_title": auction.product_title,
+                "category": auction.category,
+                "description": auction.description,
+            },
+        }
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except IntegrityError as exc:
+        db.rollback()
+
+        print("ADMIN WINNER UPDATE INTEGRITY ERROR:", repr(exc))
+
+        raise HTTPException(
+            status_code=409,
+            detail="The update conflicts with an existing database record.",
+        )
+
+    except Exception as exc:
+        db.rollback()
+
+        print("ADMIN WINNER UPDATE ERROR:", repr(exc))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update winner details.",
+        )
+
+
+# =========================================================
+# DELETE ONE WINNER ROW (SOFT DELETE)
+# DELETE /admin/winners/{auction_id}
+# =========================================================
+# =========================================================
+# DELETE ONE WINNER ROW (SOFT DELETE)
+# DELETE /admin/winners/{auction_id}
+# =========================================================
+
+@router.delete("/winners/{auction_id}")
+def delete_admin_winner(
+    auction_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    try:
+        # Create the table if it does not exist.
+        ensure_hidden_winners_table()
+
+        # Find the completed auction.
+        auction = (
+            db.query(Auction)
+            .filter(
+                Auction.id == auction_id,
+                Auction.status.in_(["ended", "completed"])
+            )
+            .first()
+        )
+
+        if not auction:
+            raise HTTPException(
+                status_code=404,
+                detail="Completed auction winner was not found."
+            )
+
+        # Confirm that a winning bid exists.
+        highest_bid = (
+            db.query(Bid)
+            .filter(
+                Bid.auction_id == auction_id
+            )
+            .order_by(
+                Bid.amount.desc(),
+                Bid.created_at.desc(),
+                Bid.id.desc()
+            )
+            .first()
+        )
+
+        if not highest_bid:
+            raise HTTPException(
+                status_code=404,
+                detail="No winning bid exists for this auction."
+            )
+
+        # Record the auction as hidden.
+        hide_winner_for_auction(
+            db,
+            int(auction_id)
+        )
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Winner row removed from the Admin Winners page.",
+            "auction_id": auction_id
+        }
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except Exception as e:
+        db.rollback()
+
+        print(
+            "DELETE ADMIN WINNER ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete winner row."
+        )
+
+
+# =========================================================
+# DELETE ALL WINNER ROWS (SOFT DELETE)
+# DELETE /admin/winners
+# =========================================================
+# =========================================================
+# DELETE ALL WINNER ROWS (SOFT DELETE)
+# DELETE /admin/winners
+# =========================================================
+
+@router.delete("/winners")
+def delete_all_admin_winners(
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    try:
+        # IMPORTANT: This function takes no arguments.
+        ensure_hidden_winners_table()
+
+        # Find all completed auctions.
+        completed_auctions = (
+            db.query(Auction)
+            .filter(
+                Auction.status.in_(["ended", "completed"])
+            )
+            .all()
+        )
+
+        hidden_count = 0
+
+        for auction in completed_auctions:
+
+            # Check whether a winning bid exists.
+            highest_bid = (
+                db.query(Bid)
+                .filter(
+                    Bid.auction_id == auction.id
+                )
+                .order_by(
+                    Bid.amount.desc(),
+                    Bid.created_at.desc(),
+                    Bid.id.desc()
+                )
+                .first()
+            )
+
+            if highest_bid:
+                # Hide the winner without deleting the auction.
+                hide_winner_for_auction(
+                    db,
+                    int(auction.id)
+                )
+
+                hidden_count += 1
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "All winner rows were removed from the Admin Winners page.",
+            "deleted_count": hidden_count
+        }
+
+    except Exception as e:
+        db.rollback()
+
+        print(
+            "DELETE ALL ADMIN WINNERS ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete all winner rows."
         )

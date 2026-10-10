@@ -26,7 +26,7 @@ import ContactMessages from "./admin/ContactMessages";
 import AdminAuctionDetails from "./admin/AdminAuctionDetails";
 import LiveAuctionBidding from "./admin/LiveAuctionBidding";
 import AdminReports from "./admin/adminreports";   
-
+import AdminWinners from "./admin/AdminWinners";
 // =========================================================
 // USER DASHBOARD
 // =========================================================
@@ -286,6 +286,11 @@ function App() {
             path="contact-messages"
             element={<ContactMessages />}
           />
+
+          <Route
+  path="winners"
+  element={<AdminWinners />}
+/>
 
         </Route>
 
