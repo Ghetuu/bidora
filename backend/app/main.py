@@ -71,6 +71,7 @@ from app.routes.aurora_routes import (
     router as aurora_router
 )
 
+from app.routes.admin_dashboard_routes import router as admin_dashboard_router
 # =========================================================
 # SERVICES
 # =========================================================
@@ -166,6 +167,9 @@ app.include_router(
     tags=["Admin Trust Score"]
 )
 
+app.include_router(
+    admin_dashboard_router
+)
 
 # =========================================================
 # GLOBAL REALTIME WEBSOCKET
