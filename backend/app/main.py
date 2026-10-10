@@ -84,6 +84,7 @@ from app.routes.price_prediction_routes import (
     router as price_prediction_router
 )
 
+from app.routes.user_dashboard_route import router as user_dashboard_router
 
 app = FastAPI(
     title="Bidora API",
@@ -170,6 +171,8 @@ app.include_router(
 app.include_router(
     admin_dashboard_router
 )
+
+app.include_router(user_dashboard_router)
 
 # =========================================================
 # GLOBAL REALTIME WEBSOCKET
