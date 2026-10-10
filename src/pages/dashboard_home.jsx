@@ -52,16 +52,7 @@ const QUICK_ACTIONS = [
     icon: FaSearch,
     tone: "indigo",
   },
-  {
-    key: "watchlist",
-    title: "Create Watchlist",
-    subtitle: "Save your favorite items",
-    // There is no watchlist route in App.jsx yet, so this opens
-    // All Auctions for now. Change it when a watchlist page exists.
-    path: "/dashboard/all-auctions",
-    icon: FaRegHeart,
-    tone: "pink",
-  },
+  
   {
     key: "history",
     title: "View Bid History",
