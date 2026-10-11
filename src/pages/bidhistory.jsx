@@ -15,7 +15,7 @@ import {
   FaFilter,
   FaTimes
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import "../styles/bidhistory.css";
 // Reuse the same filter-card design as the Auction History page
@@ -95,6 +95,9 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
 
   }, []);
 
+
+  
+
   return (
     <div className="custom-dropdown-container" ref={dropdownRef}>
 
@@ -152,6 +155,8 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
 
 
 const BidHistory = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // =========================================================
   // STATE
@@ -581,8 +586,14 @@ const BidHistory = () => {
         ...item,
 
         id:
-          item.id ??
-          item.auction_id,
+  item.auction_id ??
+  item.auction?.id ??
+  item.id,
+
+auction_id:
+  item.auction_id ??
+  item.auction?.id ??
+  item.id,
 
         title:
           item.title ||
@@ -630,6 +641,50 @@ const BidHistory = () => {
   }, [bidHistory.my_bids]);
 
 
+
+// =========================================================
+// VIEW COMPLETE AUCTION DETAILS
+// =========================================================
+
+const handleViewAuction = (item) => {
+  // Prefer auction_id because item.id might be a bid ID.
+  const auctionId =
+    item.auction_id ??
+    item.auction?.id ??
+    item.auction?.auction_id;
+
+  if (!auctionId) {
+    console.error(
+      "Cannot open auction: auction ID is missing.",
+      item
+    );
+
+    return;
+  }
+
+  navigate(`/dashboard/auction/${auctionId}`, {
+    state: {
+      auction: {
+        ...item,
+        id: auctionId,
+        auction_id: auctionId,
+        product_title:
+          item.product_title ??
+          item.title ??
+          item.auction?.product_title ??
+          item.auction?.title,
+        images:
+          item.images ??
+          item.auction?.images ??
+          [],
+      },
+      from:
+        location.pathname.includes("/history/bid")
+          ? "bid-history"
+          : "my-auctions",
+    },
+  });
+};
   // =========================================================
   // NORMALIZE RECEIVED BIDS
   // =========================================================
@@ -642,8 +697,9 @@ const BidHistory = () => {
         ...item,
 
         id:
-          item.id ??
-          `${item.auction_id}-${item.bid_id}`,
+  item.bid_id ??
+  item.id ??
+  `${item.auction_id}-${item.created_at ?? "bid"}`,
 
         auction_id:
           item.auction_id,
@@ -1970,12 +2026,13 @@ const BidHistory = () => {
 
                       ) : (
 
-                        <Link
-                          to={`/dashboard/auction/${item.id}`}
-                          className="bh-action-btn-view"
-                        >
-                          View
-                        </Link>
+                        <button
+  type="button"
+  className="bh-action-btn-view"
+  onClick={() => handleViewAuction(item)}
+>
+  View
+</button>
 
                       )}
 
@@ -2108,12 +2165,13 @@ const BidHistory = () => {
                       }}
                     >
 
-                      <Link
-                        to={`/dashboard/auction/${item.auction_id}`}
-                        className="bh-action-btn-view"
-                      >
-                        View
-                      </Link>
+                      <button
+  type="button"
+  className="bh-action-btn-view"
+  onClick={() => handleViewAuction(item)}
+>
+  View
+</button>
 
                     </td>
 
@@ -2259,12 +2317,13 @@ const BidHistory = () => {
                       }}
                     >
 
-                      <Link
-                        to={`/dashboard/auction/${item.auction_id}`}
-                        className="bh-action-btn-view"
-                      >
-                        View
-                      </Link>
+                      <button
+  type="button"
+  className="bh-action-btn-view"
+  onClick={() => handleViewAuction(item)}
+>
+  View
+</button>
 
                     </td>
 

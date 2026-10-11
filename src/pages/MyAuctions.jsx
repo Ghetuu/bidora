@@ -716,7 +716,8 @@ function MyAuctions() {
       normalizedStatus === "approved" ||
       normalizedStatus === "live" ||
       normalizedStatus === "upcoming" ||
-      normalizedStatus === "ended"
+      normalizedStatus === "ended" ||
+      normalizedStatus === "rejected"
     );
   };
 
@@ -1934,62 +1935,30 @@ function MyAuctions() {
 
                   {/* CARD FOOTER */}
 
-                  <div className="my-auction-card-footer">
+{/* CARD FOOTER */}
+<div className="my-auction-card-footer">
+  {canViewAuction(status) ? (
+    <button
+      type="button"
+      className="view-auction-btn"
+      onClick={() => handleViewAuction(auction)}
+    >
+      <FaEye />
+      View Details
+    </button>
+  ) : status === "pending" ? (
+    <div className="auction-status-message pending-message">
+      <FaClock />
+      Waiting for admin approval
+    </div>
+  ) : (
+    <div className="auction-status-message">
+      {statusLabel}
+    </div>
+  )}
+</div>
 
 
-                    {canViewAuction(
-                      status
-                    ) ? (
-
-                      <button
-                        type="button"
-                        className="view-auction-btn"
-                        onClick={() =>
-                          handleViewAuction(
-                            auction
-                          )
-                        }
-                      >
-
-                        <FaEye />
-
-                        View Auction
-
-                      </button>
-
-                    ) : status ===
-                      "pending" ? (
-
-                      <div className="auction-status-message pending-message">
-
-                        <FaClock />
-
-                        Waiting for admin approval
-
-                      </div>
-
-                    ) : status ===
-                      "rejected" ? (
-
-                      <div className="auction-status-message rejected-message">
-
-                        <FaTimesCircle />
-
-                        Auction rejected by admin
-
-                      </div>
-
-                    ) : (
-
-                      <div className="auction-status-message">
-
-                        {statusLabel}
-
-                      </div>
-
-                    )}
-
-                  </div>
 
                 </div>
               );

@@ -88,6 +88,8 @@ from app.routes.price_prediction_routes import (
     router as price_prediction_router
 )
 
+from app.routes.suspicious_bid_routes import router as suspicious_bid_router
+
 from app.routes.user_dashboard_route import router as user_dashboard_router
 
 app = FastAPI(
@@ -160,6 +162,7 @@ app.include_router(
     tags=["Admin Reports"]
 )
 
+app.include_router(suspicious_bid_router)
 
 app.include_router(
     recommendation_router

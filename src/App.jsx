@@ -27,6 +27,11 @@ import AdminAuctionDetails from "./admin/AdminAuctionDetails";
 import LiveAuctionBidding from "./admin/LiveAuctionBidding";
 import AdminReports from "./admin/adminreports";   
 import AdminWinners from "./admin/AdminWinners";
+import SuspiciousBids from "./admin/SuspiciousBids";
+
+
+
+
 // =========================================================
 // USER DASHBOARD
 // =========================================================
@@ -276,6 +281,11 @@ function App() {
           <Route
             path="reports"
             element={<AdminReports />}
+          />
+
+          <Route
+            path="suspicious-bids"
+            element={<SuspiciousBids />}
           />
 
           {/* =================================================

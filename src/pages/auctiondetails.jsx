@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
   FaArrowLeft,
@@ -36,7 +36,57 @@ function AuctionDetails() {
   // AUCTION DATA
   // =========================================================
 
-  const auction = location.state?.auction;
+  const { id: routeAuctionId } = useParams();
+
+  // Starts with whatever the previous page sent (fast), then the
+  // full auction is loaded from the server so no field shows N/A.
+  const [auction, setAuction] = useState(
+    location.state?.auction || null
+  );
+
+  const [loadingAuction, setLoadingAuction] = useState(true);
+
+  useEffect(() => {
+    const loadFullAuction = async () => {
+      try {
+        const token = sessionStorage.getItem("access_token");
+
+        if (!token || !routeAuctionId) {
+          return;
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/auctions/${routeAuctionId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.error(
+            "Failed to load auction details:",
+            response.status
+          );
+          return;
+        }
+
+        const data = await response.json();
+
+        setAuction((previous) => ({
+          ...(previous || {}),
+          ...data,
+        }));
+      } catch (error) {
+        console.error("Unable to load auction details:", error);
+      } finally {
+        setLoadingAuction(false);
+      }
+    };
+
+    loadFullAuction();
+  }, [routeAuctionId]);
 
   useEffect(() => {
   const recordAuctionView = async () => {
@@ -96,8 +146,39 @@ function AuctionDetails() {
   const [selectedImage, setSelectedImage] = useState(null);
 
   // =========================================================
+  // ESC KEY
+  // =========================================================
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setSelectedImage(null);
+      }
+    };
+
+    if (selectedImage) {
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [selectedImage]);
+
+  // =========================================================
   // AUCTION NOT FOUND
   // =========================================================
+
+  if (!auction && loadingAuction) {
+    return (
+      <div className="auction-details-page">
+        <div className="auction-details-not-found">
+          <FaClock />
+          <h2>Loading auction details...</h2>
+        </div>
+      </div>
+    );
+  }
 
   if (!auction) {
     return (
@@ -398,26 +479,6 @@ function AuctionDetails() {
   const closeImagePopup = () => {
     setSelectedImage(null);
   };
-
-  // =========================================================
-  // ESC KEY
-  // =========================================================
-
-  useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        setSelectedImage(null);
-      }
-    };
-
-    if (selectedImage) {
-      document.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [selectedImage]);
 
   // =========================================================
   // DOCUMENT URL

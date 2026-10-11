@@ -14,6 +14,7 @@ import {
   FaBars,
   FaTrophy,
   FaEnvelope,
+  FaShieldAlt,
 } from "react-icons/fa";
 
 import { useState, useEffect } from "react";
@@ -554,17 +555,22 @@ const response = await fetch(
               NOTIFICATIONS
           ================================================= */}
 
-          <li
-            onClick={() =>
-              goTo("/admin/notifications")
-            }
-          >
+          {/* SUSPICIOUS BIDS */}
 
-            <FaBell />
-
-            <span>Notifications</span>
-
-          </li>
+<li
+  className={
+    location.pathname ===
+    "/admin/dashboard/suspicious-bids"
+      ? "active"
+      : ""
+  }
+  onClick={() =>
+    goTo("/admin/dashboard/suspicious-bids")
+  }
+>
+  <FaShieldAlt />
+  <span>Suspicious Bids</span>
+</li>
 
             {/* =================================================
     CONTACT MESSAGES
