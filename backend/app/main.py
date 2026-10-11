@@ -36,6 +36,8 @@ from app.routes.user_route import (
     router as user_router
 )
 
+from app.routes.kyc_routes import router as kyc_routes
+
 from app.routes.admin_routes import (
     router as admin_router
 )
@@ -71,6 +73,8 @@ from app.routes.aurora_routes import (
     router as aurora_router
 )
 
+
+from app.routes.kyc_routes import router as kyc_routes
 from app.routes.admin_dashboard_routes import router as admin_dashboard_router
 # =========================================================
 # SERVICES
@@ -131,6 +135,9 @@ app.include_router(
     user_router,
     tags=["Users"]
 )
+
+
+app.include_router(kyc_routes)
 
 app.include_router(
     admin_router,
