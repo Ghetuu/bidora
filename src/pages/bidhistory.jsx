@@ -221,7 +221,8 @@ const BidHistory = () => {
           { value: "all", label: "All Results" },
           { value: "Highest Bidder", label: "Highest Bidder" },
           { value: "Outbid", label: "Outbid" },
-          { value: "Won Auction", label: "Won Auction" }
+          { value: "Won Auction", label: "Won Auction" },
+          { value: "Lost", label: "Lost" }
         ]
       };
     }
@@ -627,13 +628,9 @@ auction_id:
         timeLeft:
           getTimeLeft(item),
 
-        status:
-          item.status ||
-          "Highest Bidder",
+        status: item.status || "Unknown",
 
-        auction_status:
-          item.auction_status ||
-          "ended"
+        auction_status: item.auction_status || "unknown"
       };
 
     });

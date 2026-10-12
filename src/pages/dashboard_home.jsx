@@ -31,7 +31,6 @@ import AuroraChatbot from "../components/AuroraChatbot";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
-const STATIC_SPENDING = 4982.50;
 
 // Auction detail page: live auctions open the live bidding page,
 // everything else opens the normal auction details page.
@@ -263,16 +262,18 @@ function DashboardHome() {
           return updatedUser;
         });
       }
-    } catch (fetchError) {
-      console.error("Dashboard fetch error:", fetchError);
+    }  catch (fetchError) {
+  console.error("Dashboard fetch error:", fetchError);
 
-      setError(
-        fetchError.message ||
-          "Unable to load dashboard data. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+  setDashboardData(null);
+
+  setError(
+    fetchError.message ||
+      "Unable to load dashboard data. Please try again."
+  );
+} finally {
+  setLoading(false);
+}
   }, []);
 
   useEffect(() => {
@@ -292,7 +293,7 @@ function DashboardHome() {
   const wonAuctions = Number(summary.won_auctions || 0);
 
   // Spending stays static until payment records are implemented.
-  const totalSpending = STATIC_SPENDING;
+  const totalSpending = summary.total_spending;
 
   const biddingData = useMemo(() => {
     const allActivity = dashboardData?.bidding_activity || [];
@@ -652,11 +653,15 @@ function DashboardHome() {
               <div className="dashboard-stat-content">
                 <span>Total Spending</span>
 
-                <h2>{formatCurrency(totalSpending)}</h2>
+                <h2>
+                  {totalSpending == null
+                    ? "—"
+                    : formatCurrency(totalSpending)}
+                </h2>
 
                 <p className="stat-negative">
                   <FaWallet />
-                  <span>Static until payments are implemented</span>
+                  <span>Payment processing not implemented</span>
                 </p>
               </div>
             </div>

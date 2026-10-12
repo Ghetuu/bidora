@@ -265,23 +265,20 @@ def get_user_dashboard(
             1
             for auction in auctions_with_user_bids
             if auction.status in ("approved", "live")
-            and get_auction_time_status(auction) in ("live", "upcoming")
+            and get_auction_time_status(auction) == "live"
         )
-
         # -------------------------------------------------
-        # 3. WON AUCTIONS - PROVISIONAL CALCULATION
+        # 3. WON AUCTIONS
+        # Count only finalized auctions that this user won.
         # -------------------------------------------------
 
-        # There is no official winner/payment model yet.
-        # A provisional win means the user's bid is the highest
-        # recorded bid on an ended auction.
         won_auction_ids = set()
 
         for auction in auctions_with_user_bids:
-            if get_auction_time_status(auction) != "ended":
+            if auction.status != "ended":
                 continue
 
-            if auction.status not in ("approved", "live", "ended"):
+            if get_auction_time_status(auction) != "ended":
                 continue
 
             highest_bid = get_highest_bid(db, auction.id)
@@ -442,7 +439,7 @@ def get_user_dashboard(
                 "won_auctions": len(won_auction_ids),
 
                 # Payment functionality is not implemented.
-                "total_spending": 4982.50,
+                "total_spending": None,
 
                 "bids_change_percent": bids_change_percent,
                 "bids_change_available": bids_change_percent is not None,
