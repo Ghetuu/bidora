@@ -13,7 +13,8 @@ import {
   FaChevronDown,
   FaCheck,
   FaFilter,
-  FaTimes
+  FaTimes,
+  FaTrash
 } from "react-icons/fa";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
@@ -96,7 +97,7 @@ const CustomDropdown = ({ label, options, value, onChange }) => {
   }, []);
 
 
-  
+
 
   return (
     <div className="custom-dropdown-container" ref={dropdownRef}>
@@ -176,6 +177,11 @@ const BidHistory = () => {
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  // ---------- SELECTION / DELETE STATES ----------
+  const [selectedKeys, setSelectedKeys] = useState([]);
+  const [deletingKeys, setDeletingKeys] = useState([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
   const [bidHistory, setBidHistory] = useState({
     summary: {
@@ -259,6 +265,8 @@ const BidHistory = () => {
     setActiveTab(tab);
 
     setResultFilter("all");
+
+    setSelectedKeys([]);
 
   };
 
@@ -1198,6 +1206,258 @@ const handleViewAuction = (item) => {
 
 
   // =========================================================
+  // SELECTION + DELETE HELPERS
+  // =========================================================
+
+  // Works out what a row really is (a bid I placed, or a bid I received)
+  const getRowRef = (item, tab = activeTab) => {
+
+    if (tab === "my-bids") {
+      return {
+        kind: "my-bid",
+        id: String(item.auction_id ?? item.id)
+      };
+    }
+
+    if (tab === "bids-received") {
+      return {
+        kind: "received",
+        id: String(item.id)
+      };
+    }
+
+    // Activity feed
+    if (item.type === "bid_received") {
+      return {
+        kind: "received",
+        id: String(item.id).replace(/^received-/, "")
+      };
+    }
+
+    return {
+      kind: "my-bid",
+      id: String(
+        item.auction_id ??
+        String(item.id).replace(/^placed-/, "")
+      )
+    };
+
+  };
+
+  const getRowKey = (item) => {
+
+    const ref = getRowRef(item);
+
+    return `${ref.kind}:${ref.id}`;
+
+  };
+
+  const visibleKeys = activeData.map((item) => getRowKey(item));
+
+  const allVisibleSelected =
+    visibleKeys.length > 0 &&
+    visibleKeys.every((key) => selectedKeys.includes(key));
+
+  const handleSelectRow = (item) => {
+
+    const key = getRowKey(item);
+
+    setSelectedKeys((prev) =>
+      prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : [...prev, key]
+    );
+
+  };
+
+  const handleSelectAll = () => {
+
+    if (allVisibleSelected) {
+
+      setSelectedKeys((prev) =>
+        prev.filter((key) => !visibleKeys.includes(key))
+      );
+
+    } else {
+
+      setSelectedKeys((prev) => [
+        ...new Set([...prev, ...visibleKeys])
+      ]);
+
+    }
+
+  };
+
+  // Calls the API for each ref and removes the ones that succeeded
+  const deleteRefs = async (refs) => {
+
+    const token = sessionStorage.getItem("access_token");
+
+    const headers = {
+      Authorization: `Bearer ${token}`
+    };
+
+    const results = await Promise.allSettled(
+      refs.map((ref) =>
+        axios.delete(
+          ref.kind === "received"
+            ? `${API_URL}/api/bid-history/received/${ref.id}`
+            : `${API_URL}/api/bid-history/my-bids/${ref.id}`,
+          { headers }
+        )
+      )
+    );
+
+    const succeeded = refs.filter(
+      (_, index) => results[index].status === "fulfilled"
+    );
+
+    const removedKeys = new Set(
+      succeeded.map((ref) => `${ref.kind}:${ref.id}`)
+    );
+
+    if (removedKeys.size > 0) {
+
+      setBidHistory((prev) => ({
+        ...prev,
+
+        my_bids: prev.my_bids.filter(
+          (item) =>
+            !removedKeys.has(
+              `my-bid:${
+                item.auction_id ??
+                item.auction?.id ??
+                item.id
+              }`
+            )
+        ),
+
+        bids_received: prev.bids_received.filter(
+          (item) =>
+            !removedKeys.has(
+              `received:${
+                item.bid_id ??
+                item.id ??
+                `${item.auction_id}-${item.created_at ?? "bid"}`
+              }`
+            )
+        ),
+
+        activity: prev.activity.filter((item) => {
+
+          const ref = getRowRef(item, "activity-feed");
+
+          return !removedKeys.has(`${ref.kind}:${ref.id}`);
+
+        })
+      }));
+
+      setSelectedKeys((prev) =>
+        prev.filter((key) => !removedKeys.has(key))
+      );
+
+    }
+
+    return {
+      succeeded: succeeded.length,
+      failed: refs.length - succeeded.length
+    };
+
+  };
+
+  // ---------- SINGLE DELETE ----------
+  const handleDeleteSingle = async (item) => {
+
+    if (!window.confirm("Are you sure you want to delete this bid?")) {
+      return;
+    }
+
+    const ref = getRowRef(item);
+
+    const key = `${ref.kind}:${ref.id}`;
+
+    try {
+
+      setDeletingKeys((prev) => [...prev, key]);
+
+      const { failed } = await deleteRefs([ref]);
+
+      if (failed > 0) {
+        alert("Unable to delete this bid. Please try again.");
+      }
+
+    } finally {
+
+      setDeletingKeys((prev) => prev.filter((k) => k !== key));
+
+    }
+
+  };
+
+  // ---------- BULK DELETE ----------
+  const handleDeleteSelected = async () => {
+
+    if (selectedKeys.length === 0) return;
+
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedKeys.length} selected bid(s)?`
+      )
+    ) {
+      return;
+    }
+
+    const refs = selectedKeys.map((key) => {
+
+      const [kind, ...rest] = key.split(":");
+
+      return {
+        kind,
+        id: rest.join(":")
+      };
+
+    });
+
+    try {
+
+      setIsDeletingBulk(true);
+
+      const { failed } = await deleteRefs(refs);
+
+      if (failed > 0) {
+        alert("Failed to delete some or all selected bids.");
+      }
+
+    } finally {
+
+      setIsDeletingBulk(false);
+
+    }
+
+  };
+
+  const renderDeleteButton = (item) => {
+
+    const key = getRowKey(item);
+
+    const isDeleting = deletingKeys.includes(key);
+
+    return (
+      <button
+        type="button"
+        className="bh-action-btn-delete"
+        title="Delete Bid"
+        disabled={isDeleting}
+        onClick={() => handleDeleteSingle(item)}
+      >
+        {isDeleting ? "..." : <FaTrash />}
+      </button>
+    );
+
+  };
+
+
+  // =========================================================
   // RENDER STATUS
   // =========================================================
 
@@ -1330,6 +1590,15 @@ const handleViewAuction = (item) => {
     <div className="bh-wrapper">
 
       {/* =====================================================
+          PAGE HEADING (same as Auction History)
+      ===================================================== */}
+
+      <h1 className="bh-page-title">
+        Bid History
+      </h1>
+
+
+      {/* =====================================================
           DARK FILTER CARD (same design as Auction History)
       ===================================================== */}
 
@@ -1353,6 +1622,22 @@ const handleViewAuction = (item) => {
           </div>
 
           <div className="auction-history-header-actions">
+
+            {/* DELETE SELECTED */}
+
+            {selectedKeys.length > 0 && (
+              <button
+                type="button"
+                className="auction-history-delete-selected-btn"
+                onClick={handleDeleteSelected}
+                disabled={isDeletingBulk}
+              >
+                <FaTrash />
+                {isDeletingBulk
+                  ? "Deleting..."
+                  : `Delete Selected (${selectedKeys.length})`}
+              </button>
+            )}
 
             {hasActiveFilters && (
               <button
@@ -1792,6 +2077,18 @@ const handleViewAuction = (item) => {
 
               <tr>
 
+                <th className="bh-col-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={handleSelectAll}
+                  />
+                </th>
+
+                <th className="bh-col-id">
+                  #
+                </th>
+
                 <th>
                   Auction Item
                 </th>
@@ -1856,10 +2153,10 @@ const handleViewAuction = (item) => {
                   <td
                     colSpan={
                       activeTab === "my-bids"
-                        ? 7
+                        ? 9
                         : activeTab === "bids-received"
-                          ? 7
-                          : 6
+                          ? 9
+                          : 8
                     }
                   >
 
@@ -1896,9 +2193,29 @@ const handleViewAuction = (item) => {
               ================================================= */}
 
               {activeTab === "my-bids" &&
-                filteredMyBids.map((item) => (
+                filteredMyBids.map((item, index) => (
 
                   <tr key={item.id}>
+
+
+                    {/* Checkbox */}
+
+                    <td className="bh-col-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedKeys.includes(getRowKey(item))}
+                        onChange={() => handleSelectRow(item)}
+                      />
+                    </td>
+
+
+                    {/* Serial number */}
+
+                    <td>
+                      <span className="bh-id-badge">
+                        {index + 1}
+                      </span>
+                    </td>
 
 
                     {/* Auction Item */}
@@ -2005,33 +2322,35 @@ const handleViewAuction = (item) => {
 
                     {/* Actions */}
 
-                    <td
-                      style={{
-                        textAlign: "right"
-                      }}
-                    >
+                    <td>
 
-                      {item.status === "Outbid" &&
-                      item.auction_status === "live" ? (
+                      <div className="bh-action-buttons">
 
-                        <Link
-                          to={`/dashboard/live-auction/${item.id}`}
-                          className="bh-action-btn-raise"
-                        >
-                          Raise Bid
-                        </Link>
+                        {item.status === "Outbid" &&
+                        item.auction_status === "live" ? (
 
-                      ) : (
+                          <Link
+                            to={`/dashboard/live-auction/${item.id}`}
+                            className="bh-action-btn-raise"
+                          >
+                            Raise Bid
+                          </Link>
 
-                        <button
-  type="button"
-  className="bh-action-btn-view"
-  onClick={() => handleViewAuction(item)}
->
-  View
-</button>
+                        ) : (
 
-                      )}
+                          <button
+                            type="button"
+                            className="bh-action-btn-view"
+                            onClick={() => handleViewAuction(item)}
+                          >
+                            View
+                          </button>
+
+                        )}
+
+                        {renderDeleteButton(item)}
+
+                      </div>
 
                     </td>
 
@@ -2045,9 +2364,29 @@ const handleViewAuction = (item) => {
               ================================================= */}
 
               {activeTab === "bids-received" &&
-                filteredReceivedBids.map((item) => (
+                filteredReceivedBids.map((item, index) => (
 
                   <tr key={item.id}>
+
+
+                    {/* Checkbox */}
+
+                    <td className="bh-col-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedKeys.includes(getRowKey(item))}
+                        onChange={() => handleSelectRow(item)}
+                      />
+                    </td>
+
+
+                    {/* Serial number */}
+
+                    <td>
+                      <span className="bh-id-badge">
+                        {index + 1}
+                      </span>
+                    </td>
 
 
                     {/* Auction Item */}
@@ -2156,19 +2495,21 @@ const handleViewAuction = (item) => {
 
                     {/* Action */}
 
-                    <td
-                      style={{
-                        textAlign: "right"
-                      }}
-                    >
+                    <td>
 
-                      <button
-  type="button"
-  className="bh-action-btn-view"
-  onClick={() => handleViewAuction(item)}
->
-  View
-</button>
+                      <div className="bh-action-buttons">
+
+                        <button
+                          type="button"
+                          className="bh-action-btn-view"
+                          onClick={() => handleViewAuction(item)}
+                        >
+                          View
+                        </button>
+
+                        {renderDeleteButton(item)}
+
+                      </div>
 
                     </td>
 
@@ -2182,9 +2523,29 @@ const handleViewAuction = (item) => {
               ================================================= */}
 
               {activeTab === "activity-feed" &&
-                filteredActivity.map((item) => (
+                filteredActivity.map((item, index) => (
 
                   <tr key={item.id}>
+
+
+                    {/* Checkbox */}
+
+                    <td className="bh-col-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedKeys.includes(getRowKey(item))}
+                        onChange={() => handleSelectRow(item)}
+                      />
+                    </td>
+
+
+                    {/* Serial number */}
+
+                    <td>
+                      <span className="bh-id-badge">
+                        {index + 1}
+                      </span>
+                    </td>
 
 
                     {/* Auction */}
@@ -2308,19 +2669,21 @@ const handleViewAuction = (item) => {
 
                     {/* Action */}
 
-                    <td
-                      style={{
-                        textAlign: "right"
-                      }}
-                    >
+                    <td>
 
-                      <button
-  type="button"
-  className="bh-action-btn-view"
-  onClick={() => handleViewAuction(item)}
->
-  View
-</button>
+                      <div className="bh-action-buttons">
+
+                        <button
+                          type="button"
+                          className="bh-action-btn-view"
+                          onClick={() => handleViewAuction(item)}
+                        >
+                          View
+                        </button>
+
+                        {renderDeleteButton(item)}
+
+                      </div>
 
                     </td>
 

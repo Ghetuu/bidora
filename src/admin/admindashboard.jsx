@@ -295,41 +295,17 @@ const response = await fetch(
 
 
             {userMenu && (
-
-              <ul className="submenu">
-
-                <li
-                  onClick={(e) => {
-
-                    e.stopPropagation();
-
-                    goTo(
-                      "/admin/dashboard/users"
-                    );
-
-                  }}
-                >
-                  All Users
-                </li>
-
-
-                <li
-                  onClick={(e) => {
-
-                    e.stopPropagation();
-
-                    goTo(
-                      "/admin/users/pending"
-                    );
-
-                  }}
-                >
-                  Pending Users
-                </li>
-
-              </ul>
-
-            )}
+  <ul className="submenu">
+    <li
+      onClick={(e) => {
+        e.stopPropagation();
+        goTo("/admin/dashboard/users");
+      }}
+    >
+      All Users
+    </li>
+  </ul>
+)}
 
           </li>
 

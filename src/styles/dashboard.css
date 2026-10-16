@@ -645,8 +645,10 @@
     display: none;
   }
   .bidora-dashboard .dashboard-content {
-    padding: 20px 16px;
-  }
+  padding: 16px;
+  max-width: none;
+  margin: 0;
+}
 }
 
 /* =========================================================

@@ -611,11 +611,15 @@ const AuctionHistory = () => {
   return (
     <div className="auction-history-page">
       {error && <div className="auction-history-error">{error}</div>}
-
+<h1>
+              Auctions History
+            </h1>
       {/* DARK FILTER CARD */}
       <div className="auction-history-filter-card">
+      
         {/* HEADER TOP BAR WITH DELETE SELECTED BUTTON */}
         <div className="auction-history-filter-header">
+        
           <div className="auction-history-title-group">
             <div className="auction-history-title-icon">
               <FaFilter />
@@ -871,7 +875,7 @@ const AuctionHistory = () => {
               </thead>
 
               <tbody>
-                {paginatedAuctions.map((auction) => (
+                {paginatedAuctions.map((auction,index) => (
                   <tr key={auction.id}>
                     <td>
                       <input
@@ -882,7 +886,9 @@ const AuctionHistory = () => {
                     </td>
 
                     <td>
-                      <span className="auction-history-id">#{auction.id}</span>
+                      <span className="auction-history-id">
+  {(currentPage - 1) * rowsPerPage + index + 1}
+</span>
                     </td>
 
                     <td>

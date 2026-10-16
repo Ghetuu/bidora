@@ -884,25 +884,136 @@ def get_admin_dashboard_stats(
                 )
             })
 
-        # -------------------------------------------------
-        # REVENUE / PAYMENT DATA
+                # -------------------------------------------------
+        # WINNING BID VALUE / PAYMENT DATA
         # -------------------------------------------------
         #
-        # Bidora currently has no payment model supplied
-        # for this implementation.
+        # Bidora currently has no payment transaction model.
+        # Therefore, calculate the winning bid value from
+        # actual ended auctions and their highest bids.
         #
-        # Do not use bid amounts as actual revenue.
-        # Do not fabricate payment statuses.
+        # This is NOT confirmed collected revenue.
         # -------------------------------------------------
 
+        monthly_totals = defaultdict(float)
+
+        total_winning_bid_value = 0.0
+        ended_auctions_with_bids = 0
+
+        for auction in ended_auctions:
+
+            auction_bids = bids_by_auction.get(
+                auction.id,
+                []
+            )
+
+            # Ignore ended auctions without bids.
+            if not auction_bids:
+                continue
+
+            # Select the highest actual bid.
+            winning_bid = max(
+                auction_bids,
+                key=lambda bid: safe_number(
+                    getattr(bid, "amount", 0)
+                )
+            )
+
+            winning_amount = safe_number(
+                getattr(winning_bid, "amount", 0)
+            )
+
+            # Ignore invalid or non-positive amounts.
+            if winning_amount <= 0:
+                continue
+
+            total_winning_bid_value += winning_amount
+            ended_auctions_with_bids += 1
+
+            # Use the auction end date for monthly grouping.
+            auction_date = (
+                get_date_value(
+                    getattr(auction, "auction_end", None)
+                )
+                or get_date_value(
+                    getattr(auction, "updated_at", None)
+                )
+                or get_date_value(
+                    getattr(auction, "created_at", None)
+                )
+            )
+
+            if auction_date:
+                month_key = auction_date.strftime("%Y-%m")
+                monthly_totals[month_key] += winning_amount
+
+        # Prepare the last six calendar months.
+        monthly_revenue = []
+
+        current_month = now.replace(
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0
+        )
+
+        for offset in range(5, -1, -1):
+
+            month_date = (
+                current_month.replace(day=1)
+            )
+
+            # Move backwards by the required number of months.
+            month_index = (
+                month_date.year * 12
+                + month_date.month - 1
+                - offset
+            )
+
+            year = month_index // 12
+            month = month_index % 12 + 1
+
+            month_key = f"{year:04d}-{month:02d}"
+
+            month_label = datetime(
+                year,
+                month,
+                1
+            ).strftime("%b")
+
+            monthly_revenue.append({
+                "month": month_key,
+                "label": month_label,
+                "amount": format_amount(
+                    monthly_totals.get(month_key, 0)
+                )
+            })
+
         payment_data = {
-            "available": False,
-            "message": "Payment tracking is not configured.",
-            "total_revenue": None,
-            "paid_count": None,
-            "pending_count": None,
-            "failed_count": None,
-            "monthly_revenue": []
+            "available": True,
+            "payment_tracking_enabled": False,
+
+            "message": (
+                "Values represent winning bids on ended auctions. "
+                "Actual payment collection is not tracked."
+            ),
+
+            "total_revenue": format_amount(
+                total_winning_bid_value
+            ),
+
+            "paid_count": 0,
+
+            "pending_count": 0,
+
+            "failed_count": 0,
+
+            "winning_auction_count": (
+                ended_auctions_with_bids
+            ),
+
+            "monthly_revenue": monthly_revenue
         }
 
         # -------------------------------------------------

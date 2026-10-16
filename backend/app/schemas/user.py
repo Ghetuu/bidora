@@ -41,6 +41,7 @@ class UserCreate(BaseModel):
     password: str
     confirm_password: str
     address: str
+    aadhaar_number: str | None = None
 
     # ==========================================
     # FULL NAME

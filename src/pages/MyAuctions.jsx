@@ -1933,11 +1933,9 @@ function MyAuctions() {
                   </div>
 
 
-                  {/* CARD FOOTER */}
-
 {/* CARD FOOTER */}
 <div className="my-auction-card-footer">
-  {canViewAuction(status) ? (
+  {canViewAuction(status) || status === "pending" ? (
     <button
       type="button"
       className="view-auction-btn"
@@ -1946,18 +1944,12 @@ function MyAuctions() {
       <FaEye />
       View Details
     </button>
-  ) : status === "pending" ? (
-    <div className="auction-status-message pending-message">
-      <FaClock />
-      Waiting for admin approval
-    </div>
   ) : (
     <div className="auction-status-message">
       {statusLabel}
     </div>
   )}
 </div>
-
 
 
                 </div>

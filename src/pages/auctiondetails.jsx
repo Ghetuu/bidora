@@ -754,77 +754,85 @@ function AuctionDetails() {
         </div>
 
         {/* RIGHT BID CARD */}
+<div className="auction-bid-card">
+  <span className="bid-card-label">
+    Starting Price
+  </span>
 
-        <div className="auction-bid-card">
+  <strong className="bid-card-price">
+    {formatPrice(auction.starting_price)}
+  </strong>
 
-          <span className="bid-card-label">
-            Starting Price
-          </span>
+  <div className="bid-card-divider"></div>
 
-          <strong className="bid-card-price">
-            {formatPrice(
-              auction.starting_price
-            )}
-          </strong>
+  <span className="bid-card-label">
+    Auction Status
+  </span>
 
-          <div className="bid-card-divider"></div>
+  <div className={`bid-status-small ${status}`}>
+    {getStatusIcon()}
+    {getStatusLabel()}
+  </div>
 
-          <span className="bid-card-label">
-            Auction Status
-          </span>
+  <div className="bid-card-end">
+    <span>Ends On</span>
+    <strong>
+      {formatDateTime(auction.auction_end)}
+    </strong>
+  </div>
 
-          <div
-            className={`bid-status-small ${status}`}
-          >
-            {getStatusIcon()}
-            {getStatusLabel()}
-          </div>
+  {/* AUCTION ACTION */}
+  {status === "live" ? (
+    <button
+      type="button"
+      className="place-bid-btn"
+      onClick={() =>
+        navigate(`/dashboard/live-auction/${auction.id}`)
+      }
+    >
+      <FaGavel />
+      Go to Live Auction
+    </button>
+  ) : (
+    <div className={`auction-action-message ${status}`}>
+      {status === "pending" && (
+        <>
+          <FaClock />
+          Waiting for Admin Approval
+        </>
+      )}
 
-          <div className="bid-card-end">
+      {status === "upcoming" && (
+        <>
+          <FaClock />
+          Auction Not Started Yet
+        </>
+      )}
 
-            <span>Ends On</span>
+      {status === "ended" && (
+        <>
+          <FaStopCircle />
+          Auction Ended
+        </>
+      )}
 
-            <strong>
-              {formatDateTime(
-                auction.auction_end
-              )}
-            </strong>
+      {status === "rejected" && (
+        <>
+          <FaTimesCircle />
+          Auction Rejected
+        </>
+      )}
 
-          </div>
-
-          <button
-            type="button"
-            className="place-bid-btn"
-            onClick={() =>
-              navigate(
-                `/dashboard/live-auction/${auction.id}`
-              )
-            }
-            disabled={
-              status === "ended" ||
-              status === "upcoming"
-            }
-          >
-            <FaGavel />
-            {status === "ended"
-              ? "Auction Ended"
-              : status === "upcoming"
-              ? "Auction Not Started"
-              : "Place Your Bid"}
-          </button>
-
-          <button
-            type="button"
-            className="watchlist-btn"
-          >
-            <FaHeart />
-            Add to Watchlist
-          </button>
-
-        </div>
-
-      </div>
-
+      {status === "approved" && (
+        <>
+          <FaClock />
+          Auction Not Started Yet
+        </>
+      )}
+    </div>
+  )}
+</div>
+</div>
       {/* =====================================================
           AUCTION INFORMATION + SELLER
       ===================================================== */}

@@ -5,10 +5,22 @@
 .auction-history-page {
   width: 100%;
   min-height: 100%;
-  padding: 30px;
+  padding: 0;
   box-sizing: border-box;
   background: #f4f5f9;
   color: #20243a;
+}
+
+.auction-history-page h1 {
+  margin: 0 0 22px 0;
+
+  color: #18234f;
+
+  font-size: 38px;
+  line-height: 1.15;
+
+  font-weight: 750;
+  letter-spacing: -0.7px;
 }
 
 /* =========================================================
@@ -135,11 +147,15 @@
 }
 
 .auction-history-search input {
-  border: none;
-  outline: none;
-  background: transparent;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  height: 100% !important;
   width: 100%;
-  padding-left: 8px;
+  margin: 0;
+  padding: 0 0 0 10px !important;
   color: #1e2448;
   font-size: 13px;
 }
@@ -422,7 +438,7 @@
 
 .auction-history-table {
   width: 100%;
-  min-width: 1400px;
+  min-width: 1100px;
   border-collapse: separate;
   border-spacing: 0;
   text-align: left;
@@ -430,7 +446,7 @@
 
 .auction-history-table thead th {
   height: 50px;
-  padding: 0 14px;
+  padding: 0 8px;
   background: #fafaff;
   border-bottom: 1px solid #eceef4;
   color: #858ba1;
@@ -443,7 +459,7 @@
 
 .auction-history-table tbody td {
   height: 70px;
-  padding: 0 14px;
+  padding: 0 8px;
   border-bottom: 1px solid #f0f1f5;
   color: #4c5166;
   font-size: 12px;
@@ -582,6 +598,9 @@
   background: #5046e5;
   color: #ffffff;
   border-color: #5046e5;
+  padding: 20px 16px;
+min-width: 0;
+max-width: 100%;
 }
 
 .auction-history-image-modal {
@@ -654,4 +673,22 @@
 .auction-history-delete-selected-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.auction-history-auction-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.auction-history-table tbody td {
+  font-size: 11.5px;
+}
+
+.auction-history-product strong {
+  display: block;
+  max-width: 170px;
+  line-height: 1.3;
 }

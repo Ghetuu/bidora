@@ -448,10 +448,7 @@ export default function AdminHome() {
         <div>
           <h1>Dashboard Overview</h1>
 
-          <p>
-            Welcome back! Here's what's happening with Bidora today.
-          </p>
-
+          
           {lastUpdated && (
             <p style={{ marginTop: "6px", fontSize: "11px" }}>
               Last updated:{" "}
@@ -583,26 +580,25 @@ export default function AdminHome() {
           </div>
         </div>
 
-        <div className="stat-card pink">
-          <div className="stat-icon">
-            <FaRupeeSign />
-          </div>
+          
+          {/* WINNING BID VALUE CARD */}
 
-          <div className="stat-details">
-            <span>Revenue</span>
+<div className="stat-card pink">
+  <div className="stat-icon">
+    <FaRupeeSign />
+  </div>
 
-            <h2 style={{ fontSize: "17px" }}>
-              {payments.available
-                ? formatCurrency(payments.total_revenue)
-                : "N/A"}
-            </h2>
+  <div className="stat-details">
+    <span>Winning Bid Value</span>
 
-            <p style={{ color: "#9299a8" }}>
-              {payments.available
-                ? "Recorded payments"
-                : "No payment data"}
-            </p>
-          </div>
+    <h2 style={{ fontSize: "17px" }}>
+      {formatCurrency(payments.total_revenue)}
+    </h2>
+
+    <p style={{ color: "#9299a8" }}>
+      From ended auctions
+    </p>
+  </div>
         </div>
       </div>
 

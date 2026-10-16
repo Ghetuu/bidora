@@ -81,42 +81,89 @@ def admin_login(data: AdminLogin):
     )
 
 
-# =====================================================
-# GET ALL USERS
-# =====================================================
-
 @router.get("/users/")
 def get_all_users(
     db: Session = Depends(get_db),
-    admin=Depends(get_current_admin),
+    current_admin=Depends(get_current_admin),
 ):
+    """
+    Return registered users with registration dates and KYC status
+    for the Admin Users page.
+    """
 
-    users = (
-        db.query(User)
-        .order_by(User.id.asc())
-        .all()
-    )
+    try:
+        users = (
+            db.query(User)
+            .order_by(User.id.desc())
+            .all()
+        )
 
-    return [
+        result = []
 
-        {
-            "id": user.id,
-            "fullname": user.fullname,
-            "username": user.username,
-            "email": user.email,
-            "mobile": user.mobile,
-            "address": user.address,
-            "email_verified": user.email_verified,
-            "account_status": user.account_status,
-            "admin_remark": user.admin_remark,
-            "registration_date": user.registration_date,
-        }
+        for user in users:
+            # Use the actual registration timestamp stored in the DB.
+            registration_date = getattr(
+                user,
+                "registration_date",
+                None,
+            )
 
-        for user in users
+            # Support an existing created_at field if your model uses it.
+            if registration_date is None:
+                registration_date = getattr(
+                    user,
+                    "created_at",
+                    None,
+                )
 
-    ]
+            if isinstance(registration_date, datetime):
+                registration_date = registration_date.isoformat()
 
+            # Return the fields expected by AdminUsers.jsx.
+            result.append(
+                {
+                    "id": user.id,
+                    "fullname": getattr(user, "fullname", None),
+                    "username": getattr(user, "username", None),
+                    "email": getattr(user, "email", None),
+                    "mobile": getattr(user, "mobile", None),
+                    "address": getattr(user, "address", None),
+                    "email_verified": getattr(
+                        user,
+                        "email_verified",
+                        False,
+                    ),
+                    "account_status": getattr(
+                        user,
+                        "account_status",
+                        "active",
+                    ),
+                    "admin_remark": getattr(
+                        user,
+                        "admin_remark",
+                        None,
+                    ),
+                    "registration_date": registration_date,
+                    "kyc_status": getattr(
+                        user,
+                        "kyc_status",
+                        "pending",
+                    ),
+                }
+            )
 
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        print(f"Error fetching admin users: {exc}")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve registered users.",
+        )
 # =====================================================
 # GET SINGLE USER
 # =====================================================
@@ -316,6 +363,103 @@ def delete_user(
 
     }
 
+
+# =========================================================
+# DELETE AUCTION
+# DELETE /admin/auctions/{auction_id}
+# =========================================================
+
+@router.delete("/auctions/{auction_id}")
+def delete_admin_auction(
+    auction_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    try:
+        # -------------------------------------------------
+        # FIND AUCTION
+        # -------------------------------------------------
+        auction = (
+            db.query(Auction)
+            .filter(Auction.id == auction_id)
+            .first()
+        )
+
+        if not auction:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Auction with ID {auction_id} not found."
+            )
+
+        # -------------------------------------------------
+        # DELETE RELATED NOTIFICATIONS
+        # -------------------------------------------------
+        db.query(Notification).filter(
+            Notification.auction_id == auction_id
+        ).delete(synchronize_session=False)
+
+        db.query(AdminNotification).filter(
+            AdminNotification.auction_id == auction_id
+        ).delete(synchronize_session=False)
+
+        # -------------------------------------------------
+        # DELETE RELATED BIDS
+        # -------------------------------------------------
+        db.query(Bid).filter(
+            Bid.auction_id == auction_id
+        ).delete(synchronize_session=False)
+
+        # -------------------------------------------------
+        # DELETE RELATED AUCTION IMAGES
+        # -------------------------------------------------
+        db.query(AuctionImage).filter(
+            AuctionImage.auction_id == auction_id
+        ).delete(synchronize_session=False)
+
+        # -------------------------------------------------
+        # DELETE AUCTION
+        # -------------------------------------------------
+        db.delete(auction)
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Auction deleted successfully.",
+            "auction_id": auction_id,
+        }
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except IntegrityError as exc:
+        db.rollback()
+
+        print(
+            "DELETE AUCTION INTEGRITY ERROR:",
+            repr(exc)
+        )
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "This auction cannot be deleted because "
+                "other database records still reference it."
+            )
+        )
+
+    except Exception as exc:
+        db.rollback()
+
+        print(
+            "DELETE AUCTION ERROR:",
+            repr(exc)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete auction."
+        )
 
 # =====================================================
 # GET PENDING AUCTIONS

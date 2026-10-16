@@ -329,56 +329,87 @@ function Register() {
   // ==========================================
 
   const handleVerifyKYC = async () => {
-    if (kycDocumentType !== "aadhaar") {
-      alert("Only Aadhaar demo verification is enabled.");
-      return;
+  const documentNumber = aadhaarNumber.trim().toUpperCase();
+
+  // 1. Check whether the document number is empty
+  if (!documentNumber) {
+    if (kycDocumentType === "aadhaar") {
+      alert("Please enter your demo Aadhaar number.");
+    } else if (kycDocumentType === "pan") {
+      alert("Please enter your demo PAN number.");
+    } else if (kycDocumentType === "dl") {
+      alert("Please enter your demo Driving Licence number.");
     }
 
-    if (!AADHAAR_REGEX.test(aadhaarNumber)) {
+    return;
+  }
+
+  // 2. Validate the selected document number
+  if (kycDocumentType === "aadhaar") {
+    if (!/^\d{12}$/.test(documentNumber)) {
       alert("Please enter a valid 12-digit demo Aadhaar number.");
       return;
     }
-
-    try {
-      setKycLoading(true);
-
-      const response = await axios.post(KYC_VERIFY_URL, {
-        document_type: "aadhaar",
-        aadhaar_number: aadhaarNumber,
-      });
-
-      if (!response.data.success) {
-        setKycVerified(false);
-
-        alert("Please enter valid details. KYC failed.");
-
-        return;
-      }
-
-      setKycVerified(true);
-
-      alert("Demo Aadhaar KYC verification successful.");
-    } catch (error) {
-      setKycVerified(false);
-
-      console.error("KYC verification error:", error);
-
-      if (error.response?.status === 404) {
-        alert(
-          "KYC endpoint not found. Check the backend route configuration."
-        );
-      } else if (error.response?.data?.detail) {
-        alert(error.response.data.detail);
-      } else {
-        alert(
-          "Unable to verify demo Aadhaar. Please check that the backend is running."
-        );
-      }
-    } finally {
-      setKycLoading(false);
+  } else if (kycDocumentType === "pan") {
+    if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(documentNumber)) {
+      alert("Please enter a valid demo PAN number (e.g., ABCDE1234F).");
+      return;
     }
-  };
+  } else if (kycDocumentType === "dl") {
+    if (!/^[A-Z0-9/-]{5,20}$/.test(documentNumber)) {
+      alert(
+        "Please enter a valid demo Driving Licence number (5–20 characters)."
+      );
+      return;
+    }
+  } else {
+    alert("Please select a valid document type.");
+    return;
+  }
 
+  // 3. Verify the selected document with the backend
+  try {
+    setKycLoading(true);
+
+    const response = await axios.post(KYC_VERIFY_URL, {
+      document_type: kycDocumentType,
+      aadhaar_number: documentNumber,
+    });
+
+    if (!response.data.success) {
+      setKycVerified(false);
+      alert("Please enter valid details. KYC failed.");
+      return;
+    }
+
+    // 4. KYC verification successful
+    setKycVerified(true);
+
+    if (kycDocumentType === "aadhaar") {
+      alert("Demo Aadhaar KYC verification successful.");
+    } else if (kycDocumentType === "pan") {
+      alert("Demo PAN Card verification successful.");
+    } else if (kycDocumentType === "dl") {
+      alert("Demo Driving Licence verification successful.");
+    }
+  } catch (error) {
+    setKycVerified(false);
+
+    console.error("KYC verification error:", error);
+
+    if (error.response?.status === 404) {
+      alert("KYC endpoint not found. Check the backend route configuration.");
+    } else if (error.response?.data?.detail) {
+      alert(error.response.data.detail);
+    } else {
+      alert(
+        "Unable to verify demo KYC. Please check that the backend is running."
+      );
+    }
+  } finally {
+    setKycLoading(false);
+  }
+};
   // ==========================================
   // SEND OTP
   // ==========================================
@@ -544,6 +575,7 @@ function Register() {
         password: formData.password,
         confirm_password: formData.confirmPassword,
         address: formData.address.trim(),
+        aadhaar_number: aadhaarNumber.trim(),
       });
 
       alert(response.data.message || "Registration successful.");
@@ -740,25 +772,82 @@ function Register() {
                   number.
                 </p>
 
-                <div className="input-box full">
-                  <FaFileAlt />
+                {/* DEMO AADHAAR KYC SELECT OPTION */}
+<div className="input-box full" style={{
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  padding: "12px 16px",
+  border: "1px solid #d1d5db",
+  borderRadius: "12px",
+  background: "#ffffff",
+  boxShadow: "0 3px 10px rgba(0, 0, 0, 0.04)",
+  transition: "all 0.3s ease",
+  boxSizing: "border-box"
+}}>
+  <FaFileAlt style={{
+    color: "#6366f1",
+    fontSize: "20px",
+    flexShrink: 0
+  }} />
 
-                  <select
-                    value={kycDocumentType}
-                    onChange={(e) => {
-                      setKycDocumentType(e.target.value);
+  <div style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "5px",
+    flex: 1,
+    minWidth: 0
+  }}>
+    <label
+      htmlFor="kycDocumentType"
+      style={{
+        fontSize: "12px",
+        fontWeight: "600",
+        color: "#6b7280",
+        letterSpacing: "0.4px"
+      }}
+    >
+      SELECT DOCUMENT TYPE
+    </label>
 
-                      setAadhaarNumber("");
+    <select
+  id="kycDocumentType"
+  value={kycDocumentType}
+  onChange={(e) => {
+    setKycDocumentType(e.target.value);
+    setAadhaarNumber("");
+    setKycVerified(false);
+  }}
+  disabled={kycVerified || kycLoading}
+  style={{
+    width: "100%",
+    border: "none",
+    outline: "none",
+    backgroundColor: "transparent",
+    color: "#1f2937",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor:
+      kycVerified || kycLoading ? "not-allowed" : "pointer",
+    padding: "4px 0",
+    appearance: "auto",
+    opacity: kycVerified || kycLoading ? 0.6 : 1,
+  }}
+>
+  <option value="aadhaar">Aadhaar Card (Demo)</option>
+  <option value="pan">PAN Card (Demo)</option>
+  <option value="dl">Driving Licence (Demo)</option>
+</select>
+  </div>
 
-                      setKycVerified(false);
-                    }}
-                    disabled={kycVerified || kycLoading}
-                  >
-                    <option value="aadhaar">
-                      Aadhaar (Demo)
-                    </option>
-                  </select>
-                </div>
+  {kycVerified && (
+    <FaCheckCircle style={{
+      color: "#16a34a",
+      fontSize: "20px",
+      flexShrink: 0
+    }} />
+  )}
+</div>
 
                 <div className="input-box full">
                   <input
@@ -766,7 +855,13 @@ function Register() {
                     inputMode="numeric"
                     autoComplete="off"
                     maxLength={12}
-                    placeholder="Enter 12-digit demo Aadhaar number"
+                    placeholder={
+    kycDocumentType === "aadhaar"
+      ? "Enter 12-digit demo Aadhaar number"
+      : kycDocumentType === "pan"
+      ? "Enter demo PAN number (e.g., ABCDE1234F)"
+      : "Enter demo Driving Licence number"
+  }
                     value={aadhaarNumber}
                     disabled={kycVerified || kycLoading}
                     onChange={(e) => {
@@ -838,20 +933,20 @@ function Register() {
                         <FaLock />
 
                         <input
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={6}
-                          placeholder="Enter 6-digit OTP"
-                          value={otp}
-                          disabled={otpExpired}
-                          onChange={(e) => {
-                            const value = e.target.value
-                              .replace(/\D/g, "")
-                              .slice(0, 6);
-
-                            setOtp(value);
-                          }}
-                        />
+  type="password"
+  inputMode="numeric"
+  autoComplete="one-time-code"
+  maxLength={6}
+  placeholder="Enter 6-digit OTP"
+  value={otp}
+  disabled={otpExpired}
+  onChange={(e) => {
+    const value = e.target.value
+      .replace(/\D/g, "")
+      .slice(0, 6);
+    setOtp(value);
+  }}
+/>
                       </div>
 
                       <button

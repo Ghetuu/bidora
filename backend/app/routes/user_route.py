@@ -11,6 +11,16 @@ from fastapi import (
     File,
     Form
 )
+
+import csv
+import hashlib
+import hmac
+
+from pathlib import Path
+
+from sqlalchemy.exc import IntegrityError
+
+from app.core.security import SECRET_KEY
 import os
 import shutil
 from sqlalchemy.orm import Session
@@ -69,6 +79,81 @@ def get_db():
 
     finally:
         db.close()
+    
+    
+    
+BASE_DIR = Path(__file__).resolve().parents[2]
+AADHAAR_CSV = BASE_DIR / "data" / "aadhar.csv"
+
+
+def normalize_number(value: str) -> str:
+    return "".join(
+        character
+        for character in str(value)
+        if character.isdigit()
+    )
+
+
+def create_kyc_identifier_hash(
+    aadhaar_number: str
+) -> str:
+    return hmac.new(
+        SECRET_KEY.encode("utf-8"),
+        aadhaar_number.encode("utf-8"),
+        hashlib.sha256
+    ).hexdigest()
+
+
+def demo_identifier_exists(
+    aadhaar_number: str
+) -> bool:
+
+    if not AADHAAR_CSV.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="KYC demo CSV file not found."
+        )
+
+    try:
+        with open(
+            AADHAAR_CSV,
+            "r",
+            newline="",
+            encoding="utf-8-sig"
+        ) as file:
+
+            reader = csv.DictReader(file)
+
+            if (
+                not reader.fieldnames
+                or "aadhaar_number" not in reader.fieldnames
+            ):
+                raise HTTPException(
+                    status_code=500,
+                    detail=(
+                        "CSV must contain an "
+                        "aadhaar_number column."
+                    )
+                )
+
+            for record in reader:
+
+                csv_number = normalize_number(
+                    record.get("aadhaar_number", "")
+                )
+
+                if csv_number == aadhaar_number:
+                    return True
+
+    except (OSError, csv.Error) as error:
+        print("KYC CSV ERROR:", str(error))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to read KYC demo CSV."
+        )
+
+    return False
 
 
 # =========================================================
@@ -371,6 +456,57 @@ async def register(
             detail="Please verify your email with OTP first."
         )
 
+    # ==========================================
+    # VALIDATE KYC IDENTIFIER
+    # ==========================================
+
+    aadhaar_number = normalize_number(
+        user_data.aadhaar_number or ""
+    )
+
+    if len(aadhaar_number) != 12:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Please complete KYC with a valid 12-digit demo identifier."
+        )
+
+
+    # ==========================================
+    # VERIFY IDENTIFIER AGAINST CSV
+    # ==========================================
+
+    if not demo_identifier_exists(aadhaar_number):
+
+        raise HTTPException(
+            status_code=400,
+            detail="KYC failed. Demo identifier not found."
+        )
+
+
+    # ==========================================
+    # CHECK WHETHER IDENTIFIER WAS USED
+    # ==========================================
+
+    identifier_hash = create_kyc_identifier_hash(
+        aadhaar_number
+    )
+
+    existing_kyc = (
+        db.query(User)
+        .filter(
+            User.kyc_identifier_hash == identifier_hash
+        )
+        .first()
+    )
+
+    if existing_kyc:
+
+        raise HTTPException(
+            status_code=400,
+            detail="This demo identifier has already been used for another account."
+        )
+
     # =====================================================
     # CHECK EMAIL / MOBILE (double-check at register time too)
     # =====================================================
@@ -425,7 +561,17 @@ async def register(
             user_data
         )
 
-        # Save user permanently
+        # =================================================
+        # SAVE REGISTRATION DATE
+        # =================================================
+
+        if not user.registration_date:
+            user.registration_date = datetime.now()
+
+        # =================================================
+        # SAVE USER PERMANENTLY
+        # =================================================
+
         db.commit()
 
         db.refresh(user)
