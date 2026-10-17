@@ -138,11 +138,7 @@ def get_all_users(
                         "account_status",
                         "active",
                     ),
-                    "admin_remark": getattr(
-                        user,
-                        "admin_remark",
-                        None,
-                    ),
+                    
                     "registration_date": registration_date,
                     "kyc_status": getattr(
                         user,
@@ -198,7 +194,6 @@ def get_user(
         "address": user.address,
         "email_verified": user.email_verified,
         "account_status": user.account_status,
-        "admin_remark": user.admin_remark,
 
     }
 
@@ -317,7 +312,6 @@ def update_user(
             "address": user.address,
             "email_verified": user.email_verified,
             "account_status": user.account_status,
-            "admin_remark": user.admin_remark,
 
         }
 
@@ -577,11 +571,7 @@ def get_pending_auctions(
                     else None
                 ),
 
-                "admin_remark": (
-                    user.admin_remark
-                    if user
-                    else None
-                ),
+                
 
                 "registration_date": (
                     user.registration_date.isoformat()
@@ -1886,11 +1876,7 @@ def get_auctions_by_status(
                     else None
                 ),
 
-                "admin_remark": (
-                    user.admin_remark
-                    if user
-                    else None
-                ),
+               
 
                 "registration_date": (
                     user.registration_date.isoformat()
@@ -2226,12 +2212,7 @@ def get_all_auctions(
                     else None
                 ),
 
-                "admin_remark": (
-                    user.admin_remark
-                    if user
-                    else None
-                ),
-
+                
                 "registration_date": (
                     user.registration_date.isoformat()
                     if user and user.registration_date
@@ -2483,6 +2464,93 @@ def get_all_auctions(
 
     return result
 
+
+@router.get("/bids")
+def get_all_admin_bids(
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    try:
+        rows = (
+            db.query(Bid, Auction, User)
+            .join(Auction, Bid.auction_id == Auction.id)
+            .join(User, Bid.user_id == User.id)
+            .order_by(Bid.created_at.desc())
+            .all()
+        )
+
+        # Load all images for the auctions in one query
+        auction_ids = {auction.id for _, auction, _ in rows}
+        images_by_auction = {}
+
+        if auction_ids:
+            images = (
+                db.query(AuctionImage)
+                .filter(AuctionImage.auction_id.in_(auction_ids))
+                .order_by(
+                    AuctionImage.auction_id,
+                    AuctionImage.display_order.asc()
+                )
+                .all()
+            )
+
+            for image in images:
+                images_by_auction.setdefault(
+                    image.auction_id, []
+                ).append({
+                    "id": image.id,
+                    "image_path": image.image_path,
+                    "display_order": image.display_order,
+                })
+
+        result = []
+
+        for bid, auction, user in rows:
+            auction_images = images_by_auction.get(auction.id, [])
+
+            result.append({
+                "id": bid.id,
+                "bid_id": bid.id,
+
+                "auction_id": bid.auction_id,
+                "auction_title": auction.product_title,
+                "product_title": auction.product_title,
+
+                # Cover image + all images
+                "image_path": (
+                    auction_images[0]["image_path"]
+                    if auction_images else None
+                ),
+                "images": auction_images,
+
+                "user_id": bid.user_id,
+                "bidder_id": bid.user_id,
+                "bidder_name": bid.bidder_name,
+                "bidder_email": user.email,
+
+                "amount": float(bid.amount),
+                "bid_amount": float(bid.amount),
+
+                "created_at": (
+                    bid.created_at.isoformat()
+                    if bid.created_at else None
+                ),
+
+                "auction_status": auction.status,
+            })
+
+        return {
+            "success": True,
+            "count": len(result),
+            "bids": result
+        }
+
+    except Exception as e:
+        print("ADMIN ALL BIDS ERROR:", repr(e))
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load all bids."
+        )
 # =====================================================
 # GET ALL BIDS FOR A SPECIFIC AUCTION (ADMIN)
 #

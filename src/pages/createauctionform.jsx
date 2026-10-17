@@ -3,6 +3,9 @@ import "../styles/createauctionform.css";
 import PricePrediction from "../components/priceprediction";
 import Papa from "papaparse";
 import * as pdfjsLib from "pdfjs-dist";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 /* =========================================================
    CATEGORY / CONDITION / WARRANTY / SHIPPING OPTIONS
 ========================================================= */
@@ -1611,56 +1614,246 @@ const handleImportAuction = async (e) => {
        PDF
     ===================================================== */
 
-    else if (extension === "pdf") {
-      const arrayBuffer = await file.arrayBuffer();
+    /* =====================================================
+   PDF IMPORT
+===================================================== */
 
-      const pdf = await pdfjsLib.getDocument({
-        data: arrayBuffer,
-      }).promise;
+else if (extension === "pdf") {
+  const arrayBuffer = await file.arrayBuffer();
 
-      let fullText = "";
+  const pdf = await pdfjsLib.getDocument({
+    data: arrayBuffer,
+  }).promise;
 
-      for (
-        let pageNumber = 1;
-        pageNumber <= pdf.numPages;
-        pageNumber++
-      ) {
-        const page = await pdf.getPage(pageNumber);
+  let fullText = "";
 
-        const content =
-          await page.getTextContent();
+  for (
+    let pageNumber = 1;
+    pageNumber <= pdf.numPages;
+    pageNumber++
+  ) {
+    const page = await pdf.getPage(pageNumber);
 
-        const pageText = content.items
-          .map((item) => item.str)
-          .join(" ");
+    const content = await page.getTextContent();
 
-        fullText += pageText + "\n";
-      }
+    const pageText = content.items
+      .map((item) => item.str)
+      .join(" ");
 
-      /*
-       * PDF generated for our test file has:
-       *
-       * productTitle: Maruti Suzuki Swift 2022
-       *
-       * Parse key:value pairs.
-       */
+    fullText += pageText + "\n";
+  }
 
-      const regex =
-        /([A-Za-z][A-Za-z0-9]*)\s*:\s*([\s\S]*?)(?=\s+[A-Za-z][A-Za-z0-9]*\s*:|$)/g;
+  console.log("EXTRACTED PDF TEXT:", fullText);
 
-      let match;
+  if (!fullText.trim()) {
+    throw new Error(
+      "No readable text found in PDF. The PDF may be scanned."
+    );
+  }
 
-      while (
-        (match = regex.exec(fullText)) !== null
-      ) {
-        const key = match[1].trim();
-        const value = match[2].trim();
+  // Normalize whitespace extracted from PDF
+  fullText = fullText
+    .replace(/\s+/g, " ")
+    .trim();
 
-        if (key) {
-          importedData[key] = value;
-        }
+  // Support labels such as:
+  // Product Title: Example
+  // Auction Title: Example
+  // Brand / Model: Example
+  const fieldAliases = {
+    productTitle: [
+      "productTitle",
+      "Product Title",
+      "Auction Title",
+    ],
+
+    brandModel: [
+      "brandModel",
+      "Brand / Model",
+      "Brand Model",
+    ],
+
+    category: [
+      "category",
+      "Category",
+    ],
+
+    description: [
+      "description",
+      "Description",
+    ],
+
+    condition: [
+      "condition",
+      "Product Condition",
+    ],
+
+    purchaseDate: [
+      "purchaseDate",
+      "Purchase Date",
+      "Date of Product Buy",
+    ],
+
+    purchasedBy: [
+      "purchasedBy",
+      "Purchased By",
+    ],
+
+    purchasePrice: [
+      "purchasePrice",
+      "Purchase Price",
+      "Original Purchase Price",
+    ],
+
+    startingPrice: [
+      "startingPrice",
+      "Starting Price",
+      "Starting Bid",
+    ],
+
+    auctionStart: [
+      "auctionStart",
+      "Auction Start",
+      "Auction Start Date",
+    ],
+
+    auctionEnd: [
+      "auctionEnd",
+      "Auction End",
+      "Auction End Date",
+    ],
+
+    locationArea: [
+      "locationArea",
+      "Area / Locality",
+      "Location Area",
+    ],
+
+    locationCity: [
+      "locationCity",
+      "City",
+      "Location City",
+    ],
+
+    locationState: [
+      "locationState",
+      "State",
+      "Location State",
+    ],
+
+    locationCountry: [
+      "locationCountry",
+      "Country",
+      "Location Country",
+    ],
+
+    locationPincode: [
+      "locationPincode",
+      "Pincode",
+      "Pin Code",
+    ],
+
+    deliveryType: [
+      "deliveryType",
+      "Delivery Type",
+      "Delivery / Pickup",
+    ],
+
+    shippingType: [
+      "shippingType",
+      "Shipping Type",
+    ],
+
+    shippingCharges: [
+      "shippingCharges",
+      "Shipping Charges",
+    ],
+
+    shippingPaidBy: [
+      "shippingPaidBy",
+      "Shipping Paid By",
+    ],
+
+    warrantyStatus: [
+      "warrantyStatus",
+      "Warranty Status",
+    ],
+
+    paymentMethod: [
+      "paymentMethod",
+      "Payment Method",
+    ],
+
+    productTerms: [
+      "productTerms",
+      "Product Terms",
+      "Seller Terms & Conditions",
+    ],
+
+    sellerName: [
+      "sellerName",
+      "Seller Name",
+    ],
+
+    sellerEmail: [
+      "sellerEmail",
+      "Seller Email",
+    ],
+
+    sellerContact: [
+      "sellerContact",
+      "Seller Contact",
+      "Contact Number",
+    ],
+  };
+
+  // Escape special characters before using labels in regex
+  const escapeRegex = (value) =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Match known labels rather than assuming every word
+  // followed by a colon is a field name
+  const allLabels = Object.values(fieldAliases)
+    .flat()
+    .sort((a, b) => b.length - a.length);
+
+  const labelPattern = allLabels
+    .map(escapeRegex)
+    .join("|");
+
+  const regex = new RegExp(
+    `(?:^|\\s)(${labelPattern})\\s*:\\s*([\\s\\S]*?)(?=\\s+(?:${labelPattern})\\s*:|$)`,
+    "gi"
+  );
+
+  let match;
+
+  while ((match = regex.exec(fullText)) !== null) {
+    const matchedLabel = match[1].trim();
+    const value = match[2].trim();
+
+    const normalizedLabel = matchedLabel.toLowerCase();
+
+    for (const [field, aliases] of Object.entries(fieldAliases)) {
+      const found = aliases.some(
+        (alias) => alias.toLowerCase() === normalizedLabel
+      );
+
+      if (found && value) {
+        importedData[field] = value;
+        break;
       }
     }
+  }
+
+  console.log("PARSED PDF AUCTION DATA:", importedData);
+
+  if (Object.keys(importedData).length === 0) {
+    throw new Error(
+      "No matching auction fields found in PDF."
+    );
+  }
+}
 
     /* =====================================================
        VALIDATE IMPORTED DATA

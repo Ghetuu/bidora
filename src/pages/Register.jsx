@@ -377,6 +377,7 @@ function Register() {
     });
 
     if (!response.data.success) {
+      alert(response.data.message);
       setKycVerified(false);
       alert("Please enter valid details. KYC failed.");
       return;
@@ -384,6 +385,7 @@ function Register() {
 
     // 4. KYC verification successful
     setKycVerified(true);
+    alert(response.data.message);
 
     if (kycDocumentType === "aadhaar") {
       alert("Demo Aadhaar KYC verification successful.");

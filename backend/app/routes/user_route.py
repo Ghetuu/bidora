@@ -488,6 +488,7 @@ async def register(
     # CHECK WHETHER IDENTIFIER WAS USED
     # ==========================================
 
+        
     identifier_hash = create_kyc_identifier_hash(
         aadhaar_number
     )
@@ -499,6 +500,12 @@ async def register(
         )
         .first()
     )
+
+    if existing_kyc:
+        raise HTTPException(
+            status_code=400,
+            detail="This demo identifier has already been used for another account."
+        )
 
     if existing_kyc:
 
@@ -944,7 +951,6 @@ async def verify_login_otp(
             "profile_image": user.profile_image,
             "email_verified": user.email_verified,
             "account_status": user.account_status,
-            "admin_remark": user.admin_remark,
             "registration_date": (
                 user.registration_date.isoformat()
                 if user.registration_date
@@ -1237,7 +1243,6 @@ async def update_user_profile(
 
             "account_status": user.account_status,
 
-            "admin_remark": user.admin_remark,
 
             "registration_date": (
                 user.registration_date.isoformat()

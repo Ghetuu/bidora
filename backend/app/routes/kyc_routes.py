@@ -1,8 +1,15 @@
 import csv
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+
+
+from sqlalchemy.orm import Session
+
+from app.routes.user_route import get_db
+from app.models.user import User
+from app.routes.user_route import create_kyc_identifier_hash
 
 router = APIRouter(prefix="/api/kyc", tags=["Demo KYC"])
 
@@ -20,7 +27,10 @@ def normalize_number(value: str) -> str:
 
 
 @router.post("/verify")
-def verify_aadhaar(request: AadhaarKYCRequest):
+def verify_aadhaar(
+    request: AadhaarKYCRequest,
+    db: Session = Depends(get_db)
+):
     print("\n--- KYC VERIFICATION STARTED ---")
     print("CSV path:", AADHAAR_CSV)
     print("CSV exists:", AADHAAR_CSV.exists())
@@ -70,6 +80,25 @@ def verify_aadhaar(request: AadhaarKYCRequest):
 
                 if csv_number == submitted_number:
                     print("KYC MATCH FOUND")
+
+                    # Generate the same hash used during registration
+                    identifier_hash = create_kyc_identifier_hash(submitted_number)
+
+                    # Check whether this identifier already exists in MySQL
+                    existing_kyc = (
+                        db.query(User)
+                        .filter(User.kyc_identifier_hash == identifier_hash)
+                        .first()
+                    )
+
+                    if existing_kyc:
+                        print("KYC IDENTIFIER ALREADY USED")
+
+                        return {
+                            "success": False,
+                            "message": "This demo identifier has already been used for another account."
+                        }
+
                     return {
                         "success": True,
                         "message": "Demo KYC verification successful."

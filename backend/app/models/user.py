@@ -97,11 +97,7 @@ class User(Base):
     # ADMIN REMARK
     # ==========================================
 
-    admin_remark = Column(
-        Text,
-        nullable=True
-    )
-
+  
     # ==========================================
     # REGISTRATION DATE
     # ==========================================

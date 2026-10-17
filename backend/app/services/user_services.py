@@ -77,7 +77,6 @@ class UserService:
 
             # ACCOUNT STATUS
             account_status="APPROVED",
-            admin_remark=None,
 
             # KYC
             kyc_status="verified",

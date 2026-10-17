@@ -457,16 +457,18 @@ const response = await fetch(
           ================================================= */}
 
           <li
-            onClick={() =>
-              goTo("/admin/bids")
-            }
-          >
-
-            <FaGavel />
-
-            <span>Bids</span>
-
-          </li>
+  className={
+    location.pathname === "/admin/dashboard/bids"
+      ? "active"
+      : ""
+  }
+  onClick={() =>
+    goTo("/admin/dashboard/bids")
+  }
+>
+  <FaGavel />
+  <span>Bids</span>
+</li>
 
 
           {/* =================================================

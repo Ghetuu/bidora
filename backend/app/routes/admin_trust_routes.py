@@ -105,9 +105,7 @@ def _check_seller(auction, seller, db, now, r):
     if status != "APPROVED":
         r.add(f"Seller account status is {status or 'unknown'}", -25)
 
-    if (seller.admin_remark or "").strip():
-        r.add("Admin has left a remark on this seller's account", -10)
-
+    
     if seller.registration_date:
         age_days = (now - seller.registration_date).days
         if age_days < 7:

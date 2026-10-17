@@ -28,7 +28,7 @@ import LiveAuctionBidding from "./admin/LiveAuctionBidding";
 import AdminReports from "./admin/adminreports";   
 import AdminWinners from "./admin/AdminWinners";
 import SuspiciousBids from "./admin/SuspiciousBids";
-
+import AdminBids from "./admin/adminbid";
 
 
 
@@ -287,11 +287,16 @@ function App() {
             path="suspicious-bids"
             element={<SuspiciousBids />}
           />
+          {/* Bids Management */}
+<Route
+  path="bids"
+  element={<AdminBids />}
+/>
 
           {/* =================================================
               CONTACT MESSAGES
           ================================================= */}
-
+        
           <Route
             path="contact-messages"
             element={<ContactMessages />}

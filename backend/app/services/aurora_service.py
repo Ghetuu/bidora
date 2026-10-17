@@ -249,7 +249,6 @@ def clean_data_for_response(data):
         "admin_token",
         "purchase_proof_path",
         "seller_proof_path",
-        "admin_remark",
         "approved_by",
         "rejected_by",
         "user_id",

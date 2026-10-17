@@ -1053,7 +1053,6 @@ function AdminUsers() {
 
               <div className="detail-row">
                 <span>Admin Remark</span>
-                <strong>{selectedUser.admin_remark || "-"}</strong>
               </div>
             </div>
 
