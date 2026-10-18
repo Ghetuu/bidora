@@ -97,11 +97,7 @@ class User(Base):
     # ADMIN REMARK
     # ==========================================
 
-    admin_remark = Column(
-        Text,
-        nullable=True
-    )
-
+  
     # ==========================================
     # REGISTRATION DATE
     # ==========================================
@@ -111,3 +107,19 @@ class User(Base):
         server_default=func.now()
     )
 
+# ==========================================
+    # KYC VERIFICATION STATUS
+    # ==========================================
+
+    kyc_status = Column(
+        String(20),
+        nullable=False,
+        default="pending",
+        server_default="pending"
+    )
+
+    kyc_identifier_hash = Column(
+    String(64),
+    unique=True,
+    nullable=True
+)

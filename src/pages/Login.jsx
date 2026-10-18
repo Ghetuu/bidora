@@ -8,6 +8,8 @@ import {
   FaGavel,
   FaShieldAlt,
   FaKey,
+  FaEye,
+  FaEyeSlash,
 } from "react-icons/fa";
 
 import "../styles/Login.css";
@@ -34,6 +36,9 @@ function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // NEW: Password visibility state
+  const [showPassword, setShowPassword] = useState(false);
 
   const [otp, setOtp] = useState("");
 
@@ -70,8 +75,6 @@ function Login() {
           timerIntervalRef.current = null;
 
           setOtpExpired(true);
-
-          // Remove old OTP success message
           setSuccess("");
 
           return 0;
@@ -104,7 +107,6 @@ function Login() {
     setError("");
     setSuccess("");
 
-    // Frontend validation
     if (!email.trim()) {
       setError("Email address is required.");
       return;
@@ -127,11 +129,9 @@ function Login() {
         "http://127.0.0.1:8000/api/users/login",
         {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             email: email.trim().toLowerCase(),
             password: password,
@@ -146,10 +146,7 @@ function Login() {
         return;
       }
 
-      // ==========================================
-      // LOGIN CREDENTIALS VALID
-      // OTP SENT
-      // ==========================================
+      // LOGIN CREDENTIALS VALID — OTP SENT
 
       setShowOtp(true);
 
@@ -178,7 +175,6 @@ function Login() {
     setError("");
     setSuccess("");
 
-    // Do not resend while timer is active
     if (!otpExpired && otpTimer > 0) {
       return;
     }
@@ -190,11 +186,9 @@ function Login() {
         "http://127.0.0.1:8000/api/users/login",
         {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             email: email.trim().toLowerCase(),
             password: password,
@@ -205,21 +199,16 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(
-          data.detail || "Unable to resend OTP."
-        );
+        setError(data.detail || "Unable to resend OTP.");
         return;
       }
 
-      // Clear previous OTP
       setOtp("");
 
-      // Start new 3:30 timer
       startOtpTimer();
 
       setSuccess(
-        data.message ||
-          "A new OTP has been sent to your email."
+        data.message || "A new OTP has been sent to your email."
       );
     } catch (error) {
       console.error("RESEND OTP ERROR:", error);
@@ -242,10 +231,6 @@ function Login() {
     setError("");
     setSuccess("");
 
-    // ==========================================
-    // CHECK OTP EXPIRATION
-    // ==========================================
-
     if (otpExpired || otpTimer <= 0) {
       setError(
         "Your OTP has expired. Please click Resend OTP to get a new OTP."
@@ -253,18 +238,10 @@ function Login() {
       return;
     }
 
-    // ==========================================
-    // EMPTY OTP
-    // ==========================================
-
     if (!otp.trim()) {
       setError("Please enter the OTP.");
       return;
     }
-
-    // ==========================================
-    // INVALID OTP FORMAT
-    // ==========================================
 
     if (!/^\d{6}$/.test(otp)) {
       setError("Please enter a valid 6-digit OTP.");
@@ -278,11 +255,9 @@ function Login() {
         "http://127.0.0.1:8000/api/users/verify-login-otp",
         {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             email: email.trim().toLowerCase(),
             otp: otp.trim(),
@@ -293,61 +268,44 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Backend invalid OTP message
         setError(data.detail || "Invalid OTP.");
         return;
       }
 
-      // ==========================================
       // LOGIN SUCCESS
-      // ==========================================
 
-      setSuccess(
-        "Login successful. Redirecting..."
-      );
+      setSuccess("Login successful. Redirecting...");
 
-      // Stop timer after successful verification
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
       }
 
-      // Store user information
-      // Store user information in TAB-SPECIFIC storage
-// so different browser tabs can have different accounts.
+      // Store user information in tab-specific storage
 
-if (data.user) {
-  sessionStorage.setItem(
-    "user",
-    JSON.stringify(data.user)
-  );
-}
+      if (data.user) {
+        sessionStorage.setItem(
+          "user",
+          JSON.stringify(data.user)
+        );
+      }
 
-if (data.access_token) {
-  sessionStorage.setItem(
-    "access_token",
-    data.access_token
-  );
-}
+      if (data.access_token) {
+        sessionStorage.setItem(
+          "access_token",
+          data.access_token
+        );
+      }
 
-sessionStorage.setItem(
-  "isLoggedIn",
-  "true"
-);
+      sessionStorage.setItem("isLoggedIn", "true");
 
-      // ==========================================
       // GO TO DASHBOARD
-      // ==========================================
 
       setTimeout(() => {
         navigate("/Dashboard");
       }, 500);
-
     } catch (error) {
-      console.error(
-        "OTP VERIFICATION ERROR:",
-        error
-      );
+      console.error("OTP VERIFICATION ERROR:", error);
 
       setError(
         "Unable to connect to the server. Please try again."
@@ -387,28 +345,21 @@ sessionStorage.setItem(
       <Navbar />
 
       <div className="login-page">
-
         <div className="login-card">
 
           {/* LEFT SIDE */}
 
           <div className="login-form-container">
-
             <div className="login-box">
 
               {/* BRAND */}
 
               <div className="brand">
-
                 <FaGavel className="logo-icon" />
-
                 <h1>Bidora</h1>
-
               </div>
 
-              {/* ==================================
-                  NORMAL LOGIN
-              ================================== */}
+              {/* NORMAL LOGIN */}
 
               {!showOtp && (
                 <>
@@ -423,7 +374,6 @@ sessionStorage.setItem(
                     {/* EMAIL */}
 
                     <div className="input-group">
-
                       <FaEnvelope />
 
                       <input
@@ -435,17 +385,15 @@ sessionStorage.setItem(
                         }
                         autoComplete="email"
                       />
-
                     </div>
 
-                    {/* PASSWORD */}
+                    {/* PASSWORD WITH EYE TOGGLE */}
 
                     <div className="input-group">
-
                       <FaLock />
 
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="Password"
                         value={password}
                         onChange={(e) =>
@@ -454,26 +402,41 @@ sessionStorage.setItem(
                         autoComplete="current-password"
                       />
 
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() =>
+                          setShowPassword((previous) => !previous)
+                        }
+                        aria-label={
+                          showPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                        title={
+                          showPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
                     </div>
 
                     {/* OPTIONS */}
 
                     <div className="options">
-
                       <label>
-
-                        <input
-                          type="checkbox"
-                        />
-
+                        <input type="checkbox" />
                         Remember Me
-
                       </label>
 
-                      <Link to="/reset-password" className="forgot-password-link">
+                      <Link
+                        to="/reset-password"
+                        className="forgot-password-link"
+                      >
                         Forgot Password?
                       </Link>
-
                     </div>
 
                     {/* ERROR */}
@@ -499,50 +462,33 @@ sessionStorage.setItem(
                       className="login-btn"
                       disabled={loading}
                     >
-                      {loading
-                        ? "Checking..."
-                        : "Login"}
+                      {loading ? "Checking..." : "Login"}
                     </button>
-
                   </form>
 
                   {/* REGISTER */}
 
                   <p className="register-link">
-
                     Don't have an account?
-
-                    <Link to="/register">
-                      {" "}Register
-                    </Link>
-
+                    <Link to="/register"> Register</Link>
                   </p>
                 </>
               )}
 
-              {/* ==================================
-                  OTP SCREEN
-              ================================== */}
+              {/* OTP SCREEN */}
 
               {showOtp && (
                 <>
-
                   <div className="otp-icon">
-
                     <FaKey />
-
                   </div>
 
                   <h2>Verify Your Email</h2>
 
                   <p className="subtitle">
-
                     We have sent a 6-digit OTP to
-
                     <br />
-
                     <strong>{email}</strong>
-
                   </p>
 
                   <form onSubmit={handleVerifyOtp}>
@@ -550,56 +496,39 @@ sessionStorage.setItem(
                     {/* OTP INPUT */}
 
                     <div className="input-group">
-
                       <FaKey />
 
-                      <input
-                        type="text"
-                        placeholder="Enter 6-digit OTP"
-                        value={otp}
-                        onChange={(e) => {
+<input
+  type="password"
+  placeholder="Enter 6-digit OTP"
+  value={otp}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, "");
 
-                          const value =
-                            e.target.value.replace(
-                              /\D/g,
-                              ""
-                            );
+    if (value.length <= 6) {
+      setOtp(value);
+    }
+  }}
+  maxLength={6}
+  inputMode="numeric"
+  autoComplete="one-time-code"
+  disabled={otpExpired}
+/>
 
-                          if (value.length <= 6) {
-                            setOtp(value);
-                          }
-
-                        }}
-                        maxLength={6}
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        disabled={otpExpired}
-                      />
 
                     </div>
 
-                    {/* ==================================
-                        OTP TIMER
-                    ================================== */}
+                    {/* OTP TIMER */}
 
                     {!otpExpired ? (
-
                       <p className="otp-timer-text">
-
                         OTP expires in{" "}
-
-                        <strong>
-                          {formatTime(otpTimer)}
-                        </strong>
-
+                        <strong>{formatTime(otpTimer)}</strong>
                       </p>
-
                     ) : (
-
                       <p className="otp-expired-text">
                         OTP has expired.
                       </p>
-
                     )}
 
                     {/* ERROR */}
@@ -623,28 +552,16 @@ sessionStorage.setItem(
                     <button
                       type="submit"
                       className="login-btn"
-                      disabled={
-                        loading || otpExpired
-                      }
+                      disabled={loading || otpExpired}
                     >
-
-                      {loading
-                        ? "Verifying..."
-                        : "Verify OTP"}
-
+                      {loading ? "Verifying..." : "Verify OTP"}
                     </button>
-
                   </form>
 
-                  {/* ==================================
-                      RESEND OTP
-                  ================================== */}
+                  {/* RESEND OTP */}
 
                   <div className="resend-otp">
-
-                    <span>
-                      Didn't receive the OTP?
-                    </span>
+                    <span>Didn't receive the OTP?</span>
 
                     <button
                       type="button"
@@ -654,68 +571,41 @@ sessionStorage.setItem(
                         (!otpExpired && otpTimer > 0)
                       }
                     >
-
                       {resendLoading
                         ? "Resending..."
                         : otpExpired
                         ? "Resend OTP"
-                        : `Resend OTP (${formatTime(
-                            otpTimer
-                          )})`}
-
+                        : `Resend OTP (${formatTime(otpTimer)})`}
                     </button>
-
                   </div>
-
-                  {/* BACK BUTTON */}
-
-                
-
                 </>
               )}
-
             </div>
-
           </div>
 
-          {/* ==================================
-              RIGHT SIDE
-          ================================== */}
+          {/* RIGHT SIDE */}
 
           <div className="login-info">
-
             <FaShieldAlt className="shield" />
 
-            <h2>
-              Secure Online Auctions
-            </h2>
+            <h2>Secure Online Auctions</h2>
 
             <p>
-
               Join thousands of buyers and sellers
               participating in trusted real-time
               online auctions.
-
             </p>
 
             <div className="features">
-
               <div>✔ Live Auctions</div>
-
               <div>✔ Secure Payments</div>
-
               <div>✔ AI Recommendations</div>
-
               <div>✔ Verified Sellers</div>
-
               <div>✔ Email OTP Verification</div>
-
             </div>
-
           </div>
 
         </div>
-
       </div>
     </>
   );

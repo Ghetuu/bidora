@@ -764,3 +764,344 @@
   }
 
 }
+
+/* =========================================================
+   ADDITIONAL ADMIN DASHBOARD SECTIONS
+   All selectors remain scoped to .admin-home
+========================================================= */
+
+.admin-home .admin-section-icon {
+  color: #6d4aff;
+  margin-right: 8px;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.admin-home .admin-section-card {
+  margin-bottom: 16px;
+  min-width: 0;
+}
+
+.admin-home .admin-insights-card {
+  margin-bottom: 16px;
+}
+
+.admin-home .admin-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-home .admin-insight-item {
+  min-width: 0;
+  padding: 17px;
+  background: #faf9ff;
+  border: 1px solid #eee9ff;
+  border-radius: 10px;
+}
+
+.admin-home .admin-insight-item > span {
+  display: block;
+  color: #858da0;
+  font-size: 11px;
+  margin-bottom: 9px;
+}
+
+.admin-home .admin-insight-item > strong {
+  display: block;
+  color: #272e41;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.admin-home .admin-insight-item > strong.admin-category-insight {
+  font-size: 16px;
+}
+
+.admin-home .admin-insight-item > small {
+  display: block;
+  margin-top: 6px;
+  color: #858da0;
+  font-size: 10px;
+}
+
+.admin-home .admin-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: #6845e8;
+  background: #eee9ff;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-home .admin-extra-table {
+  min-width: 760px;
+}
+
+.admin-home .admin-reason-cell {
+  min-width: 230px;
+  max-width: 340px;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.admin-home .admin-review-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: #fff2df;
+  color: #b96c13;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-home .admin-review-badge svg {
+  font-size: 10px;
+}
+
+.admin-home .admin-product-cell,
+.admin-home .admin-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 170px;
+}
+
+.admin-home .admin-product-cell img,
+.admin-home .admin-user-cell img,
+.admin-home .admin-user-avatar,
+.admin-home .admin-product-fallback {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.admin-home .admin-user-cell img,
+.admin-home .admin-user-avatar {
+  border-radius: 50%;
+}
+
+.admin-home .admin-user-avatar,
+.admin-home .admin-product-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eee9ff;
+  color: #6845e8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-home .admin-product-fallback {
+  background: #f0f3fa;
+  color: #6b7487;
+  font-size: 14px;
+}
+
+.admin-home .admin-product-cell > span:last-child,
+.admin-home .admin-user-cell > span:last-child {
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-home .admin-auction-status,
+.admin-home .admin-account-status {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.admin-home .admin-auction-status.status-live {
+  background: #e2f8ed;
+  color: #168655;
+}
+
+.admin-home .admin-auction-status.status-approved {
+  background: #e7efff;
+  color: #356fd2;
+}
+
+.admin-home .admin-auction-status.status-pending {
+  background: #fff4d9;
+  color: #b77b13;
+}
+
+.admin-home .admin-auction-status.status-ended {
+  background: #eef0f5;
+  color: #687185;
+}
+
+.admin-home .admin-auction-status.status-rejected {
+  background: #ffe6e9;
+  color: #c63d50;
+}
+
+.admin-home .admin-auction-status.status-draft {
+  background: #f0eaff;
+  color: #704bd0;
+}
+
+.admin-home .admin-account-status.status-approved {
+  background: #e2f8ed;
+  color: #168655;
+}
+
+.admin-home .admin-account-status.status-pending {
+  background: #fff4d9;
+  color: #b77b13;
+}
+
+.admin-home .admin-account-status.status-rejected,
+.admin-home .admin-account-status.status-blocked,
+.admin-home .admin-account-status.status-suspended {
+  background: #ffe6e9;
+  color: #c63d50;
+}
+
+.admin-home .admin-verified,
+.admin-home .admin-unverified {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-home .admin-verified {
+  background: #e2f8ed;
+  color: #168655;
+}
+
+.admin-home .admin-unverified {
+  background: #fff4d9;
+  color: #b77b13;
+}
+
+.admin-home .admin-auction-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-home .admin-compact-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-home .admin-compact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f1f5;
+  min-width: 0;
+}
+
+.admin-home .admin-compact-item:last-child {
+  border-bottom: none;
+}
+
+.admin-home .admin-compact-icon {
+  width: 35px;
+  height: 35px;
+  min-width: 35px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eee9ff;
+  color: #6845e8;
+  font-size: 14px;
+}
+
+.admin-home .admin-clock-icon {
+  background: #fff0dc;
+  color: #d78322;
+}
+
+.admin-home .admin-compact-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-home .admin-compact-details strong {
+  display: block;
+  color: #32394a;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.admin-home .admin-compact-details small {
+  display: block;
+  margin-top: 5px;
+  color: #9299a8;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.admin-home .admin-no-bids-badge {
+  display: inline-block;
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: #fff0df;
+  color: #c87522;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-home .admin-ending-time {
+  color: #777f91;
+  font-size: 9px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   RESPONSIVE LAYOUT FOR NEW SECTIONS
+========================================================= */
+
+@media (max-width: 1000px) {
+  .admin-home .admin-insights-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-home .admin-auction-lists {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .admin-home .admin-insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-home .admin-insight-item {
+    padding: 14px;
+  }
+
+  .admin-home .admin-ending-time {
+    white-space: normal;
+    max-width: 100px;
+  }
+
+  .admin-home .admin-count-badge {
+    font-size: 9px;
+  }
+}

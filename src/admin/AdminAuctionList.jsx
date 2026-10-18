@@ -200,18 +200,18 @@ function AdminAuctionList({ status = "all", title = "All Auctions" }) {
 const fetchTrustScores = async () => {
   try {
     const res = await adminApi.get(
-  "/admin/auctions/trust-scores?status=pending"
-);
+      "/admin/auctions/trust-scores?status=pending"
+    );
 
-    if (!res.ok) throw new Error("Failed to load trust scores");
-    const data = await res.json();
-    setTrustScores(data.scores || {});
+    console.log("Trust Score API Response:", res.data);
+
+    setTrustScores(res.data?.scores || {});
   } catch (err) {
     console.error("Trust score error:", err);
+    console.error("Trust score response:", err.response?.data);
     setTrustScores({});
   }
 };
-
 const getTrust = (auction) => trustScores[String(auction.id)];
 
   const fetchAuctions = async () => {
@@ -562,52 +562,51 @@ const approveAuction = async (auction) => {
     );
   };
 
-  /* =========================================================
-     DELETE AUCTION
-  ========================================================= */
-
   const handleDelete = async (auction) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${
-        auction.product_title || "this auction"
-      }"?`
+  const confirmed = window.confirm(
+    `Are you sure you want to delete "${
+      auction.product_title || "this auction"
+    }"? This action cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await adminApi.delete(`/admin/auctions/${auction.id}`);
+
+    // Remove the auction from the current page.
+    setAuctions((prev) =>
+      prev.filter(
+        (item) => Number(item.id) !== Number(auction.id)
+      )
     );
 
-    if (!confirmed) {
-      return;
-    }
+    setFilteredAuctions((prev) =>
+      prev.filter(
+        (item) => Number(item.id) !== Number(auction.id)
+      )
+    );
 
-    try {
-      const response = await adminApi.delete(
-  `/admin/auctions/${auction.id}`
-);
+    setSelectedAuctions((prev) =>
+      prev.filter(
+        (id) => Number(id) !== Number(auction.id)
+      )
+    );
 
-      if (!response.ok) {
-        throw new Error("Failed to delete auction");
-      }
+    alert("Auction deleted successfully.");
+  } catch (err) {
+    console.error(
+      "Delete auction error:",
+      err.response?.data || err
+    );
 
-      setAuctions((prev) =>
-        prev.filter((item) => item.id !== auction.id)
-      );
+    const message =
+      err.response?.data?.detail ||
+      "Unable to delete auction. Please check the backend terminal.";
 
-      setFilteredAuctions((prev) =>
-        prev.filter((item) => item.id !== auction.id)
-      );
-
-      setSelectedAuctions((prev) =>
-        prev.filter((id) => id !== auction.id)
-      );
-
-      alert("Auction deleted successfully.");
-    } catch (err) {
-      console.error("Delete auction error:", err);
-
-      alert(
-        "Unable to delete auction. Please check your backend API."
-      );
-    }
-  };
-
+    alert(message);
+  }
+};
   /* =========================================================
      CHECKBOX SELECTION
   ========================================================= */

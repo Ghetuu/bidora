@@ -30,14 +30,25 @@
   }
 }
 
+/* CHANGED: padding now matches the Auction History page (0) */
 .bh-wrapper {
-  padding: 1.5rem;
+  padding: 0;
   background-color: #f8fafc;
   min-height: 100vh;
   color: #1e293b;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
   animation: bhFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* NEW: page heading, same look as the Auction History heading */
+.bh-wrapper .bh-page-title {
+  margin: 0 0 22px 0;
+  color: #18234f;
+  font-size: 38px;
+  line-height: 1.15;
+  font-weight: 750;
+  letter-spacing: -0.7px;
 }
 
 /* --- Top Metrics Grid --- */
@@ -361,6 +372,40 @@
   background-color: #f1f5f9;
 }
 
+/* NEW: checkbox column */
+.bh-table .bh-col-checkbox {
+  width: 44px;
+  padding-left: 1rem;
+  padding-right: 0.25rem;
+  text-align: center;
+}
+
+.bh-table .bh-col-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #2563eb;
+  vertical-align: middle;
+}
+
+/* NEW: serial number (#) column */
+.bh-table .bh-col-id {
+  width: 56px;
+}
+
+.bh-id-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .bh-item-cell {
   display: flex;
   align-items: center;
@@ -465,6 +510,15 @@
 }
 
 /* --- Action Buttons --- */
+
+/* NEW: holds View + Delete side by side */
+.bh-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .bh-action-btn-view {
   display: inline-block;
   background-color: #ffffff;
@@ -475,6 +529,7 @@
   font-size: 0.75rem;
   text-decoration: none;
   border: 1px solid #cbd5e1;
+  cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -513,6 +568,70 @@
   transform: translateY(0);
 }
 
+/* NEW: single row delete button */
+.bh-action-btn-delete {
+  height: 30px;
+  width: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid #fecaca;
+  background-color: #fff1f2;
+  color: #dc2626;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bh-action-btn-delete:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.15);
+}
+
+.bh-action-btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* NEW: red "Delete Selected" button in the filter card header.
+   (Also defined in AuctionHistory.css, repeated here so this page
+   does not depend on that file.) */
+.auction-history-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auction-history-delete-selected-btn {
+  background: #ef4444;
+  border: 1px solid #dc2626;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.auction-history-delete-selected-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.auction-history-delete-selected-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* =========================================================
    CUSTOM STATUS DROPDOWN (Light Theme)
 ========================================================= */
@@ -520,6 +639,7 @@
 .bh-custom-dropdown {
   position: relative;
   width: 13rem;
+  -webkit-user-select: none;
   user-select: none;
 }
 

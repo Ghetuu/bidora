@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../styles/createauctionform.css";
 import PricePrediction from "../components/priceprediction";
+import Papa from "papaparse";
+import * as pdfjsLib from "pdfjs-dist";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 /* =========================================================
    CATEGORY / CONDITION / WARRANTY / SHIPPING OPTIONS
 ========================================================= */
@@ -1492,6 +1496,475 @@ const CreateAuction = () => {
     });
   };
 
+
+  /* =========================================================
+   IMPORT AUCTION FROM JSON FILE
+========================================================= */
+
+/* =========================================================
+   IMPORT AUCTION FROM JSON / TXT / CSV / PDF
+========================================================= */
+
+const handleImportAuction = async (e) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  const fileName = file.name.toLowerCase();
+  const extension = fileName.split(".").pop();
+
+  const allowedExtensions = [
+    "json",
+    "txt",
+    "csv",
+    "pdf",
+  ];
+
+  if (!allowedExtensions.includes(extension)) {
+    setSubmitError(
+      "Please select a JSON, TXT, CSV or PDF auction file."
+    );
+
+    e.target.value = "";
+    return;
+  }
+
+  try {
+    let importedData = {};
+
+    /* =====================================================
+       JSON
+    ===================================================== */
+
+    if (extension === "json") {
+      const text = await file.text();
+
+      importedData = JSON.parse(text);
+    }
+
+    /* =====================================================
+       TXT
+       Expected format:
+
+       productTitle: Maruti Suzuki Swift 2022
+       brandModel: Maruti Suzuki Swift VXI
+       category: vehicles
+       ...
+    ===================================================== */
+
+    else if (extension === "txt") {
+      const text = await file.text();
+
+      text
+        .split(/\r?\n/)
+        .forEach((line) => {
+          const separatorIndex = line.indexOf(":");
+
+          if (separatorIndex === -1) return;
+
+          const key = line
+            .slice(0, separatorIndex)
+            .trim();
+
+          const value = line
+            .slice(separatorIndex + 1)
+            .trim();
+
+          if (key && value !== undefined) {
+            importedData[key] = value;
+          }
+        });
+    }
+
+    /* =====================================================
+       CSV
+
+       Expected format:
+
+       field,value
+       productTitle,Maruti Suzuki Swift 2022
+       brandModel,Maruti Suzuki Swift VXI
+       ...
+    ===================================================== */
+
+    else if (extension === "csv") {
+      const text = await file.text();
+
+      const result = Papa.parse(text, {
+        skipEmptyLines: true,
+      });
+
+      if (result.errors.length > 0) {
+        throw new Error("Invalid CSV file.");
+      }
+
+      result.data.forEach((row, index) => {
+        if (index === 0) return;
+
+        const key = row[0]?.trim();
+        const value = row[1]?.trim();
+
+        if (key) {
+          importedData[key] = value ?? "";
+        }
+      });
+    }
+
+    /* =====================================================
+       PDF
+    ===================================================== */
+
+    /* =====================================================
+   PDF IMPORT
+===================================================== */
+
+else if (extension === "pdf") {
+  const arrayBuffer = await file.arrayBuffer();
+
+  const pdf = await pdfjsLib.getDocument({
+    data: arrayBuffer,
+  }).promise;
+
+  let fullText = "";
+
+  for (
+    let pageNumber = 1;
+    pageNumber <= pdf.numPages;
+    pageNumber++
+  ) {
+    const page = await pdf.getPage(pageNumber);
+
+    const content = await page.getTextContent();
+
+    const pageText = content.items
+      .map((item) => item.str)
+      .join(" ");
+
+    fullText += pageText + "\n";
+  }
+
+  console.log("EXTRACTED PDF TEXT:", fullText);
+
+  if (!fullText.trim()) {
+    throw new Error(
+      "No readable text found in PDF. The PDF may be scanned."
+    );
+  }
+
+  // Normalize whitespace extracted from PDF
+  fullText = fullText
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Support labels such as:
+  // Product Title: Example
+  // Auction Title: Example
+  // Brand / Model: Example
+  const fieldAliases = {
+    productTitle: [
+      "productTitle",
+      "Product Title",
+      "Auction Title",
+    ],
+
+    brandModel: [
+      "brandModel",
+      "Brand / Model",
+      "Brand Model",
+    ],
+
+    category: [
+      "category",
+      "Category",
+    ],
+
+    description: [
+      "description",
+      "Description",
+    ],
+
+    condition: [
+      "condition",
+      "Product Condition",
+    ],
+
+    purchaseDate: [
+      "purchaseDate",
+      "Purchase Date",
+      "Date of Product Buy",
+    ],
+
+    purchasedBy: [
+      "purchasedBy",
+      "Purchased By",
+    ],
+
+    purchasePrice: [
+      "purchasePrice",
+      "Purchase Price",
+      "Original Purchase Price",
+    ],
+
+    startingPrice: [
+      "startingPrice",
+      "Starting Price",
+      "Starting Bid",
+    ],
+
+    auctionStart: [
+      "auctionStart",
+      "Auction Start",
+      "Auction Start Date",
+    ],
+
+    auctionEnd: [
+      "auctionEnd",
+      "Auction End",
+      "Auction End Date",
+    ],
+
+    locationArea: [
+      "locationArea",
+      "Area / Locality",
+      "Location Area",
+    ],
+
+    locationCity: [
+      "locationCity",
+      "City",
+      "Location City",
+    ],
+
+    locationState: [
+      "locationState",
+      "State",
+      "Location State",
+    ],
+
+    locationCountry: [
+      "locationCountry",
+      "Country",
+      "Location Country",
+    ],
+
+    locationPincode: [
+      "locationPincode",
+      "Pincode",
+      "Pin Code",
+    ],
+
+    deliveryType: [
+      "deliveryType",
+      "Delivery Type",
+      "Delivery / Pickup",
+    ],
+
+    shippingType: [
+      "shippingType",
+      "Shipping Type",
+    ],
+
+    shippingCharges: [
+      "shippingCharges",
+      "Shipping Charges",
+    ],
+
+    shippingPaidBy: [
+      "shippingPaidBy",
+      "Shipping Paid By",
+    ],
+
+    warrantyStatus: [
+      "warrantyStatus",
+      "Warranty Status",
+    ],
+
+    paymentMethod: [
+      "paymentMethod",
+      "Payment Method",
+    ],
+
+    productTerms: [
+      "productTerms",
+      "Product Terms",
+      "Seller Terms & Conditions",
+    ],
+
+    sellerName: [
+      "sellerName",
+      "Seller Name",
+    ],
+
+    sellerEmail: [
+      "sellerEmail",
+      "Seller Email",
+    ],
+
+    sellerContact: [
+      "sellerContact",
+      "Seller Contact",
+      "Contact Number",
+    ],
+  };
+
+  // Escape special characters before using labels in regex
+  const escapeRegex = (value) =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Match known labels rather than assuming every word
+  // followed by a colon is a field name
+  const allLabels = Object.values(fieldAliases)
+    .flat()
+    .sort((a, b) => b.length - a.length);
+
+  const labelPattern = allLabels
+    .map(escapeRegex)
+    .join("|");
+
+  const regex = new RegExp(
+    `(?:^|\\s)(${labelPattern})\\s*:\\s*([\\s\\S]*?)(?=\\s+(?:${labelPattern})\\s*:|$)`,
+    "gi"
+  );
+
+  let match;
+
+  while ((match = regex.exec(fullText)) !== null) {
+    const matchedLabel = match[1].trim();
+    const value = match[2].trim();
+
+    const normalizedLabel = matchedLabel.toLowerCase();
+
+    for (const [field, aliases] of Object.entries(fieldAliases)) {
+      const found = aliases.some(
+        (alias) => alias.toLowerCase() === normalizedLabel
+      );
+
+      if (found && value) {
+        importedData[field] = value;
+        break;
+      }
+    }
+  }
+
+  console.log("PARSED PDF AUCTION DATA:", importedData);
+
+  if (Object.keys(importedData).length === 0) {
+    throw new Error(
+      "No matching auction fields found in PDF."
+    );
+  }
+}
+
+    /* =====================================================
+       VALIDATE IMPORTED DATA
+    ===================================================== */
+
+    if (
+      !importedData ||
+      typeof importedData !== "object" ||
+      Object.keys(importedData).length === 0
+    ) {
+      throw new Error(
+        "No auction data found in file."
+      );
+    }
+
+    /* =====================================================
+       ONLY ALLOW FORM FIELDS
+    ===================================================== */
+
+    const allowedFields = [
+      "productTitle",
+      "brandModel",
+      "category",
+      "description",
+      "condition",
+
+      "purchaseDate",
+      "purchasedBy",
+      "purchasePrice",
+
+      "startingPrice",
+      "auctionStart",
+      "auctionEnd",
+
+      "locationArea",
+      "locationCity",
+      "locationState",
+      "locationCountry",
+      "locationPincode",
+
+      "deliveryType",
+
+      "shippingType",
+      "shippingCharges",
+      "shippingPaidBy",
+
+      "warrantyStatus",
+
+      "paymentMethod",
+      "productTerms",
+
+      "sellerName",
+      "sellerEmail",
+      "sellerContact",
+    ];
+
+    const importedFields = {};
+
+    allowedFields.forEach((field) => {
+      if (
+        importedData[field] !== undefined &&
+        importedData[field] !== null
+      ) {
+        importedFields[field] =
+          String(importedData[field]).trim();
+      }
+    });
+
+    if (
+      Object.keys(importedFields).length === 0
+    ) {
+      throw new Error(
+        "The file does not contain valid auction fields."
+      );
+    }
+
+    /* =====================================================
+       UPDATE FORM
+    ===================================================== */
+
+    setFormData((prev) => ({
+      ...prev,
+      ...importedFields,
+
+      // Never automatically accept terms
+      termsAccepted: false,
+    }));
+
+    setSubmitError("");
+    setSubmitSuccess("");
+
+    alert(
+      `Auction details imported successfully from ${extension.toUpperCase()} file. Please review the information before publishing.`
+    );
+
+  } catch (error) {
+    console.error(
+      "IMPORT AUCTION ERROR:",
+      error
+    );
+
+    setSubmitError(
+      `Unable to import ${extension.toUpperCase()} file. Please make sure the file contains valid auction details.`
+    );
+  }
+
+  // Allow selecting the same file again
+  e.target.value = "";
+};
+
+
   /* =====================================================
      SUBMIT
   ===================================================== */
@@ -2116,23 +2589,26 @@ if (auctionStart <= now) {
 
         <div className="ca-header-actions">
 
-          <button
-            type="button"
-            className="ca-btn ca-btn-light"
-            onClick={saveDraft}
-          >
-            Save Draft
-          </button>
+  <button
+    type="button"
+    className="ca-btn ca-btn-light"
+    onClick={saveDraft}
+  >
+    Save Draft
+  </button>
 
-          <button
-            type="submit"
-            form="ca-auction-form"
-            className="ca-btn ca-btn-primary"
-          >
-            + Publish Auction
-          </button>
+   <label className="ca-btn ca-btn-light ca-import-btn">
+    <span className="ca-import-icon">📂</span>
+    <span>Import Auction</span>
 
-        </div>
+    <input
+      type="file"
+      accept=".json,.txt,.csv,.pdf,application/json,text/plain,text/csv,application/pdf"
+      onChange={handleImportAuction}
+    />
+  </label>
+
+</div>
 
       </header>
 

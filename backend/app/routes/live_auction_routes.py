@@ -9,12 +9,223 @@ from app.models.bids import Bid
 from app.models.user import User
 from app.core.auth import get_current_user
 
+import os
+import logging
+from datetime import datetime, timedelta
+
+from app.models.bid_sms_notification import BidSMSNotification
+
+
 router = APIRouter(
     prefix="/api/live-auctions",
     tags=["Live Auctions"]
 )
 
 
+logger = logging.getLogger(__name__)
+
+
+def queue_seller_bid_sms(
+    db: Session,
+    auction: Auction,
+    new_bid: Bid,
+    previous_highest
+):
+    """
+    Queue a seller SMS after a successful bid.
+
+    - Uses the seller's registered mobile number.
+    - Sends the first-bid alert immediately.
+    - Sends a significant-increase alert immediately.
+    - Groups ordinary bids into a summary.
+    """
+
+    try:
+        # Get the seller using the auction owner's user ID.
+        seller = (
+            db.query(User)
+            .filter(User.id == auction.user_id)
+            .first()
+        )
+
+        if not seller or not seller.mobile:
+            logger.warning(
+                "Seller SMS skipped: registered mobile unavailable "
+                "for auction %s",
+                auction.id
+            )
+            return
+
+        mobile = seller.mobile.strip()
+
+        # Find the highest bid after the new bid was saved.
+        highest_bid = (
+            db.query(Bid)
+            .filter(Bid.auction_id == auction.id)
+            .order_by(Bid.amount.desc())
+            .first()
+        )
+
+        if not highest_bid:
+            return
+
+        highest_amount = Decimal(str(highest_bid.amount))
+
+        # Determine whether this is the first bid.
+        first_bid = previous_highest is None
+
+        # Determine whether the highest bid increased significantly.
+        significant_increase = False
+
+        if previous_highest is not None:
+            previous_amount = Decimal(str(previous_highest))
+
+            if previous_amount > 0:
+                increase_percent = (
+                    (highest_amount - previous_amount)
+                    / previous_amount
+                ) * Decimal("100")
+
+                threshold = Decimal(
+                    os.getenv(
+                        "BID_SMS_SIGNIFICANT_INCREASE_PERCENT",
+                        "5"
+                    )
+                )
+
+                significant_increase = (
+                    increase_percent >= threshold
+                )
+
+        now = datetime.utcnow()
+
+        # -------------------------------------------------
+        # IMMEDIATE ALERT: FIRST BID OR SIGNIFICANT INCREASE
+        # -------------------------------------------------
+
+        if first_bid or significant_increase:
+
+            if first_bid:
+                notification_type = "FIRST_BID"
+
+                message = (
+                    f"Bidora: Your auction '{auction.product_title}' "
+                    f"has received its first bid of "
+                    f"Rs. {highest_amount}."
+                )
+
+            else:
+                notification_type = "SIGNIFICANT_INCREASE"
+
+                message = (
+                    f"Bidora: A significant bid increase occurred "
+                    f"for '{auction.product_title}'. "
+                    f"Current highest bid: Rs. {highest_amount}."
+                )
+
+            notification = BidSMSNotification(
+                auction_id=auction.id,
+                seller_id=seller.id,
+                recipient_mobile=mobile,
+                notification_type=notification_type,
+                status="PENDING",
+                pending_bid_count=1,
+                latest_highest_bid=highest_amount,
+                message=message,
+                scheduled_at=now,
+                dedupe_key=None
+            )
+
+            db.add(notification)
+            db.commit()
+
+            logger.info(
+                "Seller SMS queued: auction=%s type=%s",
+                auction.id,
+                notification_type
+            )
+
+            return
+
+        # -------------------------------------------------
+        # ORDINARY BIDS: GROUP INTO A SUMMARY
+        # -------------------------------------------------
+
+        delay_seconds = max(
+            10,
+            int(
+                os.getenv(
+                    "BID_SMS_SUMMARY_DELAY_SECONDS",
+                    "120"
+                )
+            )
+        )
+
+        # Reuse a pending summary for this auction.
+        pending_summary = (
+            db.query(BidSMSNotification)
+            .filter(
+                BidSMSNotification.auction_id == auction.id,
+                BidSMSNotification.seller_id == seller.id,
+                BidSMSNotification.notification_type == "BID_SUMMARY",
+                BidSMSNotification.status == "PENDING"
+            )
+            .order_by(BidSMSNotification.id.desc())
+            .first()
+        )
+
+        if pending_summary:
+            pending_summary.pending_bid_count += 1
+            pending_summary.latest_highest_bid = highest_amount
+
+            pending_summary.message = (
+                f"Bidora: Your auction '{auction.product_title}' "
+                f"has received {pending_summary.pending_bid_count} "
+                f"new bids. Current highest bid: "
+                f"Rs. {highest_amount}."
+            )
+
+            # Extend the summary window so bursts of bids are grouped.
+            pending_summary.scheduled_at = (
+                now + timedelta(seconds=delay_seconds)
+            )
+
+        else:
+            notification = BidSMSNotification(
+                auction_id=auction.id,
+                seller_id=seller.id,
+                recipient_mobile=mobile,
+                notification_type="BID_SUMMARY",
+                status="PENDING",
+                pending_bid_count=1,
+                latest_highest_bid=highest_amount,
+                message=(
+                    f"Bidora: Your auction '{auction.product_title}' "
+                    f"has received 1 new bid. Current highest bid: "
+                    f"Rs. {highest_amount}."
+                ),
+                scheduled_at=now + timedelta(seconds=delay_seconds),
+                dedupe_key=None
+            )
+
+            db.add(notification)
+
+        db.commit()
+
+        logger.info(
+            "Seller bid summary queued: auction=%s",
+            auction.id
+        )
+
+    except Exception:
+        # Notification errors must not turn a successful bid into
+        # an apparent bidding failure.
+        db.rollback()
+
+        logger.exception(
+            "Could not queue seller SMS for auction %s",
+            auction.id
+        )
 # =========================================================
 # GET ALL LIVE AUCTIONS
 # (unchanged)
@@ -424,6 +635,21 @@ def place_bid(
 
         db.commit()
         db.refresh(new_bid)
+
+       
+
+        # Queue seller SMS only after the bid is successfully saved.
+        # The notification helper handles its own errors.
+        queue_seller_bid_sms(
+            db=db,
+            auction=auction,
+            new_bid=new_bid,
+            previous_highest=(
+                Decimal(str(highest.amount))
+                if highest is not None
+                else None
+            )
+        )
 
         print("========================================")
         print("BID SAVED SUCCESSFULLY")

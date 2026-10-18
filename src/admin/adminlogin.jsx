@@ -19,6 +19,7 @@ function AdminLogin() {
     username: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -80,7 +81,7 @@ localStorage.setItem(
         <form onSubmit={handleSubmit}>
 
           <div className="admin-form-group">
-            <label>Username</label>
+            <label>Admin Name</label>
 
             <div className="admin-input-box">
               <FaUser />
@@ -95,23 +96,30 @@ localStorage.setItem(
             </div>
           </div>
 
-          <div className="admin-form-group">
-            <label>Password</label>
+          <div className="admin-form-group"> <label>Password</label>
 
-            <div className="admin-input-box">
-              <FaLock />
+<div className="admin-input-box"> <FaLock />
 
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
+<input
+  type={showPassword ? "text" : "password"}
+  name="password"
+  placeholder="Enter Password"
+  value={formData.password}
+  onChange={handleChange}
+  required
+/>
 
-              <FaEye />
-            </div>
-          </div>
+<button
+  type="button"
+  className="admin-password-toggle"
+  onClick={() => setShowPassword((prev) => !prev)}
+  aria-label={showPassword ? "Hide password" : "Show password"}
+  title={showPassword ? "Hide password" : "Show password"}
+>
+  <FaEye />
+</button>
+
+</div> </div>
 
           <div className="admin-options">
             <label>
@@ -132,19 +140,7 @@ localStorage.setItem(
 
         </form>
 
-        <div className="admin-features-box">
-
-          <h3>Admin Features</h3>
-
-          <ul>
-            <li>✔ User Management</li>
-            <li>✔ Product Approval</li>
-            <li>✔ Auction Monitoring</li>
-            <li>✔ KYC Verification</li>
-          </ul>
-
-        </div>
-
+        
         <div className="admin-security">
           <FaShieldAlt />
           Secure Admin Access

@@ -1,9 +1,19 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/resetpassword.css";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
+
+
+// OTP TIMER: 2 minutes 40 seconds
+const OTP_DURATION_SECONDS = 2 * 60 + 40;
+
+const formatTime = (totalSeconds) => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -20,10 +30,56 @@ const ResetPassword = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
+const [otpExpired, setOtpExpired] = useState(false);
+
+const timerIntervalRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  // =========================================================
+// START OTP TIMER
+// =========================================================
+
+const startOtpTimer = () => {
+  if (timerIntervalRef.current) {
+    clearInterval(timerIntervalRef.current);
+    timerIntervalRef.current = null;
+  }
+
+  setOtpExpired(false);
+  setOtpTimer(OTP_DURATION_SECONDS);
+
+  timerIntervalRef.current = setInterval(() => {
+    setOtpTimer((previous) => {
+      if (previous <= 1) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+
+        setOtpExpired(true);
+        setError("Your OTP has expired. Please request a new OTP.");
+
+        return 0;
+      }
+
+      return previous - 1;
+    });
+  }, 1000);
+};
+
+// =========================================================
+// CLEAN UP TIMER
+// =========================================================
+
+useEffect(() => {
+  return () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+  };
+}, []);
 
   // =========================================================
   // SEND FORGOT PASSWORD OTP
@@ -58,6 +114,8 @@ const ResetPassword = () => {
       );
 
       setStep(2);
+      setOtp("");
+startOtpTimer();
     } catch (err) {
       setError(
         err.response?.data?.detail ||
@@ -78,6 +136,10 @@ const ResetPassword = () => {
     setError("");
     setMessage("");
 
+    if (otpExpired || otpTimer <= 0) {
+  setError("Your OTP has expired. Please request a new OTP.");
+  return;
+}
     const cleanOtp = otp.trim();
 
     if (!cleanOtp) {
@@ -301,30 +363,39 @@ const ResetPassword = () => {
                   Enter OTP
                 </label>
 
-                <input
-                  id="reset-otp"
-                  type="text"
-                  value={otp}
-                  onChange={(e) => {
-                    const value = e.target.value
-                      .replace(/\D/g, "")
-                      .slice(0, 6);
+                
+<input
+  type="password"
+  inputMode="numeric"
+  maxLength={6}
+  placeholder="Enter 6-digit OTP"
+  value={otp}
+  disabled={otpExpired}
+  onChange={(e) => {
+    const value = e.target.value
+      .replace(/\D/g, "")
+      .slice(0, 6);
 
-                    setOtp(value);
-                    setError("");
-                  }}
-                  placeholder="Enter 6-digit OTP"
-                  maxLength={6}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                />
-
+    setOtp(value);
+  }}
+/>
               </div>
+              {/* OTP TIMER */}
+
+{!otpExpired ? (
+  <p className="otp-timer-text">
+    OTP expires in <strong>{formatTime(otpTimer)}</strong>
+  </p>
+) : (
+  <p className="otp-expired-text">
+    OTP has expired. Please request a new OTP.
+  </p>
+)}
 
               <button
                 type="submit"
                 className="reset-password-button"
-                disabled={loading}
+                disabled={loading || otpExpired}
               >
                 {loading ? "Verifying..." : "Verify OTP"}
               </button>
@@ -333,12 +404,19 @@ const ResetPassword = () => {
                 type="button"
                 className="reset-back-button"
                 onClick={() => {
-                  setStep(1);
-                  setOtp("");
-                  setMessage("");
-                  setError("");
-                }}
-                disabled={loading}
+  if (timerIntervalRef.current) {
+    clearInterval(timerIntervalRef.current);
+    timerIntervalRef.current = null;
+  }
+
+  setStep(1);
+  setOtp("");
+  setOtpTimer(0);
+  setOtpExpired(false);
+  setMessage("");
+  setError("");
+}}
+                disabled={otpExpired}
               >
                 ← Change Email
               </button>

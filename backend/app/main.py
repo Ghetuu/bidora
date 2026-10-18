@@ -3,7 +3,6 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
 # =========================================================
 # MODELS
 # =========================================================
@@ -22,6 +21,13 @@ from app.models import (
     ContactMessage
 )
 
+
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
+
 # =========================================================
 # ROUTES
 # =========================================================
@@ -29,6 +35,8 @@ from app.models import (
 from app.routes.user_route import (
     router as user_router
 )
+
+from app.routes.kyc_routes import router as kyc_routes
 
 from app.routes.admin_routes import (
     router as admin_router
@@ -65,6 +73,9 @@ from app.routes.aurora_routes import (
     router as aurora_router
 )
 
+
+from app.routes.kyc_routes import router as kyc_routes
+from app.routes.admin_dashboard_routes import router as admin_dashboard_router
 # =========================================================
 # SERVICES
 # =========================================================
@@ -77,6 +88,9 @@ from app.routes.price_prediction_routes import (
     router as price_prediction_router
 )
 
+from app.routes.suspicious_bid_routes import router as suspicious_bid_router
+
+from app.routes.user_dashboard_route import router as user_dashboard_router
 
 app = FastAPI(
     title="Bidora API",
@@ -124,6 +138,9 @@ app.include_router(
     tags=["Users"]
 )
 
+
+app.include_router(kyc_routes)
+
 app.include_router(
     admin_router,
     tags=["Admin"]
@@ -145,6 +162,7 @@ app.include_router(
     tags=["Admin Reports"]
 )
 
+app.include_router(suspicious_bid_router)
 
 app.include_router(
     recommendation_router
@@ -160,6 +178,11 @@ app.include_router(
     tags=["Admin Trust Score"]
 )
 
+app.include_router(
+    admin_dashboard_router
+)
+
+app.include_router(user_dashboard_router)
 
 # =========================================================
 # GLOBAL REALTIME WEBSOCKET
@@ -180,7 +203,6 @@ async def start_auction_scheduler():
     asyncio.create_task(
         auction_scheduler_loop()
     )
-
 
 # =========================================================
 # ROOT

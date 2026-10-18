@@ -14,6 +14,7 @@ import {
   FaBars,
   FaTrophy,
   FaEnvelope,
+  FaShieldAlt,
 } from "react-icons/fa";
 
 import { useState, useEffect } from "react";
@@ -294,41 +295,17 @@ const response = await fetch(
 
 
             {userMenu && (
-
-              <ul className="submenu">
-
-                <li
-                  onClick={(e) => {
-
-                    e.stopPropagation();
-
-                    goTo(
-                      "/admin/dashboard/users"
-                    );
-
-                  }}
-                >
-                  All Users
-                </li>
-
-
-                <li
-                  onClick={(e) => {
-
-                    e.stopPropagation();
-
-                    goTo(
-                      "/admin/users/pending"
-                    );
-
-                  }}
-                >
-                  Pending Users
-                </li>
-
-              </ul>
-
-            )}
+  <ul className="submenu">
+    <li
+      onClick={(e) => {
+        e.stopPropagation();
+        goTo("/admin/dashboard/users");
+      }}
+    >
+      All Users
+    </li>
+  </ul>
+)}
 
           </li>
 
@@ -480,16 +457,18 @@ const response = await fetch(
           ================================================= */}
 
           <li
-            onClick={() =>
-              goTo("/admin/bids")
-            }
-          >
-
-            <FaGavel />
-
-            <span>Bids</span>
-
-          </li>
+  className={
+    location.pathname === "/admin/dashboard/bids"
+      ? "active"
+      : ""
+  }
+  onClick={() =>
+    goTo("/admin/dashboard/bids")
+  }
+>
+  <FaGavel />
+  <span>Bids</span>
+</li>
 
 
           {/* =================================================
@@ -497,16 +476,18 @@ const response = await fetch(
           ================================================= */}
 
           <li
-            onClick={() =>
-              goTo("/admin/winners")
-            }
-          >
-
-            <FaTrophy />
-
-            <span>Winners</span>
-
-          </li>
+  className={
+    location.pathname === "/admin/dashboard/winners"
+      ? "active"
+      : ""
+  }
+  onClick={() =>
+    goTo("/admin/dashboard/winners")
+  }
+>
+  <FaTrophy />
+  <span>Winners</span>
+</li>
 
 
           {/* =================================================
@@ -552,17 +533,22 @@ const response = await fetch(
               NOTIFICATIONS
           ================================================= */}
 
-          <li
-            onClick={() =>
-              goTo("/admin/notifications")
-            }
-          >
+          {/* SUSPICIOUS BIDS */}
 
-            <FaBell />
-
-            <span>Notifications</span>
-
-          </li>
+<li
+  className={
+    location.pathname ===
+    "/admin/dashboard/suspicious-bids"
+      ? "active"
+      : ""
+  }
+  onClick={() =>
+    goTo("/admin/dashboard/suspicious-bids")
+  }
+>
+  <FaShieldAlt />
+  <span>Suspicious Bids</span>
+</li>
 
             {/* =================================================
     CONTACT MESSAGES

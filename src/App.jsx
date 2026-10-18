@@ -26,6 +26,11 @@ import ContactMessages from "./admin/ContactMessages";
 import AdminAuctionDetails from "./admin/AdminAuctionDetails";
 import LiveAuctionBidding from "./admin/LiveAuctionBidding";
 import AdminReports from "./admin/adminreports";   
+import AdminWinners from "./admin/AdminWinners";
+import SuspiciousBids from "./admin/SuspiciousBids";
+import AdminBids from "./admin/adminbid";
+
+
 
 // =========================================================
 // USER DASHBOARD
@@ -278,14 +283,29 @@ function App() {
             element={<AdminReports />}
           />
 
+          <Route
+            path="suspicious-bids"
+            element={<SuspiciousBids />}
+          />
+          {/* Bids Management */}
+<Route
+  path="bids"
+  element={<AdminBids />}
+/>
+
           {/* =================================================
               CONTACT MESSAGES
           ================================================= */}
-
+        
           <Route
             path="contact-messages"
             element={<ContactMessages />}
           />
+
+          <Route
+  path="winners"
+  element={<AdminWinners />}
+/>
 
         </Route>
 

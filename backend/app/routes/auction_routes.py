@@ -905,3 +905,197 @@ def get_live_auctions(
             status_code=500,
             detail="Failed to load live auctions."
         )
+
+
+# =========================================================
+# GET ONE AUCTION (FULL DETAILS)
+# Used by the Auction Details page (/dashboard/auction/:id)
+#
+# IMPORTANT: keep this at the END of this file so that
+# /my-auctions, /all-auctions and /live are matched first.
+# =========================================================
+
+@router.get("/{auction_id}")
+def get_auction_details(
+    auction_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+
+        auction = (
+            db.query(Auction)
+            .filter(Auction.id == auction_id)
+            .first()
+        )
+
+        if not auction:
+            raise HTTPException(
+                status_code=404,
+                detail="Auction not found."
+            )
+
+        is_owner = auction.user_id == current_user.id
+
+        # Other users can not see pending / rejected auctions
+        if not is_owner and auction.status in ("pending", "rejected"):
+            raise HTTPException(
+                status_code=404,
+                detail="Auction not found."
+            )
+
+        # --------------------------------------------------
+        # IMAGES
+        # --------------------------------------------------
+
+        auction_images = sorted(
+            auction.images or [],
+            key=lambda image: (
+                image.display_order
+                if image.display_order is not None
+                else 0
+            )
+        )
+
+        # --------------------------------------------------
+        # BIDS
+        # --------------------------------------------------
+
+        auction_bids = (
+            db.query(Bid)
+            .filter(Bid.auction_id == auction.id)
+            .order_by(
+                Bid.amount.desc(),
+                Bid.created_at.asc()
+            )
+            .all()
+        )
+
+        highest_bid = auction_bids[0] if auction_bids else None
+
+        highest_bid_amount = (
+            float(highest_bid.amount)
+            if highest_bid and highest_bid.amount is not None
+            else 0
+        )
+
+        auction_time_status = get_auction_time_status(auction)
+
+        # --------------------------------------------------
+        # RESPONSE
+        # --------------------------------------------------
+
+        return {
+
+            "id": auction.id,
+            "user_id": auction.user_id,
+
+            "product_title": auction.product_title,
+            "brand_model": auction.brand_model,
+            "category": auction.category,
+            "description": auction.description,
+            "product_condition": auction.product_condition,
+
+            "purchase_date": (
+                auction.purchase_date.isoformat()
+                if auction.purchase_date
+                else None
+            ),
+            "purchased_by": auction.purchased_by,
+            "purchase_price": (
+                float(auction.purchase_price)
+                if auction.purchase_price is not None
+                else 0
+            ),
+
+            "starting_price": (
+                float(auction.starting_price)
+                if auction.starting_price is not None
+                else 0
+            ),
+            "auction_start": (
+                auction.auction_start.isoformat()
+                if auction.auction_start
+                else None
+            ),
+            "auction_end": (
+                auction.auction_end.isoformat()
+                if auction.auction_end
+                else None
+            ),
+
+            # admin approval status + time based status
+            "status": auction.status,
+            "auction_status": auction_time_status,
+
+            "bids": len(auction_bids),
+            "highest_bid": highest_bid_amount,
+            "current_bid": highest_bid_amount,
+
+            "location_area": auction.location_area,
+            "location_city": auction.location_city,
+            "location_state": auction.location_state,
+            "location_country": auction.location_country,
+            "location_pincode": auction.location_pincode,
+
+            "delivery_type": auction.delivery_type,
+            "shipping_type": auction.shipping_type,
+            "shipping_charges": (
+                float(auction.shipping_charges)
+                if auction.shipping_charges is not None
+                else 0
+            ),
+            "shipping_paid_by": auction.shipping_paid_by,
+
+            "warranty_status": auction.warranty_status,
+            "payment_method": auction.payment_method,
+            "product_terms": auction.product_terms,
+            "terms_accepted": auction.terms_accepted,
+
+            "seller_name": auction.seller_name,
+            "seller_email": auction.seller_email,
+            "seller_contact": auction.seller_contact,
+
+            "images": [
+                {
+                    "id": image.id,
+                    "image_path": image.image_path,
+                    "display_order": image.display_order
+                }
+                for image in auction_images
+            ],
+
+            # Documents are only returned to the auction owner
+            "purchase_proof_path": (
+                auction.purchase_proof_path if is_owner else None
+            ),
+            "seller_proof_path": (
+                auction.seller_proof_path if is_owner else None
+            ),
+
+            "created_at": (
+                auction.created_at.isoformat()
+                if auction.created_at
+                else None
+            ),
+            "updated_at": (
+                auction.updated_at.isoformat()
+                if auction.updated_at
+                else None
+            )
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "GET AUCTION DETAILS ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to load auction details."
+        )

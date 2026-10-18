@@ -1,11 +1,14 @@
+import hashlib
+import hmac
+
 from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.core.security import hash_password
-
+from app.core.security import hash_password, SECRET_KEY
 
 class UserService:
+
 
     def register(
         self,
@@ -21,43 +24,67 @@ class UserService:
         )
 
         # ==========================================
+        # CREATE KYC IDENTIFIER FINGERPRINT
+        # The registration endpoint must validate
+        # the identifier against the demo CSV first.
+        # ==========================================
+
+        aadhaar_number = getattr(
+            data,
+            "aadhaar_number",
+            None
+        )
+
+        if not aadhaar_number:
+            raise ValueError(
+                "KYC verification is required."
+            )
+
+        normalized_number = "".join(
+            character
+            for character in str(aadhaar_number)
+            if character.isdigit()
+        )
+
+        if len(normalized_number) != 12:
+            raise ValueError(
+                "Invalid demo KYC identifier."
+            )
+
+        identifier_hash = hmac.new(
+            SECRET_KEY.encode("utf-8"),
+            normalized_number.encode("utf-8"),
+            hashlib.sha256
+        ).hexdigest()
+
+        # ==========================================
         # CREATE USER
         # ==========================================
 
         user = User(
-
             fullname=data.fullname.strip(),
-
             username=data.username.strip(),
-
-            email=str(
-                data.email
-            ).lower().strip(),
-
+            email=str(data.email).lower().strip(),
             mobile=data.mobile.strip(),
-
             password=hashed_password,
-
             address=data.address.strip(),
 
-            # ======================================
             # ROLE
-            # 1 = admin
-            # 2 = normal user
-            # ======================================
             role_id=2,
 
-            # Email was verified through OTP
+            # EMAIL VERIFICATION
             email_verified=True,
 
-            # No admin approval required
+            # ACCOUNT STATUS
             account_status="APPROVED",
 
-            admin_remark=None
+            # KYC
+            kyc_status="verified",
+            kyc_identifier_hash=identifier_hash
         )
 
         # ==========================================
-        # SAVE
+        # SAVE USER
         # ==========================================
 
         repo = UserRepository()
@@ -66,3 +93,4 @@ class UserService:
             db,
             user
         )
+

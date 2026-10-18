@@ -6,17 +6,29 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "http://127.0.0.1:8000";
 
-function RecommendedAuctions() {
+// The login token may be stored in sessionStorage or localStorage
+// (the dashboard page already checks both).
+function getAccessToken() {
+  return (
+    sessionStorage.getItem("access_token") ||
+    localStorage.getItem("access_token")
+  );
+}
+
+function RecommendedAuctions({ limit = 6, compact = false }) {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
+  const sectionClass = compact
+    ? "recommended-section recommended-compact"
+    : "recommended-section";
+
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const token =
-          sessionStorage.getItem("access_token");
+        const token = getAccessToken();
 
         if (!token) {
           setLoading(false);
@@ -24,7 +36,7 @@ function RecommendedAuctions() {
         }
 
         const response = await fetch(
-          `${API_BASE_URL}/api/recommendations?limit=6`,
+          `${API_BASE_URL}/api/recommendations?limit=${limit}`,
           {
             method: "GET",
             headers: {
@@ -71,15 +83,14 @@ function RecommendedAuctions() {
     };
 
     fetchRecommendations();
-  }, []);
+  }, [limit]);
 
   // =====================================================
   // OPEN AUCTION
   // =====================================================
 
   const handleAuctionClick = async (auction) => {
-    const token =
-      sessionStorage.getItem("access_token");
+    const token = getAccessToken();
 
     // Record view
     if (token) {
@@ -155,7 +166,13 @@ navigate(
       return image;
     }
 
-    return `${API_BASE_URL}/${image}`;
+    const normalizedPath = image.replace(/\\/g, "/");
+
+    return `${API_BASE_URL.replace(/\/$/, "")}/${
+      normalizedPath.startsWith("/")
+        ? normalizedPath.slice(1)
+        : normalizedPath
+    }`;
   };
 
   // =====================================================
@@ -164,7 +181,7 @@ navigate(
 
   if (loading) {
     return (
-      <section className="recommended-section">
+      <section className={sectionClass}>
         <div className="recommended-header">
           <div>
             <h2>For You</h2>
@@ -178,9 +195,22 @@ navigate(
   // =====================================================
   // NO RECOMMENDATIONS
   // =====================================================
+  //
+  // Previously this returned null, which made the whole
+  // section disappear. Now the section stays visible with
+  // a short message, so it is clear it is there.
 
   if (recommendations.length === 0) {
-    return null;
+    return (
+      <section className={sectionClass}>
+        <div className="recommended-header">
+          <div>
+            <h2>For You</h2>
+            <p>No recommendations available right now.</p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   // =====================================================
@@ -188,7 +218,7 @@ navigate(
   // =====================================================
 
   return (
-    <section className="recommended-section">
+    <section className={sectionClass}>
 
       {/* HEADER */}
 
